@@ -1,0 +1,11 @@
+#VisNow regular field
+ dims  180 215 68
+origin 3.8965e-02 9.2773e-03 -6.0000e-03 
+    v0 7.4219e-04 0.0000e+00 0.0000e+00 
+    v1 0.0000e+00 7.4219e-04 0.0000e+00 
+    v2 0.0000e+00 0.0000e+00 1.0000e-03 
+component segmented_data    byte, user:"MAP";"0:unassigned";"1:background";"2:bone"
+component       vis_data    byte
+file "czwartek_wysegmentowany.txt" ascii col
+skip 1
+segmented_data, vis_data, 

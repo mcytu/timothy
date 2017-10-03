@@ -1,0 +1,3037 @@
+
+Timothy v.1.0 - Tissue Modelling Framework
+ M.Cytowski, Z.Szymanska
+ ICM, University of Warsaw
+ http://timothy.icm.edu.pl
+
+Exec.info: 1 process x 2 OpenMP threads,
+           1 proc./node, 5867MB/proc.
+
+Sys.info:  x86_64, little endian
+
+Reading parameters file: parameters.txt
+READ SCSIM = 0
+READ BVSIM = 1
+READ BNSIM = 0
+READ NC = 1
+READ NSTEPS = 128
+READ DIM = 3
+READ MITRAND = 1
+READ SECPERSTEP = 16000.000000
+READ MAXCELLS = 5000000
+READ SIZEX = 128
+READ SIZEY = 128
+READ SIZEZ = 128
+READ RSTRESET = 1
+READ OUTDIR = results
+READ VISOUTSTEP = 10
+READ STATOUTSTEP = 1
+READ RSTOUTSTEP = 200
+READ COUTTYPE = POV
+READ FOUTTYPE = VNF
+READ NHS = 195000000
+READ TGS = 1
+READ RNG = BM
+READ MAXSPEED = 1.000000
+READ G1 = 11.000000
+READ S = 8.000000
+READ G2 = 4.000000
+READ M = 1.000000
+READ CG1 = 6.000000
+READ CS = 8.000000
+READ CG2 = 4.000000
+READ CM = 1.000000
+READ V = 0.500000
+READ RD = 0.100000
+READ GFIELDS = 0
+READ GFDT = 16000.000000
+READ GFH = 16.000000
+READ GFLOGDIR = log
+READ OXYGEN = 0
+READ OXYGENDC = 0.000018
+READ OXYGENBC = 0.000000
+READ OXYGENICMEAN = 0.000000
+READ OXYGENICVAR = 0.000000
+READ OXYGENCONS = 0.000000
+READ OXYGENPROD = 0.830000
+READ OXYGENLAMBDA = 0.000000
+READ OXYGENCL1 = 0.000000
+READ OXYGENCL2 = 0.000000
+READ GLUCOSE = 0
+READ GLUCOSEDC = 0.000018
+READ GLUCOSEBC = 0.000000
+READ GLUCOSEICMEAN = 0.000000
+READ GLUCOSEICVAR = 0.000000
+READ GLUCOSECONS = 0.000000
+READ GLUCOSEPROD = 0.000000
+READ GLUCOSELAMBDA = 0.000000
+READ GLUCOSECL1 = 0.000000
+READ GLUCOSECL2 = 0.000000
+READ HYDROGENION = 0
+READ HYDROGENIONDC = 0.000018
+READ HYDROGENIONBC = 0.000000
+READ HYDROGENIONICMEAN = 0.000000
+READ HYDROGENIONICVAR = 0.000000
+READ HYDROGENIONCONS = 0.000000
+READ HYDROGENIONPROD = 0.000000
+READ HYDROGENIONLAMBDA = 0.000000
+READ HYDROGENIONCL1 = 0.000000
+READ HYDROGENIONCL2 = 0.000000
+READ TEMPERATURE = 0
+Box size: 128x128x128
+Output directory: results
+Log directory: log
+
+lnc=696 nc=696 lvc=695 vc=695
+AAAAAAAAAAAAAAAAA
+Zoltan Version 3.810. Initialized.
+ZOLTAN Load balancing method = 8 (HSFC)
+Grid size:17x17x17
+
+-------------------------------------------------------------------------
+ Step        0,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:   0.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.3969    0.4000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           0           0           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...
+Simulation started.
+done
+
+-------------------------------------------------------------------------
+ Step        1,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:   0.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.3969    0.4000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           0           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        2,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:   4.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.4304         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           0           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        3,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:   8.8889
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.4639         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           0           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        4,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:  13.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.4974         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           0           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        5,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:  17.7778
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           1           0           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        6,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:  22.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           0           1           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        7,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:  26.6667
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           0           1           0
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        8,   Time step = 16000.0000  Number of cells =            696 
+-------------------------------------------------------------------------
+
+ Time:  31.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.0000  162.0401  118.7037   38.2839
+ Distance     128.0000         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           0           0           1
+
+ Healthy cells           696
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step        9,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  35.5556
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.1229  162.0401  118.5366   38.5094
+ Distance       0.5000         -         -         -
+ Size           0.3969    0.4000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           2           0           0           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       10,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  40.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.2907  162.0401  118.5372   38.5076
+ Distance       0.4725         -         -         -
+ Size           0.4000    0.4569         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           2           0           0           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       11,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  44.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.4337  162.0401  118.5377   38.5062
+ Distance       0.4567         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           1           0           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       12,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  48.8889
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5556  162.0401  118.5379   38.5055
+ Distance       0.4492         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           1           1           0           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       13,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  53.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5951  162.0401  118.5380   38.5053
+ Distance       0.4467         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           1           1           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       14,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  57.7778
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5937  162.0401  118.5380   38.5053
+ Distance       0.4471         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           1           1           0
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       15,   Time step = 16000.0000  Number of cells =            697 
+-------------------------------------------------------------------------
+
+ Time:  62.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5860  162.0401  118.5379   38.5054
+ Distance       0.4494         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           0           1           0           1
+
+ Healthy cells           697
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       16,   Time step = 16000.0000  Number of cells =            698 
+-------------------------------------------------------------------------
+
+ Time:  66.6667
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.1529  162.0401  118.3738   38.7211
+ Distance       0.5000         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           2           0           1           0
+
+ Healthy cells           698
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       17,   Time step = 16000.0000  Number of cells =            698 
+-------------------------------------------------------------------------
+
+ Time:  71.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.3229  162.0401  118.3742   38.7198
+ Distance       0.5027         -         -         -
+ Size           0.4000    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           2           0           0           1
+
+ Healthy cells           698
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       18,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  75.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8614  162.0401  118.2130   38.9256
+ Distance       0.3718         -         -         -
+ Size           0.3969    0.4648         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         695           4           0           0           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       19,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  80.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.9454  162.0401  118.2138   38.9234
+ Distance       0.3757         -         -         -
+ Size           0.3969    0.4988         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           3           0           0           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       20,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  84.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8868  162.0401  118.2137   38.9237
+ Distance       0.3817         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           1           2           0           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       21,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  88.8889
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8169  162.0401  118.2135   38.9242
+ Distance       0.3880         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           1           2           0           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       22,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  93.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.7423  162.0401  118.2132   38.9251
+ Distance       0.3946         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           0           3           0           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       23,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time:  97.7778
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.6657  162.0401  118.2127   38.9266
+ Distance       0.4011         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           0           1           2           0
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       24,   Time step = 16000.0000  Number of cells =            699 
+-------------------------------------------------------------------------
+
+ Time: 102.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5921  162.0401  118.2122   38.9279
+ Distance       0.4076         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           0           0           2           1
+
+ Healthy cells           699
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       25,   Time step = 16000.0000  Number of cells =            700 
+-------------------------------------------------------------------------
+
+ Time: 106.6666
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5196  162.0401  118.0511   39.1325
+ Distance       0.3456         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         696           2           0           0           2
+
+ Healthy cells           700
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       26,   Time step = 16000.0000  Number of cells =            702 
+-------------------------------------------------------------------------
+
+ Time: 111.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.1897  162.0401  117.7334   39.5261
+ Distance       0.2193         -         -         -
+ Size           0.3969    0.4407         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         697           5           0           0           0
+
+ Healthy cells           702
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       27,   Time step = 16000.0000  Number of cells =            702 
+-------------------------------------------------------------------------
+
+ Time: 115.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.2815  162.0401  117.7360   39.5189
+ Distance       0.2229         -         -         -
+ Size           0.3969    0.4846         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         699           3           0           0           0
+
+ Healthy cells           702
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       28,   Time step = 16000.0000  Number of cells =            702 
+-------------------------------------------------------------------------
+
+ Time: 120.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.2608  162.0401  117.7363   39.5180
+ Distance       0.2267         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         699           1           2           0           0
+
+ Healthy cells           702
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       29,   Time step = 16000.0000  Number of cells =            702 
+-------------------------------------------------------------------------
+
+ Time: 124.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.1944  162.0401  117.7356   39.5199
+ Distance       0.2308         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         699           0           2           1           0
+
+ Healthy cells           702
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       30,   Time step = 16000.0000  Number of cells =            702 
+-------------------------------------------------------------------------
+
+ Time: 128.8889
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.1265  162.0401  117.7348   39.5223
+ Distance       0.2349         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         699           0           1           1           1
+
+ Healthy cells           702
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       31,   Time step = 16000.0000  Number of cells =            703 
+-------------------------------------------------------------------------
+
+ Time: 133.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4686  162.0401  117.5771   39.7145
+ Distance       0.2389         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         699           2           0           1           1
+
+ Healthy cells           703
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       32,   Time step = 16000.0000  Number of cells =            704 
+-------------------------------------------------------------------------
+
+ Time: 137.7777
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4829  162.0401  117.4183   39.9091
+ Distance       0.2429         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         700           3           0           0           1
+
+ Healthy cells           704
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       33,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 142.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8544  162.0401  117.2570   40.1097
+ Distance       0.2468         -         -         -
+ Size           0.3969    0.4876         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         702           3           0           0           0
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       34,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 146.6666
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.9371  162.0401  117.2575   40.1083
+ Distance       0.2503         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         702           2           1           0           0
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       35,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 151.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.9343  162.0401  117.2572   40.1090
+ Distance       0.2537         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         703           1           1           0           0
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       36,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 155.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.9224  162.0401  117.2579   40.1072
+ Distance       0.2572         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         703           1           0           1           0
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       37,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 160.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8966  162.0401  117.2563   40.1117
+ Distance       0.2606         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         702           1           1           1           0
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       38,   Time step = 16000.0000  Number of cells =            705 
+-------------------------------------------------------------------------
+
+ Time: 164.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8534  162.0401  117.2565   40.1111
+ Distance       0.2640         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         702           1           1           0           1
+
+ Healthy cells           705
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       39,   Time step = 16000.0000  Number of cells =            706 
+-------------------------------------------------------------------------
+
+ Time: 168.8888
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2556  162.0401  117.0981   40.3027
+ Distance       0.2673         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         702           2           2           0           0
+
+ Healthy cells           706
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       40,   Time step = 16000.0000  Number of cells =            706 
+-------------------------------------------------------------------------
+
+ Time: 173.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2609  162.0401  117.0977   40.3038
+ Distance       0.2707         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         703           1           1           1           0
+
+ Healthy cells           706
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       41,   Time step = 16000.0000  Number of cells =            706 
+-------------------------------------------------------------------------
+
+ Time: 177.7777
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2589  162.0401  117.0961   40.3082
+ Distance       0.2739         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         703           1           0           1           1
+
+ Healthy cells           706
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       42,   Time step = 16000.0000  Number of cells =            707 
+-------------------------------------------------------------------------
+
+ Time: 182.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5113  162.0401  116.9412   40.4895
+ Distance       0.2322         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         703           2           1           1           0
+
+ Healthy cells           707
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       43,   Time step = 16000.0000  Number of cells =            707 
+-------------------------------------------------------------------------
+
+ Time: 186.6666
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2295  162.0401  116.9411   40.4899
+ Distance       0.2346         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         704           1           1           0           1
+
+ Healthy cells           707
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       44,   Time step = 16000.0000  Number of cells =            708 
+-------------------------------------------------------------------------
+
+ Time: 191.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2089  162.0401  116.7853   40.6728
+ Distance       0.2373         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         704           3           0           1           0
+
+ Healthy cells           708
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       45,   Time step = 16000.0000  Number of cells =            708 
+-------------------------------------------------------------------------
+
+ Time: 195.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.1852  162.0401  116.7840   40.6763
+ Distance       0.2401         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         705           1           1           1           0
+
+ Healthy cells           708
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       46,   Time step = 16000.0000  Number of cells =            708 
+-------------------------------------------------------------------------
+
+ Time: 199.9999
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.1633  162.0401  116.7836   40.6775
+ Distance       0.2430         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         705           1           1           0           1
+
+ Healthy cells           708
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       47,   Time step = 16000.0000  Number of cells =            709 
+-------------------------------------------------------------------------
+
+ Time: 204.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7259  162.0401  116.6234   40.8717
+ Distance       0.2459         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         705           2           2           0           0
+
+ Healthy cells           709
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       48,   Time step = 16000.0000  Number of cells =            709 
+-------------------------------------------------------------------------
+
+ Time: 208.8888
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7580  162.0401  116.6216   40.8764
+ Distance       0.2490         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         706           1           1           1           0
+
+ Healthy cells           709
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       49,   Time step = 16000.0000  Number of cells =            709 
+-------------------------------------------------------------------------
+
+ Time: 213.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7818  162.0401  116.6211   40.8779
+ Distance       0.2520         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         706           1           1           1           0
+
+ Healthy cells           709
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       50,   Time step = 16000.0000  Number of cells =            709 
+-------------------------------------------------------------------------
+
+ Time: 217.7777
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0762  162.0401  116.6214   40.8771
+ Distance       0.2551         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         705           2           0           1           1
+
+ Healthy cells           709
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       51,   Time step = 16000.0000  Number of cells =            710 
+-------------------------------------------------------------------------
+
+ Time: 222.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0816  162.0401  116.4620   41.0680
+ Distance       0.2581         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         705           3           1           1           0
+
+ Healthy cells           710
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       52,   Time step = 16000.0000  Number of cells =            710 
+-------------------------------------------------------------------------
+
+ Time: 226.6666
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0829  162.0401  116.4634   41.0642
+ Distance       0.2607         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         706           2           1           0           1
+
+ Healthy cells           710
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       53,   Time step = 16000.0000  Number of cells =            711 
+-------------------------------------------------------------------------
+
+ Time: 231.1110
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0827  162.0401  116.3078   41.2444
+ Distance       0.2635         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         707           3           1           0           0
+
+ Healthy cells           711
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       54,   Time step = 16000.0000  Number of cells =            711 
+-------------------------------------------------------------------------
+
+ Time: 235.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0807  162.0401  116.3079   41.2442
+ Distance       0.2663         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         708           1           1           1           0
+
+ Healthy cells           711
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       55,   Time step = 16000.0000  Number of cells =            711 
+-------------------------------------------------------------------------
+
+ Time: 239.9999
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0780  162.0401  116.3093   41.2403
+ Distance       0.2693         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         708           1           1           1           0
+
+ Healthy cells           711
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       56,   Time step = 16000.0000  Number of cells =            711 
+-------------------------------------------------------------------------
+
+ Time: 244.4444
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0738  162.0401  116.3086   41.2420
+ Distance       0.2723         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         708           0           1           1           1
+
+ Healthy cells           711
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       57,   Time step = 16000.0000  Number of cells =            712 
+-------------------------------------------------------------------------
+
+ Time: 248.8888
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.8003  162.0401  116.1536   41.4198
+ Distance       0.2754         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         708           2           1           0           1
+
+ Healthy cells           712
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       58,   Time step = 16000.0000  Number of cells =            713 
+-------------------------------------------------------------------------
+
+ Time: 253.3333
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.8006  162.0401  115.9985   41.5974
+ Distance       0.2785         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           3           1           0           0
+
+ Healthy cells           713
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       59,   Time step = 16000.0000  Number of cells =            713 
+-------------------------------------------------------------------------
+
+ Time: 257.7777
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7974  162.0401  115.9965   41.6028
+ Distance       0.2818         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         710           2           0           1           0
+
+ Healthy cells           713
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       60,   Time step = 16000.0000  Number of cells =            713 
+-------------------------------------------------------------------------
+
+ Time: 262.2222
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7899  162.0401  115.9969   41.6016
+ Distance       0.2853         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           1           2           1           0
+
+ Healthy cells           713
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       61,   Time step = 16000.0000  Number of cells =            713 
+-------------------------------------------------------------------------
+
+ Time: 266.6666
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7787  162.0401  115.9954   41.6056
+ Distance       0.2887         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           1           2           0           1
+
+ Healthy cells           713
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       62,   Time step = 16000.0000  Number of cells =            714 
+-------------------------------------------------------------------------
+
+ Time: 271.1111
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7667  162.0401  115.8370   41.7910
+ Distance       0.2901         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           2           2           1           0
+
+ Healthy cells           714
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       63,   Time step = 16000.0000  Number of cells =            714 
+-------------------------------------------------------------------------
+
+ Time: 275.5555
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7546  162.0401  115.8359   41.7940
+ Distance       0.2902         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           2           1           2           0
+
+ Healthy cells           714
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       64,   Time step = 16000.0000  Number of cells =            714 
+-------------------------------------------------------------------------
+
+ Time: 280.0000
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7425  162.0401  115.8375   41.7896
+ Distance       0.2904         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           1           1           1           2
+
+ Healthy cells           714
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       65,   Time step = 16000.0000  Number of cells =            716 
+-------------------------------------------------------------------------
+
+ Time: 284.4445
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4697  162.0401  115.5248   42.1475
+ Distance       0.2908         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           5           1           1           0
+
+ Healthy cells           716
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       66,   Time step = 16000.0000  Number of cells =            716 
+-------------------------------------------------------------------------
+
+ Time: 288.8889
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5424  162.0401  115.5269   42.1419
+ Distance       0.2905         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         709           4           1           1           1
+
+ Healthy cells           716
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       67,   Time step = 16000.0000  Number of cells =            717 
+-------------------------------------------------------------------------
+
+ Time: 293.3334
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5991  162.0401  115.3724   42.3150
+ Distance       0.2907         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         710           4           2           0           1
+
+ Healthy cells           717
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       68,   Time step = 16000.0000  Number of cells =            718 
+-------------------------------------------------------------------------
+
+ Time: 297.7778
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5634  162.0401  115.2195   42.4833
+ Distance       0.2912         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         710           5           2           1           0
+
+ Healthy cells           718
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       69,   Time step = 16000.0000  Number of cells =            718 
+-------------------------------------------------------------------------
+
+ Time: 302.2223
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5284  162.0401  115.2191   42.4844
+ Distance       0.2922         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         711           3           3           0           1
+
+ Healthy cells           718
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       70,   Time step = 16000.0000  Number of cells =            719 
+-------------------------------------------------------------------------
+
+ Time: 306.6667
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4933  162.0401  115.0705   42.6410
+ Distance       0.2934         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         710           4           3           2           0
+
+ Healthy cells           719
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       71,   Time step = 16000.0000  Number of cells =            719 
+-------------------------------------------------------------------------
+
+ Time: 311.1112
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4569  162.0401  115.0693   42.6440
+ Distance       0.2946         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         712           2           2           2           1
+
+ Healthy cells           719
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       72,   Time step = 16000.0000  Number of cells =            720 
+-------------------------------------------------------------------------
+
+ Time: 315.5557
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.5705  162.0401  114.9163   42.8115
+ Distance       0.2957         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         711           4           3           1           1
+
+ Healthy cells           720
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       73,   Time step = 16000.0000  Number of cells =            721 
+-------------------------------------------------------------------------
+
+ Time: 320.0001
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.4929  162.0401  114.7623   42.9807
+ Distance       0.2971         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         712           5           2           1           1
+
+ Healthy cells           721
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       74,   Time step = 16000.0000  Number of cells =            722 
+-------------------------------------------------------------------------
+
+ Time: 324.4446
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        3.0028  162.0401  114.6124   43.1390
+ Distance       0.2985         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         713           6           2           1           0
+
+ Healthy cells           722
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       75,   Time step = 16000.0000  Number of cells =            722 
+-------------------------------------------------------------------------
+
+ Time: 328.8890
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.9311  162.0401  114.6117   43.1409
+ Distance       0.2995         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         715           2           3           1           1
+
+ Healthy cells           722
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       76,   Time step = 16000.0000  Number of cells =            723 
+-------------------------------------------------------------------------
+
+ Time: 333.3335
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.8556  162.0401  114.4600   43.3033
+ Distance       0.3006         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         715           4           3           0           1
+
+ Healthy cells           723
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       77,   Time step = 16000.0000  Number of cells =            724 
+-------------------------------------------------------------------------
+
+ Time: 337.7780
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.6898  162.0401  114.3092   43.4630
+ Distance       0.3021         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         714           6           3           1           0
+
+ Healthy cells           724
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       78,   Time step = 16000.0000  Number of cells =            724 
+-------------------------------------------------------------------------
+
+ Time: 342.2224
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.7153  162.0401  114.3107   43.4593
+ Distance       0.3037         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         714           5           3           1           1
+
+ Healthy cells           724
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       79,   Time step = 16000.0000  Number of cells =            725 
+-------------------------------------------------------------------------
+
+ Time: 346.6669
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.6373  162.0401  114.1604   43.6173
+ Distance       0.3053         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         716           4           3           1           1
+
+ Healthy cells           725
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       80,   Time step = 16000.0000  Number of cells =            726 
+-------------------------------------------------------------------------
+
+ Time: 351.1113
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7212  162.0401  114.0076   43.7809
+ Distance       0.3068         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         716           5           3           2           0
+
+ Healthy cells           726
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       81,   Time step = 16000.0000  Number of cells =            726 
+-------------------------------------------------------------------------
+
+ Time: 355.5558
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0822  162.0401  114.0079   43.7802
+ Distance       0.3084         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         716           3           5           0           2
+
+ Healthy cells           726
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       82,   Time step = 16000.0000  Number of cells =            728 
+-------------------------------------------------------------------------
+
+ Time: 360.0002
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0514  162.0401  113.7133   44.0788
+ Distance       0.3099         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         716           7           5           0           0
+
+ Healthy cells           728
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       83,   Time step = 16000.0000  Number of cells =            728 
+-------------------------------------------------------------------------
+
+ Time: 364.4447
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0496  162.0401  113.7113   44.0837
+ Distance       0.3112         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         719           3           5           1           0
+
+ Healthy cells           728
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       84,   Time step = 16000.0000  Number of cells =            728 
+-------------------------------------------------------------------------
+
+ Time: 368.8892
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2365  162.0401  113.7107   44.0852
+ Distance       0.3126         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         718           3           5           2           0
+
+ Healthy cells           728
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       85,   Time step = 16000.0000  Number of cells =            728 
+-------------------------------------------------------------------------
+
+ Time: 373.3336
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.2126  162.0401  113.7115   44.0831
+ Distance       0.3143         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         718           2           6           0           2
+
+ Healthy cells           728
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       86,   Time step = 16000.0000  Number of cells =            730 
+-------------------------------------------------------------------------
+
+ Time: 377.7781
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0111  162.0401  113.4105   44.3958
+ Distance       0.2619         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         719           5           4           2           0
+
+ Healthy cells           730
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       87,   Time step = 16000.0000  Number of cells =            730 
+-------------------------------------------------------------------------
+
+ Time: 382.2225
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.9919  162.0401  113.4076   44.4029
+ Distance       0.2656         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         720           4           3           2           1
+
+ Healthy cells           730
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       88,   Time step = 16000.0000  Number of cells =            731 
+-------------------------------------------------------------------------
+
+ Time: 386.6670
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.9724  162.0401  113.2589   44.5540
+ Distance       0.2695         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         720           6           2           2           1
+
+ Healthy cells           731
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       89,   Time step = 16000.0000  Number of cells =            731 
+-------------------------------------------------------------------------
+
+ Time: 391.1115
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.9528  162.0401  113.2562   44.5605
+ Distance       0.2735         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         722           4           2           2           1
+
+ Healthy cells           731
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       90,   Time step = 16000.0000  Number of cells =            732 
+-------------------------------------------------------------------------
+
+ Time: 395.5559
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7126  162.0401  113.1068   44.7128
+ Distance       0.2774         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         722           5           3           0           2
+
+ Healthy cells           732
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       91,   Time step = 16000.0000  Number of cells =            734 
+-------------------------------------------------------------------------
+
+ Time: 400.0004
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.7427  162.0401  112.8115   45.0081
+ Distance       0.2814         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         722           9           2           1           0
+
+ Healthy cells           734
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       92,   Time step = 16000.0000  Number of cells =            734 
+-------------------------------------------------------------------------
+
+ Time: 404.4448
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0690  162.0401  112.8111   45.0090
+ Distance       0.2852         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         723           5           4           2           0
+
+ Healthy cells           734
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       93,   Time step = 16000.0000  Number of cells =            734 
+-------------------------------------------------------------------------
+
+ Time: 408.8893
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        2.0566  162.0401  112.8108   45.0098
+ Distance       0.2890         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         723           4           5           0           2
+
+ Healthy cells           734
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       94,   Time step = 16000.0000  Number of cells =            736 
+-------------------------------------------------------------------------
+
+ Time: 413.3337
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.6322  162.0401  112.5170   45.2997
+ Distance       0.2929         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         723           7           5           1           0
+
+ Healthy cells           736
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       95,   Time step = 16000.0000  Number of cells =            736 
+-------------------------------------------------------------------------
+
+ Time: 417.7782
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.6145  162.0401  112.5181   45.2970
+ Distance       0.2966         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         725           4           4           3           0
+
+ Healthy cells           736
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       96,   Time step = 16000.0000  Number of cells =            736 
+-------------------------------------------------------------------------
+
+ Time: 422.2227
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5973  162.0401  112.5154   45.3035
+ Distance       0.3002         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         726           3           3           3           1
+
+ Healthy cells           736
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       97,   Time step = 16000.0000  Number of cells =            737 
+-------------------------------------------------------------------------
+
+ Time: 426.6671
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5806  162.0401  112.3668   45.4517
+ Distance       0.3038         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         726           4           3           2           2
+
+ Healthy cells           737
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       98,   Time step = 16000.0000  Number of cells =            738 
+-------------------------------------------------------------------------
+
+ Time: 431.1116
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5644  162.0401  112.2199   45.5956
+ Distance       0.3073         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         726           7           3           0           2
+
+ Healthy cells           738
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step       99,   Time step = 16000.0000  Number of cells =            740 
+-------------------------------------------------------------------------
+
+ Time: 435.5560
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5488  162.0401  111.9277   45.8787
+ Distance       0.3108         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         727           9           4           0           0
+
+ Healthy cells           740
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      100,   Time step = 16000.0000  Number of cells =            740 
+-------------------------------------------------------------------------
+
+ Time: 440.0005
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5335  162.0401  111.9284   45.8771
+ Distance       0.3127         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         729           5           4           2           0
+
+ Healthy cells           740
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      101,   Time step = 16000.0000  Number of cells =            740 
+-------------------------------------------------------------------------
+
+ Time: 444.4449
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5187  162.0401  111.9275   45.8793
+ Distance       0.3127         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         729           2           7           1           1
+
+ Healthy cells           740
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      102,   Time step = 16000.0000  Number of cells =            741 
+-------------------------------------------------------------------------
+
+ Time: 448.8894
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.5042  162.0401  111.7766   46.0314
+ Distance       0.3129         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         729           4           7           0           1
+
+ Healthy cells           741
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      103,   Time step = 16000.0000  Number of cells =            742 
+-------------------------------------------------------------------------
+
+ Time: 453.3339
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0702  162.0401  111.6285   46.1766
+ Distance       0.3129         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         728           7           4           3           0
+
+ Healthy cells           742
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      104,   Time step = 16000.0000  Number of cells =            742 
+-------------------------------------------------------------------------
+
+ Time: 457.7783
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0637  162.0401  111.6311   46.1704
+ Distance       0.3129         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         728           6           2           4           2
+
+ Healthy cells           742
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      105,   Time step = 16000.0000  Number of cells =            744 
+-------------------------------------------------------------------------
+
+ Time: 462.2228
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0574  162.0401  111.3470   46.4320
+ Distance       0.2945         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         729           8           3           2           2
+
+ Healthy cells           744
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      106,   Time step = 16000.0000  Number of cells =            746 
+-------------------------------------------------------------------------
+
+ Time: 466.6672
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0512  162.0401  111.0574   46.7049
+ Distance       0.2963         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         731           8           4           2           1
+
+ Healthy cells           746
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      107,   Time step = 16000.0000  Number of cells =            746 
+-------------------------------------------------------------------------
+
+ Time: 471.1117
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0452  162.0401  111.0574   46.7050
+ Distance       0.2984         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         733           7           3           3           0
+
+ Healthy cells           746
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      108,   Time step = 16000.0000  Number of cells =            746 
+-------------------------------------------------------------------------
+
+ Time: 475.5562
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0392  162.0401  111.0579   46.7038
+ Distance       0.3010         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         733           5           4           2           2
+
+ Healthy cells           746
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      109,   Time step = 16000.0000  Number of cells =            748 
+-------------------------------------------------------------------------
+
+ Time: 480.0006
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0333  162.0401  110.7770   46.9557
+ Distance       0.3038         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         733           7           4           3           1
+
+ Healthy cells           748
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      110,   Time step = 16000.0000  Number of cells =            749 
+-------------------------------------------------------------------------
+
+ Time: 484.4451
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0271  162.0401  110.6347   47.0856
+ Distance       0.3066         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         734           7           3           4           1
+
+ Healthy cells           749
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      111,   Time step = 16000.0000  Number of cells =            750 
+-------------------------------------------------------------------------
+
+ Time: 488.8895
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0209  162.0401  110.4921   47.2158
+ Distance       0.3097         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         736           5           4           2           3
+
+ Healthy cells           750
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      112,   Time step = 16000.0000  Number of cells =            753 
+-------------------------------------------------------------------------
+
+ Time: 493.3340
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0149  162.0401  110.0759   47.5789
+ Distance       0.3125         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         736          11           4           1           1
+
+ Healthy cells           753
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      113,   Time step = 16000.0000  Number of cells =            754 
+-------------------------------------------------------------------------
+
+ Time: 497.7784
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0089  162.0401  109.9403   47.6928
+ Distance       0.3125         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         739          10           2           3           0
+
+ Healthy cells           754
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      114,   Time step = 16000.0000  Number of cells =            754 
+-------------------------------------------------------------------------
+
+ Time: 502.2229
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        1.0031  162.0401  109.9401   47.6931
+ Distance       0.3126         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         741           7           3           3           0
+
+ Healthy cells           754
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      115,   Time step = 16000.0000  Number of cells =            754 
+-------------------------------------------------------------------------
+
+ Time: 506.6674
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9974  162.0401  109.9402   47.6930
+ Distance       0.3126         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         740           5           5           2           2
+
+ Healthy cells           754
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      116,   Time step = 16000.0000  Number of cells =            755 
+-------------------------------------------------------------------------
+
+ Time: 511.1118
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9917  162.0401  109.7961   47.8251
+ Distance       0.3126         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         739           7           7           1           1
+
+ Healthy cells           755
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      117,   Time step = 16000.0000  Number of cells =            755 
+-------------------------------------------------------------------------
+
+ Time: 515.5563
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9859  162.0401  109.7926   47.8328
+ Distance       0.3126         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         741           5           5           3           1
+
+ Healthy cells           755
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      118,   Time step = 16000.0000  Number of cells =            755 
+-------------------------------------------------------------------------
+
+ Time: 520.0007
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9803  162.0401  109.7897   47.8391
+ Distance       0.3127         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         740           5           3           4           3
+
+ Healthy cells           755
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      119,   Time step = 16000.0000  Number of cells =            757 
+-------------------------------------------------------------------------
+
+ Time: 524.4452
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9747  162.0401  109.5120   48.0798
+ Distance       0.3128         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         740           7           5           1           4
+
+ Healthy cells           757
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      120,   Time step = 16000.0000  Number of cells =            760 
+-------------------------------------------------------------------------
+
+ Time: 528.8896
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9693  162.0401  109.1009   48.4272
+ Distance       0.1745         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         741          12           5           0           2
+
+ Healthy cells           760
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      121,   Time step = 16000.0000  Number of cells =            761 
+-------------------------------------------------------------------------
+
+ Time: 533.3341
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9639  162.0401  108.9670   48.5358
+ Distance       0.1723         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         743          11           4           2           1
+
+ Healthy cells           761
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      122,   Time step = 16000.0000  Number of cells =            761 
+-------------------------------------------------------------------------
+
+ Time: 537.7786
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9587  162.0401  108.9637   48.5430
+ Distance       0.1707         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         745           8           4           2           2
+
+ Healthy cells           761
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      123,   Time step = 16000.0000  Number of cells =            762 
+-------------------------------------------------------------------------
+
+ Time: 542.2230
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9534  162.0401  108.8278   48.6559
+ Distance       0.1696         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         745           8           6           2           1
+
+ Healthy cells           762
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      124,   Time step = 16000.0000  Number of cells =            762 
+-------------------------------------------------------------------------
+
+ Time: 546.6675
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9480  162.0401  108.8241   48.6636
+ Distance       0.1689         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         745           5           6           4           2
+
+ Healthy cells           762
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      125,   Time step = 16000.0000  Number of cells =            762 
+-------------------------------------------------------------------------
+
+ Time: 551.1119
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9426  162.0401  108.8246   48.6626
+ Distance       0.1686         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         744           7           5           1           5
+
+ Healthy cells           762
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      126,   Time step = 16000.0000  Number of cells =            766 
+-------------------------------------------------------------------------
+
+ Time: 555.5564
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9373  162.0401  108.2927   49.0874
+ Distance       0.1686         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         745          12           5           2           2
+
+ Healthy cells           766
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+-------------------------------------------------------------------------
+ Step      127,   Time step = 16000.0000  Number of cells =            767 
+-------------------------------------------------------------------------
+
+ Time: 560.0009
+
+DEBUG: octBuild() start
+DEBUG: octBuild() end
+DEBUG: compPot() start
+DEBUG: compPot() end
+                   Min       Max       Avg       Dev
+ Density        0.9319  162.0401  108.1532   49.2069
+ Distance       0.1689         -         -         -
+ Size           0.3969    0.5000         -         -
+
+ Cell phase           G0          G1           S          G2           M
+ N. of cells         749          10           4           2           2
+
+ Healthy cells           767
+ Cancer cells              0
+ Necrotic cells            0
+ Cells movement...done
+
+End of simulation run.
