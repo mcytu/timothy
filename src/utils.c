@@ -33,7 +33,6 @@
 #endif
 
 #include "global.h"
-//#include "comm.h"
 
 /*! \file utils.c
  *  \brief contains various utility functions
@@ -174,12 +173,11 @@ size_t getMemoryPerProcess(int32_t lsize)
 #else
 #if defined(_AIX)
   int msize = sysconf(_SC_AIX_REALMEM) / 1024;
-#endif				/* aix */
-#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+#else				/* aix */
   long psize = sysconf(_SC_PAGE_SIZE);
   long npages = sysconf(_SC_PHYS_PAGES);
   long msize = psize * npages / (1024 * 1024);
-#endif				/*linux */
+#endif				/* other then aix and bgq - linux or osx */
 #endif				/* bgq */
   return msize / lsize;
 }
