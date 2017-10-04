@@ -30,7 +30,7 @@
 
 #define _GNU_SOURCE
 #include <fcntl.h>
-//#include <unistd.h>
+#include <sys/stat.h>
 
 #include "global.h"
 #include "io.h"
