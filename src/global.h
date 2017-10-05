@@ -21,6 +21,7 @@
  * *************************************************************************/
 
 #include <zoltan.h>
+#include <stdbool.h>
 
 /*! \file global.h
  *  \brief contains the most important global variables, arrays and defines
@@ -99,6 +100,90 @@ int64_t maxCells;
 
 MIC_ATTR int64_t localCellCount[numberOfCounts];
 int64_t totalCellCount[numberOfCounts];
+
+struct cellCountInfo{
+  uint64_t number_of_cells;
+  uint64_t g0_phase_number_of_cells;
+  uint64_t g1_phase_number_of_cells;
+  uint64_t s_phase_number_of_cells;
+  uint64_t g2_phase_number_of_cells;
+  uint64_t m_phase_number_of_cells;
+  uint64_t necrotic_phase_number_of_cells;
+  //TODO check names, all needed?
+};
+
+struct cellsInfo{
+    struct cellCountInfo localCellCount;
+    struct cellCountInfo totalCellCount;
+    uint64_t * localTypeCellCount;
+    uint64_t * totalTypeCellCount;
+    uint64_t * numberOfCellsInEachProcess;
+    struct cellData * cells;
+    double ** cellFields;
+    size_t numberOfCellTypes;
+    struct doubleVector3d *velocity;
+    struct cellTypeData * cellTypes;
+//    str_uint16_dict * cellTypeNumberDict;
+    double minimal_density_to_keep_necrotic_cell;
+};
+
+#define ZOLTAN_ID_TYPE int
+
+typedef struct settings_t {
+ 		int64_t maxcells;   /* maximal number of cells (set in parameter file) */
+		int numberofsteps;
+		float secondsperstep;
+		int numberofcelltypes;
+		int numberoffields;
+		int dimension;
+		int restart;
+    char rstfilename[128];
+		char outdir[128];
+    int visoutstep;
+    int statoutstep;
+		int rstoutstep;
+		float maxspeed; /* maximal displacement in cm/s */
+//    int MPI_group_size;
+//    size_t numberOfCellTypes;
+//    size_t numberOfEnvironments;
+//    uint64_t maxCellsPerProc;
+//    str_uint16_dict * envirormentNumberDict;
+//    str_uint16_dict * cellTypeNumberDict;
+//    struct cellTypeData * cellTypes;
+//    struct environment * environments;
+//    float global_fields_time_delta;
+//    int boxsizex;
+//    int boxsizey;
+//    int boxsizez;
+//    double neighbourhood;
+//    int MIC_ATTR treeNumberOfChildren;
+//    int number_of_steps;
+//    ZOLTAN_ID_TYPE id_range; //Calculate range based on number of mpi process
+//    int statOutStep;
+//    int rstOutStep;
+//    int vtkOutStep;
+//    float maxSpeed;
+//    float gfDt;
+//    float gfH;
+//    int gfIterPerStep;
+//    float maxSpeedInUnits;  /* maximal displacement in cm/s */
+//    bool enable_step_transformation;
+//    void (*step_transformation)(struct cellsInfo * ci, const struct settings * s);
+} settings_t;
+
+typedef struct system_t {
+    int rank;                    /* MPI rank */
+    int size;                    /* MPI size */
+    int nthreads;
+    int dim[3];
+    int noderank;
+    int nodesize;
+    int memperproc;
+    MPI_Comm MPI_CART_COMM;
+    int **coords;
+    int rstReset;
+} system_t;
+
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

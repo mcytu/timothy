@@ -32,6 +32,81 @@
  *  \brief contains initialization functions
  */
 
+ /*!
+  * This function prints the execution info.
+  */
+ void execinfo(system_t* system)
+ {
+   if(MPIrank==0){
+
+   }
+
+
+   if (system->rank == 0) {
+     printf("Exec.info: %d ", system->size);
+     if (system->size > 1)
+       printf("processes ");
+     else
+       printf("process ");
+     printf("x %d OpenMP ", system->nthreads);
+     if (system->nthreads > 1)
+       printf("threads,\n");
+     else
+       printf("thread,\n");
+     printf("           %d proc./node, %dMB/proc.\n\n", system->nodesize,
+            system->memperproc);
+     printf("Sys.info:  ");
+     if (endian)
+       printf("%s, little endian\n", CPUARCH);
+     else
+       printf("%s, big endian\n", CPUARCH);
+     printf("\n");
+     fflush(stdout);
+   }
+ }
+
+void getsysteminfo(system_t* system) {
+  checkEndiannes();
+  getLocalRankAndSize(system->rank, system->size, &(system->noderank), &(system->nodesize));
+  system->memperproc = getMemoryPerProcess(system->nodesize);
+  if (!POWER_OF_TWO(system->size))
+    stopRun(101, NULL, __FILE__, __LINE__);
+}
+
+void initialisation(int argc, char **argv, system_t system, settings_t* settings) {
+
+  if (argc < 1)
+    stopRun(102, NULL, __FILE__, __LINE__);
+  readparams(argc,argv,system,settings);
+  //initParams();
+
+//  if (strcmp(argv[1], "-h") == 0)
+//    printHelp();
+
+}
+
+void printinfo(system_t system) {
+  if (system.rank == 0) {
+    printf("\nTimothy, Tissue Modelling Framework\n");
+    printf("http://timothy.icm.edu.pl\n");
+    printf("Version %s\n\n", VERSION);
+    printf("Number of MPI processes: %d\n",system.size);
+    printf("Processes per node: %d\n",system.nodesize);
+    printf("Threads per process: %d\n",system.nthreads);
+    printf("System: ");
+    if (endian)
+      printf("%s, little endian\n", CPUARCH);
+    else
+      printf("%s, big endian\n", CPUARCH);
+    printf("\n");
+    fflush(stdout);
+  }
+}
+
+
+
+
+
 /*!
  * This function sets default values for the simulation.
 */
@@ -97,36 +172,6 @@ void simulationInit(int argc, char **argv)
   int periods[3];
   int reorder;
 
-  /* print basic informations */
-  printBasicInfo();
-
-  /* check necessary arguments */
-  //if( (argc<3 || (strcmp(argv[1],"-p"))) || (argc<2 || (strcmp(argv[1],"-h"))) )
-  //  stopRun(102,NULL,__FILE__,__LINE__);
-
-  if (argc < 2)
-    stopRun(102, NULL, __FILE__, __LINE__);
-  else if ((argc < 3 && strcmp(argv[1], "-p") == 0)
-           || (strcmp(argv[1], "-p") && strcmp(argv[1], "-h")))
-    stopRun(102, NULL, __FILE__, __LINE__);
-
-  initParams();
-
-  if (strcmp(argv[1], "-h") == 0)
-    printHelp();
-
-  /* check number of processes */
-  if (!POWER_OF_TWO(MPIsize))
-    stopRun(101, NULL, __FILE__, __LINE__);
-
-  /* checking system and runtime configuration */
-  checkEndiannes();
-  getLocalRankAndSize(MPIrank, MPIsize, &MPINodeRank, &MPINodeSize);
-  memPerProc = getMemoryPerProcess(MPINodeSize);
-
-  /* print execution informations */
-  printExecInfo();
-
   /* set default values */
   defaultValues();
 
@@ -134,10 +179,10 @@ void simulationInit(int argc, char **argv)
   scInit();
 
   /* initialize random number generator */
-  randomStreamInit();
+  //randomStreamInit();
 
   /* read parameters file and restart file (if present) */
-  readParams(argc, argv);
+  //readParams(argc, argv);
   /* generate random cells if not a restart simulation */
   if (!rst) {
     simStart = 0;

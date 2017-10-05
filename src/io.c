@@ -42,66 +42,15 @@
 
 void readRstFile(int argc, char **argv);
 
-/*!
- * This function prints Timothy's basic information.
- */
-void printBasicInfo()
-{
-  if (MPIrank == 0) {
-    printf("\nTimothy v.%s - Tissue Modelling Framework\n", VERSION);
-    printf("http://timothy.icm.edu.pl\n\n");
-    fflush(stdout);
-  }
-}
-
-/*!
- * This function prints the execution info.
- */
-void printExecInfo()
-{
-  if (MPIrank == 0) {
-    printf("Exec.info: %d ", MPIsize);
-    if (MPIsize > 1)
-      printf("processes ");
-    else
-      printf("process ");
-    printf("x %d OpenMP ", OMPthreads);
-    if (OMPthreads > 1)
-      printf("threads,\n");
-    else
-      printf("thread,\n");
-    printf("           %d proc./node, %dMB/proc.\n\n", MPINodeSize,
-           memPerProc);
-    printf("Sys.info:  ");
-    if (endian)
-      printf("%s, little endian\n", CPUARCH);
-    else
-      printf("%s, big endian\n", CPUARCH);
-    printf("\n");
-    fflush(stdout);
-  }
-}
-
-void printHelp()
-{
-  int i;
-  if (MPIrank == 0) {
-    printf
-    ("This help prints all Timothy parameters and their meaning.\n\n");
-    for (i = 0; i < NPAR; i++)
-      printf("%s: %s\n", params[i], desc[i]);
-  }
-  stopRun(999, NULL, __FILE__, __LINE__);
-}
 
 /*!
  * This function initializes all parameters.
  */
-void initParams(int argc, char **argv)
-{
+
+//void initParams(int argc, char **argv)
+/*{
 
   int nr;
-  /* initialize all parameters */
 
   nr = 0;
 
@@ -614,37 +563,141 @@ void initParams(int argc, char **argv)
   type[nr] = INT;
   nr++;
 
-}
+}*/
 
 /*!
  * This function reads the parameter file.
  */
-void readParams(int argc, char **argv)
-{
 
-  char paramFileName[FNLEN];
+void readparams(int argc, char **argv, system_t system, settings_t* settings)
+{
+  #define NPAR 13
+  char paramfile[FNLEN];
   char buf[400], buf1[100], buf2[100], buf3[100];
   FILE *fhandle;
+  char params[NPAR][64];
+  char desc[NPAR][512];
+  void *addr[NPAR];
+  int req[NPAR];
+  int set[NPAR];
+  int type[NPAR];
   int i;
+  int nr;
 
-  strcpy(outdir, "results");
+  nr = 0;
 
-  if (strlen(argv[2]) >= FNLEN) {
+  strcpy(params[nr], "MAXCELLS");
+  strcpy(desc[nr], "maximum number of cells in the simulation");
+  req[nr] = 1;
+  addr[nr] = &(settings->maxcells);
+  type[nr] = LONG;
+  nr++;
+
+  strcpy(params[nr], "NSTEPS");
+  strcpy(desc[nr], "number of simulation steps");
+  req[nr] = 1;
+  addr[nr] = &(settings->numberofsteps);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "SECPERSTEP");
+  strcpy(desc[nr], "time step");
+  req[nr] = 1;
+  addr[nr] = &(settings->secondsperstep);
+  type[nr] = REAL;
+  nr++;
+
+  strcpy(params[nr], "NCELLTYPES");
+  strcpy(desc[nr], "number of cell types");
+  req[nr] = 1;
+  addr[nr] = &(settings->numberofcelltypes);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "NFIELDS");
+  strcpy(desc[nr], "number of fields");
+  req[nr] = 1;
+  addr[nr] = &(settings->numberoffields);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "DIMENSIONS");
+  strcpy(desc[nr], "number of dimensions");
+  req[nr] = 1;
+  addr[nr] = &(settings->dimension);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "RESTART");
+  strcpy(desc[nr], "number of dimensions");
+  req[nr] = 1;
+  addr[nr] = &(settings->restart);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "RSTFILE");
+  strcpy(desc[nr], "restart file name");
+  req[nr] = 0;
+  addr[nr] = &(settings->rstfilename);
+  type[nr] = STRING;
+  nr++;
+
+  strcpy(params[nr], "OUTDIR");
+  strcpy(desc[nr], "output directory");
+  req[nr] = 0;
+  addr[nr] = &(settings->outdir);
+  type[nr] = STRING;
+  nr++;
+
+  strcpy(params[nr], "VISOUTSTEP");
+  strcpy(desc[nr], "frequency of vtk/pov output");
+  req[nr] = 1;
+  addr[nr] = &(settings->visoutstep);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "STATOUTSTEP");
+  strcpy(desc[nr], "frequency of statistics output");
+  req[nr] = 1;
+  addr[nr] = &(settings->statoutstep);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "RSTOUTSTEP");
+  strcpy(desc[nr], "frequency of restart file output");
+  req[nr] = 1;
+  addr[nr] = &(settings->rstoutstep);
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "MAXSPEED");
+  strcpy(desc[nr], "maximal cell speed in cell units");
+  req[nr] = 1;
+  addr[nr] = &(settings->maxspeed);
+  type[nr] = REAL;
+  nr++;
+
+  strcpy(settings->outdir, "results");
+
+  if (strlen(argv[1]) >= FNLEN) {
     fprintf(stderr, "\nERROR File name too long (>%d characters).\n",
             FNLEN);
     stopRun(0, NULL, __FILE__, __LINE__);
   }
-  sprintf(paramFileName, "%s", argv[2]);
+  sprintf(paramfile, "%s", argv[1]);
 
-  if (MPIrank == 0)
-    printf("Reading parameters file: %s\n", paramFileName);
+  if (system.rank == 0)
+    printf("Reading parameters file: %s\n", paramfile);
 
-  fhandle = fopen(paramFileName, "r");
+  fflush(stdout);
+
+  fhandle = fopen(paramfile, "r");
   if (fhandle == NULL) {
-    if (MPIrank == 0)
+    if (system.rank == 0)
       fprintf(stderr, "\nERROR while opening parameter file.\n\n");
     stopRun(0, NULL, __FILE__, __LINE__);
   }
+
   /* look for parameters in the file */
   while (!feof(fhandle)) {
 
@@ -675,7 +728,7 @@ void readParams(int argc, char **argv)
   }
 
   /* read restart file if given */
-  if (rst == 1)
+  if (settings->restart == 1)
     readRstFile(argc, argv);
 
   /* rewind the file */
@@ -697,21 +750,14 @@ void readParams(int argc, char **argv)
       continue;
 
     for (i = 0; i < NPAR; i++) {
-      /* in the case of the restart simulation we do not allow to change the number of cells */
-      if (rst == 1 && strcmp(params[i], "NC") == 0
-          && strcmp(params[i], buf1) == 0) {
-        if (MPIrank == 0)
-          printf
-          ("NC value from the parameter file will be ignored. This is a restart simulation.\n");
-        continue;
-      }
+
       if (strcmp(buf1, params[i]) == 0) {
         switch (type[i]) {
         case REAL:
           *((float *) addr[i]) = atof(buf2);
 #ifdef DEBUG
-          if (MPIrank == 0) {
-            printf("READ %s = %f\n", params[i], *((float *) addr[i]));
+          if (system.rank == 0) {
+            printf("debug: read %s = %f\n", params[i], *((float *) addr[i]));
             fflush(stdout);
           }
 #endif
@@ -719,8 +765,8 @@ void readParams(int argc, char **argv)
         case DOUBLE:
           *((double *) addr[i]) = atof(buf2);
 #ifdef DEBUG
-          if (MPIrank == 0) {
-            printf("READ %s = %f\n", params[i], *((double *) addr[i]));
+          if (system.rank == 0) {
+            printf("debug: read %s = %f\n", params[i], *((double *) addr[i]));
             fflush(stdout);
           }
 #endif
@@ -728,8 +774,8 @@ void readParams(int argc, char **argv)
         case STRING:
           strcpy((char *) addr[i], buf2);
 #ifdef DEBUG
-          if (MPIrank == 0) {
-            printf("READ %s = %s\n", params[i], buf2);
+          if (system.rank == 0) {
+            printf("debug: read %s = %s\n", params[i], buf2);
             fflush(stdout);
           }
 #endif
@@ -737,8 +783,8 @@ void readParams(int argc, char **argv)
         case INT:
           *((int *) addr[i]) = atoi(buf2);
 #ifdef DEBUG
-          if (MPIrank == 0) {
-            printf("READ %s = %d\n", params[i], *((int *) addr[i]));
+          if (system.rank == 0) {
+            printf("debug: read %s = %d\n", params[i], *((int *) addr[i]));
             fflush(stdout);
           }
 #endif
@@ -746,8 +792,8 @@ void readParams(int argc, char **argv)
         case LONG:
           *((int64_t *) addr[i]) = atol(buf2);
 #ifdef DEBUG
-          if (MPIrank == 0) {
-            printf("READ %s = %" PRId64 "\n", params[i], *((int64_t *) addr[i]));
+          if (system.rank == 0) {
+            printf("debug: read %s = %" PRId64 "\n", params[i], *((int64_t *) addr[i]));
             fflush(stdout);
           }
 #endif
@@ -783,117 +829,32 @@ void readParams(int argc, char **argv)
         if (strcmp(params[i], "OXYGENCL2") == 0 && set[i] == 0)
           stopRun(114, "OXYGENCL2", __FILE__, __LINE__);
       }
-      if (glucose == 1) {
-        if (strcmp(params[i], "GLUCOSEDC") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSEDC", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSEBC") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSEBC", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSEICMEAN") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSEICMEAN", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSEICVAR") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSEICVAR", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSECONS") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSECONS", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSEPROD") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSEPROD", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSELAMBDA") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSELAMBDA", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSECL1") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSECL1", __FILE__, __LINE__);
-        if (strcmp(params[i], "GLUCOSECL2") == 0 && set[i] == 0)
-          stopRun(114, "GLUCOSECL2", __FILE__, __LINE__);
-      }
-      if (hydrogenIon == 1) {
-        if (strcmp(params[i], "HYDROGENIONDC") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONDC", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONBC") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONBC", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONICMEAN") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONICMEAN", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONICVAR") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONICVAR", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONCONS") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONCONS", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONPROD") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONPROD", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONLAMBDA") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONLAMBDA", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONCL1") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONCL1", __FILE__, __LINE__);
-        if (strcmp(params[i], "HYDROGENIONCL2") == 0 && set[i] == 0)
-          stopRun(114, "HYDROGENIONCL2", __FILE__, __LINE__);
-      }
     }
   }
-  if (!rst && nhs == -1 && tgs == 1) {
-    if (MPIrank == 0) {
-      fprintf(stderr,
-              "This is a tumor growth simulation. NHS is undefined. Define NHS in parameter file\n");
-      fflush(stdout);
-    }
-    stopRun(0, NULL, __FILE__, __LINE__);
-  }
 
-  if (!rst) {
-    for (i = 0; i < NPAR; i++)
-      if (req[i] == 1 && set[i] == 0) {
-        if (MPIrank == 0) {
-          fprintf(stderr, "Missing parameter: %s - %s.\nProgram Abort.\n",
-                  params[i], desc[i]);
-          fflush(stdout);
-        }
-        stopRun(0, NULL, __FILE__, __LINE__);
+  for (i = 0; i < NPAR; i++)
+    if (req[i] == 1 && set[i] == 0) {
+      if (system.rank == 0) {
+        fprintf(stderr, "Missing parameter: %s - %s.\nProgram Abort.\n",
+                params[i], desc[i]);
+        fflush(stdout);
       }
-  }
+      stopRun(0, NULL, __FILE__, __LINE__);
+    }
 
-  if (maxSpeed <= 0.0 || maxSpeed >= 4.0)
+  if (settings->maxspeed <= 0.0 || settings->maxspeed >= 4.0)
     stopRun(111, NULL, __FILE__, __LINE__);
 
-  if (!POWER_OF_TWO(nx)) {
-    if (MPIrank == 0)
-      printf("SIZEX = %d. Must be a power of two.\n\n", nx);
-    stopRun(100, "X", __FILE__, __LINE__);
-  }
-  if (!POWER_OF_TWO(ny)) {
-    if (MPIrank == 0)
-      printf("SIZEY = %d. Must be a power of two.\n\n", ny);
-    stopRun(100, "Y", __FILE__, __LINE__);
-  }
-  if (!POWER_OF_TWO(nz)) {
-    if (MPIrank == 0)
-      printf("SIZEZ = %d. Must be a power of two.\n\n", nz);
-    stopRun(100, "Z", __FILE__, __LINE__);
-  }
-  if (MPIrank == 0)
-    printf("Box size: %dx%dx%d\n", nx, ny, nz);
-
-  if (MPIrank == 0) {
+  if (system.rank == 0) {
     struct stat s;
     int err;
-    printf("Output directory: %s\n", outdir);
+    printf("Output directory: %s/\n", settings->outdir);
 
-    err = stat(outdir, &s);
+    err = stat(settings->outdir, &s);
     if (err == -1) {
-      printf("%s/ directory does not exist.\nCreating directory %s/.\n",
-             outdir, outdir);
-      mkdir(outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    } else {
-      rmdir(outdir);
-      mkdir(outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      printf("Creating output directory.\n");
+      mkdir(settings->outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
-
-    printf("Log directory: %s\n\n", logdir);
-
-    err = stat(logdir, &s);
-    if (err == -1) {
-      printf("%s/ directory does not exist.\nCreating directory %s/.\n",
-             logdir, logdir);
-      mkdir(logdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    } else {
-      rmdir(logdir);
-      mkdir(logdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    }
-
   }
 
   fclose(fhandle);

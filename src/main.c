@@ -39,11 +39,19 @@
 
 int main(int argc, char **argv)
 {
-  MPI_Init(&argc, &argv);
-  MPI_Comm_size(MPI_COMM_WORLD, &MPIsize);
-  MPI_Comm_rank(MPI_COMM_WORLD, &MPIrank);
+  system_t system;
+  settings_t settings;
 
-  OMPthreads = omp_get_max_threads();
+  MPI_Init(&argc, &argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &system.size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &system.rank);
+  system.nthreads = omp_get_max_threads();
+
+  getsysteminfo(&system);
+  printinfo(system);
+  initialisation(argc,argv,system,&settings);
+
+  MPI_Abort(MPI_COMM_WORLD,-1);
 
   simulationInit(argc, argv);
 
@@ -73,7 +81,7 @@ int main(int argc, char **argv)
         ioWriteStepPovRay(step, 0);
 //      if (vnfout)
 //        ioWriteFields(step);
-    } 
+    }
 
     updateCellPositions();
     updateCellStates();

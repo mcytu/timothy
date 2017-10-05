@@ -25,7 +25,7 @@
  */
 
 //#define NPAR 34
-#define NPAR 70
+//#define NPAR 70
 #define REAL 1
 #define STRING 2
 #define INT 3
@@ -76,12 +76,12 @@ double rstCsize;
 
 int one=1;
 
-char params[NPAR][64];
-char desc[NPAR][512];
-void *addr[NPAR];
-int req[NPAR];
-int set[NPAR];
-int type[NPAR];
+//char params[NPAR][64];
+//char desc[NPAR][512];
+//void *addr[NPAR];
+//int req[NPAR];
+//int set[NPAR];
+//int type[NPAR];
 
 int fdSave;
 int fdNew;
