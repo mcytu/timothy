@@ -49,9 +49,7 @@ void printBasicInfo()
 {
   if (MPIrank == 0) {
     printf("\nTimothy v.%s - Tissue Modelling Framework\n", VERSION);
-    printf(" M.Cytowski, Z.Szymanska\n");
-    printf(" ICM, University of Warsaw\n");
-    printf(" http://timothy.icm.edu.pl\n\n");
+    printf("http://timothy.icm.edu.pl\n\n");
     fflush(stdout);
   }
 }
