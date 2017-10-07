@@ -142,33 +142,7 @@ typedef struct settings_t {
     int visoutstep;
     int statoutstep;
 		int rstoutstep;
-		float maxspeed; /* maximal displacement in cm/s */
-//    int MPI_group_size;
-//    size_t numberOfCellTypes;
-//    size_t numberOfEnvironments;
-//    uint64_t maxCellsPerProc;
-//    str_uint16_dict * envirormentNumberDict;
-//    str_uint16_dict * cellTypeNumberDict;
-//    struct cellTypeData * cellTypes;
-//    struct environment * environments;
-//    float global_fields_time_delta;
-//    int boxsizex;
-//    int boxsizey;
-//    int boxsizez;
-//    double neighbourhood;
-//    int MIC_ATTR treeNumberOfChildren;
-//    int number_of_steps;
-//    ZOLTAN_ID_TYPE id_range; //Calculate range based on number of mpi process
-//    int statOutStep;
-//    int rstOutStep;
-//    int vtkOutStep;
-//    float maxSpeed;
-//    float gfDt;
-//    float gfH;
-//    int gfIterPerStep;
-//    float maxSpeedInUnits;  /* maximal displacement in cm/s */
-//    bool enable_step_transformation;
-//    void (*step_transformation)(struct cellsInfo * ci, const struct settings * s);
+		float maxspeed;
 } settings_t;
 
 typedef struct system_t {
@@ -184,6 +158,16 @@ typedef struct system_t {
     int rstReset;
 } system_t;
 
+typedef struct celltype_t {
+	char name[128];
+	float g1;
+	float s;
+	float g2;
+	float m;
+	float v;
+	float rd;
+	char inputfile[128];
+} celltype_t;
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

@@ -32,39 +32,6 @@
  *  \brief contains initialization functions
  */
 
- /*!
-  * This function prints the execution info.
-  */
- void execinfo(system_t* system)
- {
-   if(MPIrank==0){
-
-   }
-
-
-   if (system->rank == 0) {
-     printf("Exec.info: %d ", system->size);
-     if (system->size > 1)
-       printf("processes ");
-     else
-       printf("process ");
-     printf("x %d OpenMP ", system->nthreads);
-     if (system->nthreads > 1)
-       printf("threads,\n");
-     else
-       printf("thread,\n");
-     printf("           %d proc./node, %dMB/proc.\n\n", system->nodesize,
-            system->memperproc);
-     printf("Sys.info:  ");
-     if (endian)
-       printf("%s, little endian\n", CPUARCH);
-     else
-       printf("%s, big endian\n", CPUARCH);
-     printf("\n");
-     fflush(stdout);
-   }
- }
-
 void getsysteminfo(system_t* system) {
   checkEndiannes();
   getLocalRankAndSize(system->rank, system->size, &(system->noderank), &(system->nodesize));
@@ -73,12 +40,16 @@ void getsysteminfo(system_t* system) {
     stopRun(101, NULL, __FILE__, __LINE__);
 }
 
-void initialisation(int argc, char **argv, system_t system, settings_t* settings) {
-
-  if (argc < 1)
-    stopRun(102, NULL, __FILE__, __LINE__);
-  readparams(argc,argv,system,settings);
-  //initParams();
+void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype) {
+  if (argc < 2 || argc >2) {
+    if(system.rank==0) printf("usage: timothy <parameter file>\n");
+    fflush(stdout);
+    MPI_Abort(MPI_COMM_WORLD,-1);
+  }
+  readparamfile(argc,argv,system,settings);
+  celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
+//  readcellsfile(settings,celltype);
+  //readenvfile();
 
 //  if (strcmp(argv[1], "-h") == 0)
 //    printHelp();
@@ -87,13 +58,13 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
 
 void printinfo(system_t system) {
   if (system.rank == 0) {
-    printf("\nTimothy, Tissue Modelling Framework\n");
+    printf("\ntimothy, tissue modelling framework\n");
     printf("http://timothy.icm.edu.pl\n");
-    printf("Version %s\n\n", VERSION);
-    printf("Number of MPI processes: %d\n",system.size);
-    printf("Processes per node: %d\n",system.nodesize);
-    printf("Threads per process: %d\n",system.nthreads);
-    printf("System: ");
+    printf("version %s\n\n", VERSION);
+    printf("number of MPI processes: %d\n",system.size);
+    printf("processes per node: %d\n",system.nodesize);
+    printf("threads per process: %d\n",system.nthreads);
+    printf("system: ");
     if (endian)
       printf("%s, little endian\n", CPUARCH);
     else

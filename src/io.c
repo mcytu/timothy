@@ -569,7 +569,7 @@ void readRstFile(int argc, char **argv);
  * This function reads the parameter file.
  */
 
-void readparams(int argc, char **argv, system_t system, settings_t* settings)
+void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
 {
   #define NPAR 13
   char paramfile[FNLEN];

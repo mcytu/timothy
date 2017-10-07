@@ -41,7 +41,8 @@ int main(int argc, char **argv)
 {
   system_t system;
   settings_t settings;
-
+  celltype_t *celltype;
+  
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &system.size);
   MPI_Comm_rank(MPI_COMM_WORLD, &system.rank);
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 
   getsysteminfo(&system);
   printinfo(system);
-  initialisation(argc,argv,system,&settings);
+  initialisation(argc,argv,system,&settings,celltype);
 
   MPI_Abort(MPI_COMM_WORLD,-1);
 
