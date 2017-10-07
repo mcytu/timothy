@@ -569,6 +569,23 @@ void readRstFile(int argc, char **argv);
  * This function reads the parameter file.
  */
 
+readcellsfile(settings_t* settings,celltype_t* celltype) {
+  #define NCELLPAR 9
+  char cellsfile[FNLEN];
+  char buf[400], buf1[100], buf2[100], buf3[100];
+  FILE *fhandle;
+  char cells[NCELLPAR][64];
+  char desc[NCELLPAR][512];
+  void *addr[NCELLPAR];
+  int req[NCELLPAR];
+  int set[NCELLPAR];
+  int type[NCELLPAR];
+  int i;
+  int nr;
+  // wczytywac nazwe a potem parapmetry az do wystapienia nazwy
+}
+
+
 void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
 {
   #define NPAR 13

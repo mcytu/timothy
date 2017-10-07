@@ -40,13 +40,33 @@ void getsysteminfo(system_t* system) {
     stopRun(101, NULL, __FILE__, __LINE__);
 }
 
+void initialsettings(settings_t* settings){
+  settings->maxcells=0;
+  settings->numberofsteps=0;
+  settings->secondsperstep=0;
+  settings->numberofcelltypes=0;
+  settings->numberoffields=0;
+  settings->dimension=3;
+  settings->restart=0;
+  strcpy(settings->rstfilename,"restart.bin");
+  strcpy(settings->outdir,"results");
+  settings->visoutstep=0;
+  settings->statoutstep=0;
+  settings->rstoutstep=0;
+  settings->maxspeed=0;
+}
+
 void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype) {
   if (argc < 2 || argc >2) {
-    if(system.rank==0) printf("usage: timothy <parameter file>\n");
-    fflush(stdout);
+    if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
     MPI_Abort(MPI_COMM_WORLD,-1);
   }
+  initialsettings(settings);
   readparamfile(argc,argv,system,settings);
+  if (settings->numberofcelltypes<1) {
+    if(system.rank==0) { printf("0 cell types. aborting.\n"); fflush(stdout); }
+    MPI_Abort(MPI_COMM_WORLD,-1);
+  }
   celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
 //  readcellsfile(settings,celltype);
   //readenvfile();
@@ -73,10 +93,6 @@ void printinfo(system_t system) {
     fflush(stdout);
   }
 }
-
-
-
-
 
 /*!
  * This function sets default values for the simulation.
