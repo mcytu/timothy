@@ -56,6 +56,20 @@ void initialsettings(settings_t* settings){
   settings->maxspeed=0;
 }
 
+void initialcelltype(int numberofcelltypes,celltype_t* celltype){
+  int i;
+  for(i=0;i<numberofcelltypes;i++) {
+    sprintf(celltype->name,"celltype%d",i);
+  	celltype->g1=CELLTYPE_G1_DEFAULT;
+  	celltype->s=CELLTYPE_S_DEFAULT;
+    celltype->g2=CELLTYPE_G2_DEFAULT;
+    celltype->m=CELLTYPE_M_DEFAULT;
+    celltype->v=CELLTYPE_V_DEFAULT;
+    celltype->rd=CELLTYPE_RD_DEFAULT;
+  }
+}
+
+
 void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype) {
   if (argc < 2 || argc >2) {
     if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
@@ -68,7 +82,8 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
     MPI_Abort(MPI_COMM_WORLD,-1);
   }
   celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
-//  readcellsfile(settings,celltype);
+  initialcelltype(settings->numberofcelltypes,celltype);
+  readcellsfile(system,settings,celltype);
   //readenvfile();
 
 //  if (strcmp(argv[1], "-h") == 0)

@@ -158,6 +158,13 @@ typedef struct system_t {
     int rstReset;
 } system_t;
 
+#define CELLTYPE_G1_DEFAULT 11.0
+#define CELLTYPE_S_DEFAULT 8.0
+#define CELLTYPE_G2_DEFAULT 4.0
+#define CELLTYPE_M_DEFAULT 1.0
+#define CELLTYPE_V_DEFAULT 0.5
+#define CELLTYPE_RD_DEFAULT 0.1
+
 typedef struct celltype_t {
 	char name[128];
 	float g1;

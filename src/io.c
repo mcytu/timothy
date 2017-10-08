@@ -569,11 +569,12 @@ void readRstFile(int argc, char **argv);
  * This function reads the parameter file.
  */
 
-readcellsfile(settings_t* settings,celltype_t* celltype) {
-  #define NCELLPAR 9
+readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
+  #define NCELLPAR 8
   char cellsfile[FNLEN];
   char buf[400], buf1[100], buf2[100], buf3[100];
   FILE *fhandle;
+  char params[NCELLPAR][64];
   char cells[NCELLPAR][64];
   char desc[NCELLPAR][512];
   void *addr[NCELLPAR];
@@ -582,7 +583,125 @@ readcellsfile(settings_t* settings,celltype_t* celltype) {
   int type[NCELLPAR];
   int i;
   int nr;
+  int nameset=0;
+
+  sprintf(cellsfile,"cells.inp");
+
+  if (system.rank == 0)
+    printf("reading cells file: %s\n", cellsfile);
+  fflush(stdout);
+
+  fhandle = fopen(cellsfile, "r");
+  if (fhandle == NULL) {
+    if (system.rank == 0)
+      fprintf(stderr, "\nerror while opening cells file\n\n");
+    stopRun(0, NULL, __FILE__, __LINE__);
+  }
+
+  for(i=0;i<settings->numberofcelltypes;i++){
+
+    nr=0;
+
+    strcpy(params[nr], "CNAME");
+    strcpy(desc[nr], "name of cell type");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].name);
+    type[nr] = STRING;
+    nr++;
+
+    strcpy(params[nr], "G1");
+    strcpy(desc[nr], "mean duration of G1 phase (in hours)");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].g1);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "S");
+    strcpy(desc[nr], "mean duration of S phase (in hours)");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].s);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "G2");
+    strcpy(desc[nr], "mean duration of G2 phase (in hours)");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].g2);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "M");
+    strcpy(desc[nr], "mean duration of M phase (in hours)");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].m);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "V");
+    strcpy(desc[nr], "variability of duration of cell cycles, 0<V<1");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].v);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "RD");
+    strcpy(desc[nr], "probability of being marked for dying. 0<=RD<1");
+    req[nr] = 1;
+    addr[nr] = &(celltype[i].rd);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "INPUT");
+    strcpy(desc[nr], "input file name");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].inputfile);
+    type[nr] = STRING;
+    nr++;
+
+    while(!feof(fhandle)) {
+      char *ret;
+      ret = fgets(buf, 200, fhandle);
+
+      if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
+        continue;
+
+      if (strcmp(buf1, params[0]) == 0) {
+        if(nameset) {
+          if(i+1==settings->numberofcelltypes) break;
+          else {
+            strcpy((char *) addr[i+1], buf2);
+            #ifdef DEBUG
+            if (system.rank == 0) {
+              printf("debug: read %s = %s\n", params[i], buf2);
+              fflush(stdout);
+            }
+            #endif
+            break;
+          }
+        } else {
+          nameset++;
+          strcpy((char *) addr[i], buf2);
+#ifdef DEBUG
+          if (system.rank == 0) {
+            printf("debug: read %s = %s\n", params[i], buf2);
+            fflush(stdout);
+          }
+#endif
+        }
+      }
+
+      if (feof(fhandle))
+        break;
+
+      if (buf1[0] == '#')
+        continue;
+
+    }
+
+
+  }
   // wczytywac nazwe a potem parapmetry az do wystapienia nazwy
+  //strlen(celltype->inputfile)
 }
 
 
@@ -697,21 +816,21 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
   strcpy(settings->outdir, "results");
 
   if (strlen(argv[1]) >= FNLEN) {
-    fprintf(stderr, "\nERROR File name too long (>%d characters).\n",
+    fprintf(stderr, "\nerror: file name too long (>%d characters)\n",
             FNLEN);
     stopRun(0, NULL, __FILE__, __LINE__);
   }
   sprintf(paramfile, "%s", argv[1]);
 
   if (system.rank == 0)
-    printf("Reading parameters file: %s\n", paramfile);
+    printf("reading parameters file: %s\n", paramfile);
 
   fflush(stdout);
 
   fhandle = fopen(paramfile, "r");
   if (fhandle == NULL) {
     if (system.rank == 0)
-      fprintf(stderr, "\nERROR while opening parameter file.\n\n");
+      fprintf(stderr, "\nerror while opening parameter file\n\n");
     stopRun(0, NULL, __FILE__, __LINE__);
   }
 
@@ -865,11 +984,11 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
   if (system.rank == 0) {
     struct stat s;
     int err;
-    printf("Output directory: %s/\n", settings->outdir);
+    printf("output directory: %s/\n", settings->outdir);
 
     err = stat(settings->outdir, &s);
     if (err == -1) {
-      printf("Creating output directory.\n");
+      printf("creating output directory.\n");
       mkdir(settings->outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
   }
