@@ -65,6 +65,14 @@ void swap_Nbyte(char *data, int n, int m)
   }
 }
 
+void terminate(system_t system, char *msg, char *file, int line) {
+  if(system.rank==0) {
+    fprintf(stderr,"error: %s (%s, line %d)\n",msg,file,line);
+    fflush(stderr);
+  }
+  MPI_Abort(MPI_COMM_WORLD,997);
+}
+
 /*!
  * This function is used to handle various critical errors.
  */

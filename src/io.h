@@ -39,7 +39,7 @@
 #define SCALAR 1
 #define VECTOR 2
 
-#define FNLEN 256
+#define FNLEN 128
 
 int typeOut[NOUT];
 char nameOut[NOUT][128];
