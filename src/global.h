@@ -112,6 +112,7 @@ struct cellCountInfo{
   //TODO check names, all needed?
 };
 
+
 struct cellsInfo{
     struct cellCountInfo localCellCount;
     struct cellCountInfo totalCellCount;
@@ -175,6 +176,18 @@ typedef struct celltype_t {
 	float rd;
 	char inputfile[128];
 } celltype_t;
+
+struct environment_t {
+	char name[128];
+	double diffusioncoefficient;
+	double boundarycondition;
+	double initialconditionmean;
+	double initialconditionvariance;
+	double lambdadelay;
+	double criticallevel1;
+	double criticallevel2;
+} environment_t;
+
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

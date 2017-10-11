@@ -569,6 +569,115 @@ nr++;
 * This function reads the parameter file.
 */
 
+void readenvfile(system_t system, settings_t* settings,environment_t* environment) {
+
+/*
+  strcpy(params[nr], "GFLOGDIR");
+  strcpy(desc[nr], "log directory");
+  req[nr] = 0;
+  addr[nr] = &logdir;
+  type[nr] = STRING;
+  nr++;
+
+  strcpy(params[nr], "GFDT");
+  strcpy(desc[nr],
+  "the length of time step for solving global fields (unit: seconds)");
+  req[nr] = 1;
+  addr[nr] = &gfDt;
+  type[nr] = REAL;
+  nr++;
+
+  strcpy(params[nr], "GFH");
+  strcpy(desc[nr],
+  "grid resolution for solving global fields (unit: cell size)");
+  req[nr] = 1;
+  addr[nr] = &gfH;
+  type[nr] = REAL;
+  nr++;
+
+  strcpy(params[nr], "GFIELDS");
+  strcpy(desc[nr],
+  "do we use global fields in the simulation? (0 - no, 1 - yes)");
+  req[nr] = 1;
+  addr[nr] = &gfields;
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "OXYGEN");
+  strcpy(desc[nr],
+  "do we use oxygen field in the simulation? (0 - no, 1 - yes)");
+  req[nr] = 0;
+  addr[nr] = &oxygen;
+  type[nr] = INT;
+  nr++;
+
+  strcpy(params[nr], "OXYGENDC");
+  strcpy(desc[nr], "oxygen field diffusion coefficient");
+  req[nr] = 0;
+  addr[nr] = &fieldDiffCoef[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENBC");
+  strcpy(desc[nr],
+  "oxygen field boundary condition (Dirichlet), mol/cm^3");
+  req[nr] = 0;
+  addr[nr] = &fieldBC[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENICMEAN");
+  strcpy(desc[nr], "oxygen field initial condition mean, mol/cm^3");
+  req[nr] = 0;
+  addr[nr] = &fieldICMean[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENICVAR");
+  strcpy(desc[nr], "oxygen field initial condition variance, mol/cm^3");
+  req[nr] = 0;
+  addr[nr] = &fieldICVar[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENCONS");
+  strcpy(desc[nr], "oxygen field consumption, mol/(cell s)");
+  req[nr] = 0;
+  addr[nr] = &fieldConsumption[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENPROD");
+  strcpy(desc[nr], "oxygen field production, mol/(cell s)");
+  req[nr] = 0;
+  addr[nr] = &fieldProduction[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENLAMBDA");
+  strcpy(desc[nr], "oxygen field lambda");
+  req[nr] = 0;
+  addr[nr] = &fieldLambda[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENCL1");
+  strcpy(desc[nr], "oxygen field critical level 1, mol/cm^3");
+  req[nr] = 0;
+  addr[nr] = &fieldCriticalLevel1[OXYG];
+  type[nr] = DOUBLE;
+  nr++;
+
+  strcpy(params[nr], "OXYGENCL2");
+  strcpy(desc[nr], "oxygen field critical level 2, mol/cm^3");
+  req[nr] = 0;
+  addr[nr] = &fieldCriticalLevel2[OXYG];
+  type[nr] = DOUBLE;
+  nr++; */
+
+}
+
+
 void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
   #define NCELLPAR 8
   char cellsfile[FNLEN];

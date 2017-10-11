@@ -70,20 +70,23 @@ void initialcelltype(int numberofcelltypes,celltype_t* celltype){
 }
 
 
-void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype) {
+void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment) {
   if (argc < 2 || argc >2) {
     if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
     MPI_Abort(MPI_COMM_WORLD,-1);
   }
   initialsettings(settings);
   readparamfile(argc,argv,system,settings);
-  if (settings->numberofcelltypes<1) {
-    if(system.rank==0) { printf("0 cell types. aborting.\n"); fflush(stdout); }
-    MPI_Abort(MPI_COMM_WORLD,-1);
-  }
+  if (settings->numberofcelltypes<1)
+    terminate(system,"no cell types specified", __FILE__, __LINE__);
+
   celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
   initialcelltype(settings->numberofcelltypes,celltype);
   readcellsfile(system,settings,celltype);
+
+  environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t));
+  //initialfields();
+
   //readenvfile();
 
 //  if (strcmp(argv[1], "-h") == 0)
