@@ -177,17 +177,32 @@ typedef struct celltype_t {
 	char inputfile[128];
 } celltype_t;
 
-struct environment_t {
+#define ENVIRONMENT_DC_DEFAULT 1.82e-5
+#define ENVIRONMENT_BC_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICMEAN_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICVAR_DEFAULT 0.0
+#define ENVIRONMENT_LAMBDA_DEFAULT 0.0
+
+typedef struct environment_t {
 	char name[128];
 	double diffusioncoefficient;
 	double boundarycondition;
 	double initialconditionmean;
 	double initialconditionvariance;
 	double lambdadelay;
-	double criticallevel1;
-	double criticallevel2;
 } environment_t;
 
+#define CELLENVINTER_PROD_DEFAULT 0.0
+#define CELLENFINTER_CONS_DEFAULT 0.0
+#define CELLENVINTER_CL1_DEFAULT 100
+#define CELLENVINTER_CL2_DEFAULT 100
+
+typedef struct cellenvinter_t {
+	double production;
+	double consumption;
+	double criticallevel1;
+	double criticallevel2;
+} cellenvinter_t;
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

@@ -69,8 +69,28 @@ void initialcelltype(int numberofcelltypes,celltype_t* celltype){
   }
 }
 
+void initialfields(int numberoffields,int numberofcelltypes,environment_t* environment,cellenvinter_t **cellenvinter) {
+  int i,j;
+  for(i=0;i<numberoffields;i++) {
+    sprintf(environment->name,"environment%d",i);
+    environment->diffusioncoefficient=ENVIRONMENT_DC_DEFAULT;
+    environment->boundarycondition=ENVIRONMENT_BC_DEFAULT;
+    environment->initialconditionmean=ENVIRONMENT_ICMEAN_DEFAULT;
+    environment->initialconditionvariance=ENVIRONMENT_ICVAR_DEFAULT;
+    environment->lambdadelay=ENVIRONMENT_LAMBDA_DEFAULT;
+  }
+  for(i=0;i<numberofcelltypes;i++) {
+    for(j=0;j<numberoffields;j++) {
+      cellenvinter[i][j].production=CELLENVINTER_PROD_DEFAULT;
+      cellenvinter[i][j].consumption=CELLENFINTER_CONS_DEFAULT;
+      cellenvinter[i][j].criticallevel1=CELLENVINTER_CL1_DEFAULT;
+      cellenvinter[i][j].criticallevel2=CELLENVINTER_CL2_DEFAULT;
+    }
+  }
+}
 
-void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment) {
+void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment,cellenvinter_t** cellenvinter) {
+  int i;
   if (argc < 2 || argc >2) {
     if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
     MPI_Abort(MPI_COMM_WORLD,-1);
@@ -85,9 +105,15 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
   readcellsfile(system,settings,celltype);
 
   environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t));
-  //initialfields();
+  cellenvinter=(cellenvinter_t**)malloc((settings->numberofcelltypes)*sizeof(cellenvinter_t*));
+  for(i=0;i<settings->numberofcelltypes;i++) {
+    cellenvinter[i]=(cellenvinter_t*)malloc((settings->numberoffields)*sizeof(cellenvinter_t));
+  }
+
+  initialfields(settings->numberoffields,settings->numberofcelltypes,environment,cellenvinter);
 
   //readenvfile();
+  //readcellenvinterfile();
 
 //  if (strcmp(argv[1], "-h") == 0)
 //    printHelp();
