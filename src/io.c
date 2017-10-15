@@ -569,8 +569,6 @@ nr++;
 * This function reads the parameter file.
 */
 
-void readenvfile(system_t system, settings_t* settings,environment_t* environment) {
-
 /*
   strcpy(params[nr], "GFLOGDIR");
   strcpy(desc[nr], "log directory");
@@ -675,8 +673,155 @@ void readenvfile(system_t system, settings_t* settings,environment_t* environmen
   type[nr] = DOUBLE;
   nr++; */
 
-}
 
+/*
+#define ENVIRONMENT_DC_DEFAULT 1.82e-5
+#define ENVIRONMENT_BC_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICMEAN_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICVAR_DEFAULT 0.0
+#define ENVIRONMENT_LAMBDA_DEFAULT 0.0
+
+typedef struct environment_t {
+	char name[128];
+	double diffusioncoefficient;
+	double boundarycondition;
+	double initialconditionmean;
+	double initialconditionvariance;
+	double lambdadelay;
+} environment_t;
+*/
+
+void readenvfile(system_t system,settings_t* settings,environment_t* environment) {
+  #define NENVPAR 6
+  char envfile[FNLEN];
+  char buf[400], buf1[100], buf2[100], buf3[100];
+  FILE *fhandle;
+  char params[NENVPAR][64];
+  void *addr[NENVPAR];
+  int req[NENVPAR];
+  int set[NENVPAR];
+  int type[NENVPAR];
+  int i,j;
+  int nr;
+  int nameset=0;
+
+  sprintf(envfile,"environment.inp");
+
+  if (system.rank == 0)
+  printf("reading environment file: %s\n", envfile);
+  fflush(stdout);
+
+  fhandle = fopen(envfile, "r");
+  if (fhandle == NULL)
+    terminate(system, "could not open environment file", __FILE__, __LINE__);
+
+  for(i=0;i<settings->numberoffields;i++){
+
+    nr=0;
+
+    strcpy(params[nr], "ENVNAME");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].name);
+    type[nr] = STRING;
+    nr++;
+
+    strcpy(params[nr], "DC");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].diffusioncoefficient);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "BC");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].boundarycondition);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "ICMEAN");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].initialconditionmean);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "ICVAR");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].initialconditionvariance);
+    type[nr] = REAL;
+    nr++;
+
+    strcpy(params[nr], "LAMBDA");
+    req[nr] = 0;
+    addr[nr] = &(environment[i].lambdadelay);
+    type[nr] = REAL;
+    nr++;
+
+    while(!feof(fhandle)) {
+      char *ret;
+      ret = fgets(buf, 200, fhandle);
+
+      if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
+      continue;
+
+      if (feof(fhandle))
+      break;
+
+      if (buf1[0] == '#')
+      continue;
+
+      for (j = 1; j < NENVPAR; j++) {
+        if (strcmp(buf1, params[j]) == 0) {
+          switch (type[j]) {
+            case REAL:
+            *((float *) addr[j]) = atof(buf2);
+            #ifdef DEBUG
+            if (system.rank == 0) {
+              printf("debug: environment %d read %s = %f\n", i, params[j], *((float *) addr[j]));
+              fflush(stdout);
+            }
+            #endif
+            break;
+            case STRING:
+            strcpy((char *) addr[j], buf2);
+            #ifdef DEBUG
+            if (system.rank == 0) {
+              printf("debug: environment %d read %s = %s\n", i, params[j], buf2);
+              fflush(stdout);
+            }
+            #endif
+            break;
+          }
+        }
+      }
+
+      if (strcmp(buf1, params[0]) == 0) {
+        if(nameset) {
+          if(i+1==settings->numberoffields) break;
+          else {
+            strcpy((char *) addr[i+1], buf2);
+            #ifdef DEBUG
+            if (system.rank == 0) {
+              printf("debug: read %s = %s\n", params[i], buf2);
+              fflush(stdout);
+            }
+            #endif
+            break;
+          }
+        } else {
+          nameset++;
+          strcpy((char *) addr[i], buf2);
+          #ifdef DEBUG
+          if (system.rank == 0) {
+            printf("debug: read %s = %s\n", params[i], buf2);
+            fflush(stdout);
+          }
+          #endif
+        }
+      }
+    }
+  }
+  fclose(fhandle);
+  return;
+}
 
 void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
   #define NCELLPAR 8
@@ -684,8 +829,6 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
   char buf[400], buf1[100], buf2[100], buf3[100];
   FILE *fhandle;
   char params[NCELLPAR][64];
-  char cells[NCELLPAR][64];
-  char desc[NCELLPAR][512];
   void *addr[NCELLPAR];
   int req[NCELLPAR];
   int set[NCELLPAR];
@@ -709,56 +852,48 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
     nr=0;
 
     strcpy(params[nr], "CNAME");
-    strcpy(desc[nr], "name of cell type");
     req[nr] = 0;
     addr[nr] = &(celltype[i].name);
     type[nr] = STRING;
     nr++;
 
     strcpy(params[nr], "G1");
-    strcpy(desc[nr], "mean duration of G1 phase (in hours)");
     req[nr] = 0;
     addr[nr] = &(celltype[i].g1);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "S");
-    strcpy(desc[nr], "mean duration of S phase (in hours)");
     req[nr] = 0;
     addr[nr] = &(celltype[i].s);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "G2");
-    strcpy(desc[nr], "mean duration of G2 phase (in hours)");
     req[nr] = 0;
     addr[nr] = &(celltype[i].g2);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "M");
-    strcpy(desc[nr], "mean duration of M phase (in hours)");
     req[nr] = 0;
     addr[nr] = &(celltype[i].m);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "V");
-    strcpy(desc[nr], "variability of duration of cell cycles, 0<V<1");
     req[nr] = 0;
     addr[nr] = &(celltype[i].v);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "RD");
-    strcpy(desc[nr], "probability of being marked for dying. 0<=RD<1");
     req[nr] = 1;
     addr[nr] = &(celltype[i].rd);
     type[nr] = REAL;
     nr++;
 
     strcpy(params[nr], "INPUT");
-    strcpy(desc[nr], "input file name");
     req[nr] = 0;
     addr[nr] = &(celltype[i].inputfile);
     type[nr] = STRING;
@@ -835,12 +970,11 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
 
 void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
 {
-  #define NPAR 13
+  #define NPAR 15
   char paramfile[FNLEN];
   char buf[400], buf1[100], buf2[100], buf3[100];
   FILE *fhandle;
   char params[NPAR][64];
-  char desc[NPAR][512];
   void *addr[NPAR];
   int req[NPAR];
   int set[NPAR];
@@ -848,94 +982,96 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
   int i;
   int nr;
 
+  for(i=0;i<NPAR;i++)
+    set[i]=0;
+
   nr = 0;
 
+  strcpy(params[nr], "GFDT");
+  req[nr] = 1;
+  addr[nr] = &gfDt;
+  type[nr] = REAL;
+  nr++;
+
+  strcpy(params[nr], "GFH");
+  req[nr] = 1;
+  addr[nr] = &gfH;
+  type[nr] = REAL;
+  nr++;
+
   strcpy(params[nr], "MAXCELLS");
-  strcpy(desc[nr], "maximum number of cells in the simulation");
   req[nr] = 1;
   addr[nr] = &(settings->maxcells);
   type[nr] = LONG;
   nr++;
 
   strcpy(params[nr], "NSTEPS");
-  strcpy(desc[nr], "number of simulation steps");
   req[nr] = 1;
   addr[nr] = &(settings->numberofsteps);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "SECPERSTEP");
-  strcpy(desc[nr], "time step");
   req[nr] = 1;
   addr[nr] = &(settings->secondsperstep);
   type[nr] = REAL;
   nr++;
 
   strcpy(params[nr], "NCELLTYPES");
-  strcpy(desc[nr], "number of cell types");
   req[nr] = 1;
   addr[nr] = &(settings->numberofcelltypes);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "NFIELDS");
-  strcpy(desc[nr], "number of fields");
   req[nr] = 1;
   addr[nr] = &(settings->numberoffields);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "DIMENSIONS");
-  strcpy(desc[nr], "number of dimensions");
   req[nr] = 1;
   addr[nr] = &(settings->dimension);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "RESTART");
-  strcpy(desc[nr], "number of dimensions");
   req[nr] = 1;
   addr[nr] = &(settings->restart);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "RSTFILE");
-  strcpy(desc[nr], "restart file name");
   req[nr] = 0;
   addr[nr] = &(settings->rstfilename);
   type[nr] = STRING;
   nr++;
 
   strcpy(params[nr], "OUTDIR");
-  strcpy(desc[nr], "output directory");
   req[nr] = 0;
   addr[nr] = &(settings->outdir);
   type[nr] = STRING;
   nr++;
 
   strcpy(params[nr], "VISOUTSTEP");
-  strcpy(desc[nr], "frequency of vtk/pov output");
   req[nr] = 1;
   addr[nr] = &(settings->visoutstep);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "STATOUTSTEP");
-  strcpy(desc[nr], "frequency of statistics output");
   req[nr] = 1;
   addr[nr] = &(settings->statoutstep);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "RSTOUTSTEP");
-  strcpy(desc[nr], "frequency of restart file output");
   req[nr] = 1;
   addr[nr] = &(settings->rstoutstep);
   type[nr] = INT;
   nr++;
 
   strcpy(params[nr], "MAXSPEED");
-  strcpy(desc[nr], "maximal cell speed in cell units");
   req[nr] = 1;
   addr[nr] = &(settings->maxspeed);
   type[nr] = REAL;
@@ -1064,45 +1200,15 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
     }
   }
 
-  /* check parameters for correctness */
-
-  if (gfields == 1) {
-    for (i = 0; i < NPAR; i++) {
-      if (oxygen == 1) {
-        if (strcmp(params[i], "OXYGENDC") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENDC", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENBC") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENBC", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENICMEAN") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENICMEAN", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENICVAR") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENICVAR", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENCONS") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENCONS", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENPROD") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENPROD", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENLAMBDA") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENLAMBDA", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENCL1") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENCL1", __FILE__, __LINE__);
-        if (strcmp(params[i], "OXYGENCL2") == 0 && set[i] == 0)
-        stopRun(114, "OXYGENCL2", __FILE__, __LINE__);
-      }
-    }
-  }
-
   for (i = 0; i < NPAR; i++)
   if (req[i] == 1 && set[i] == 0) {
-    if (system.rank == 0) {
-      fprintf(stderr, "Missing parameter: %s - %s.\nProgram Abort.\n",
-      params[i], desc[i]);
-      fflush(stdout);
-    }
-    stopRun(0, NULL, __FILE__, __LINE__);
+    char errmsg[128];
+    sprintf(errmsg,"missing parameter %s",params[i]);
+    terminate(system,errmsg, __FILE__, __LINE__);
   }
 
   if (settings->maxspeed <= 0.0 || settings->maxspeed >= 4.0)
-  stopRun(111, NULL, __FILE__, __LINE__);
+    terminate(system,"maxspeed out of range", __FILE__, __LINE__);
 
   if (system.rank == 0) {
     struct stat s;

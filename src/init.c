@@ -54,6 +54,8 @@ void initialsettings(settings_t* settings){
   settings->statoutstep=0;
   settings->rstoutstep=0;
   settings->maxspeed=0;
+  settings->gfdt=0;
+  settings->gfh=0;
 }
 
 void initialcelltype(int numberofcelltypes,celltype_t* celltype){
@@ -72,12 +74,12 @@ void initialcelltype(int numberofcelltypes,celltype_t* celltype){
 void initialfields(int numberoffields,int numberofcelltypes,environment_t* environment,cellenvinter_t **cellenvinter) {
   int i,j;
   for(i=0;i<numberoffields;i++) {
-    sprintf(environment->name,"environment%d",i);
-    environment->diffusioncoefficient=ENVIRONMENT_DC_DEFAULT;
-    environment->boundarycondition=ENVIRONMENT_BC_DEFAULT;
-    environment->initialconditionmean=ENVIRONMENT_ICMEAN_DEFAULT;
-    environment->initialconditionvariance=ENVIRONMENT_ICVAR_DEFAULT;
-    environment->lambdadelay=ENVIRONMENT_LAMBDA_DEFAULT;
+    sprintf(environment[i].name,"environment%d",i);
+    environment[i].diffusioncoefficient=ENVIRONMENT_DC_DEFAULT;
+    environment[i].boundarycondition=ENVIRONMENT_BC_DEFAULT;
+    environment[i].initialconditionmean=ENVIRONMENT_ICMEAN_DEFAULT;
+    environment[i].initialconditionvariance=ENVIRONMENT_ICVAR_DEFAULT;
+    environment[i].lambdadelay=ENVIRONMENT_LAMBDA_DEFAULT;
   }
   for(i=0;i<numberofcelltypes;i++) {
     for(j=0;j<numberoffields;j++) {
@@ -112,7 +114,7 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
 
   initialfields(settings->numberoffields,settings->numberofcelltypes,environment,cellenvinter);
 
-  //readenvfile();
+  readenvfile(system,settings,environment);
   //readcellenvinterfile();
 
 //  if (strcmp(argv[1], "-h") == 0)

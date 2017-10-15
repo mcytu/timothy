@@ -144,6 +144,8 @@ typedef struct settings_t {
     int statoutstep;
 		int rstoutstep;
 		float maxspeed;
+		float gfdt;
+		float gfh;
 } settings_t;
 
 typedef struct system_t {
