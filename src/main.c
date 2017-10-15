@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   settings_t settings;
   celltype_t *celltype;
   environment_t *environment;
-  cellenvinter_t **cellenvinter;
+  float *cellenvinterbuffer;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &system.size);
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
   getsysteminfo(&system);
   printinfo(system);
-  initialisation(argc,argv,system,&settings,celltype,environment,cellenvinter);
+  initialisation(argc,argv,system,&settings,celltype,environment,cellenvinterbuffer);
 
   MPI_Abort(MPI_COMM_WORLD,-1);
 

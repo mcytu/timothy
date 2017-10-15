@@ -33,6 +33,7 @@
 #define INT64_T 5
 #define DOUBLE 6
 #define CHAR 7
+#define REALVECTOR 8
 
 #define NOUT 11
 #define NRSTPARAMS 32

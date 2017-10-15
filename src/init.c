@@ -58,20 +58,28 @@ void initialsettings(settings_t* settings){
   settings->gfh=0;
 }
 
-void initialcelltype(int numberofcelltypes,celltype_t* celltype){
-  int i;
+void initialcelltype(int numberofcelltypes,int numberoffields,celltype_t* celltype){
+  int i,j;
   for(i=0;i<numberofcelltypes;i++) {
     sprintf(celltype->name,"celltype%d",i);
-  	celltype->g1=CELLTYPE_G1_DEFAULT;
-  	celltype->s=CELLTYPE_S_DEFAULT;
-    celltype->g2=CELLTYPE_G2_DEFAULT;
-    celltype->m=CELLTYPE_M_DEFAULT;
-    celltype->v=CELLTYPE_V_DEFAULT;
-    celltype->rd=CELLTYPE_RD_DEFAULT;
+  	celltype[i].g1=CELLTYPE_G1_DEFAULT;
+  	celltype[i].s=CELLTYPE_S_DEFAULT;
+    celltype[i].g2=CELLTYPE_G2_DEFAULT;
+    celltype[i].m=CELLTYPE_M_DEFAULT;
+    celltype[i].v=CELLTYPE_V_DEFAULT;
+    celltype[i].rd=CELLTYPE_RD_DEFAULT;
+  }
+  for(i=0;i<numberofcelltypes;i++) {
+    for(j=0;j<numberoffields;j++) {
+      celltype[i].production[j]=CELLENVINTER_PROD_DEFAULT;
+      celltype[i].consumption[j]=CELLENFINTER_CONS_DEFAULT;
+      celltype[i].criticallevel1[j]=CELLENVINTER_CL1_DEFAULT;
+      celltype[i].criticallevel2[j]=CELLENVINTER_CL2_DEFAULT;
+    }
   }
 }
 
-void initialfields(int numberoffields,int numberofcelltypes,environment_t* environment,cellenvinter_t **cellenvinter) {
+void initialfields(int numberoffields,environment_t* environment) {
   int i,j;
   for(i=0;i<numberoffields;i++) {
     sprintf(environment[i].name,"environment%d",i);
@@ -81,17 +89,9 @@ void initialfields(int numberoffields,int numberofcelltypes,environment_t* envir
     environment[i].initialconditionvariance=ENVIRONMENT_ICVAR_DEFAULT;
     environment[i].lambdadelay=ENVIRONMENT_LAMBDA_DEFAULT;
   }
-  for(i=0;i<numberofcelltypes;i++) {
-    for(j=0;j<numberoffields;j++) {
-      cellenvinter[i][j].production=CELLENVINTER_PROD_DEFAULT;
-      cellenvinter[i][j].consumption=CELLENFINTER_CONS_DEFAULT;
-      cellenvinter[i][j].criticallevel1=CELLENVINTER_CL1_DEFAULT;
-      cellenvinter[i][j].criticallevel2=CELLENVINTER_CL2_DEFAULT;
-    }
-  }
 }
 
-void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment,cellenvinter_t** cellenvinter) {
+void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment,float* cellenvinterbuffer) {
   int i;
   if (argc < 2 || argc >2) {
     if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
@@ -103,17 +103,20 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
     terminate(system,"no cell types specified", __FILE__, __LINE__);
 
   celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
-  initialcelltype(settings->numberofcelltypes,celltype);
-  readcellsfile(system,settings,celltype);
-
   environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t));
-  cellenvinter=(cellenvinter_t**)malloc((settings->numberofcelltypes)*sizeof(cellenvinter_t*));
+  cellenvinterbuffer=(float*)malloc(NUMBER_OF_CELLENV_PAR*(settings->numberofcelltypes)*(settings->numberoffields)*sizeof(float));
   for(i=0;i<settings->numberofcelltypes;i++) {
-    cellenvinter[i]=(cellenvinter_t*)malloc((settings->numberoffields)*sizeof(cellenvinter_t));
+    int displ1,displ2;
+    displ1=settings->numberoffields;
+    displ2=displ1*NUMBER_OF_CELLENV_PAR;
+    celltype[i].production=&(cellenvinterbuffer[i*displ2]);
+    celltype[i].consumption=&(cellenvinterbuffer[i*displ2+displ1]);
+    celltype[i].criticallevel1=&(cellenvinterbuffer[i*displ2+2*displ1]);
+    celltype[i].criticallevel2=&(cellenvinterbuffer[i*displ2+3*displ1]);
   }
-
-  initialfields(settings->numberoffields,settings->numberofcelltypes,environment,cellenvinter);
-
+  initialcelltype(settings->numberofcelltypes,settings->numberoffields,celltype);
+  readcellsfile(system,settings,celltype);
+  initialfields(settings->numberoffields,environment);
   readenvfile(system,settings,environment);
   //readcellenvinterfile();
 

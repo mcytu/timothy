@@ -168,6 +168,8 @@ typedef struct system_t {
 #define CELLTYPE_V_DEFAULT 0.5
 #define CELLTYPE_RD_DEFAULT 0.1
 
+#define NUMBER_OF_CELLENV_PAR 4
+
 typedef struct celltype_t {
 	char name[128];
 	float g1;
@@ -177,6 +179,10 @@ typedef struct celltype_t {
 	float v;
 	float rd;
 	char inputfile[128];
+	float *production;
+	float *consumption;
+	float *criticallevel1;
+	float *criticallevel2;
 } celltype_t;
 
 #define ENVIRONMENT_DC_DEFAULT 1.82e-5

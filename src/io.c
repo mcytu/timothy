@@ -40,6 +40,8 @@
 *  \brief contains I/O functions
 */
 
+#define INPUT_FILE_LINE_LENGTH 256
+
 void readRstFile(int argc, char **argv);
 
 
@@ -673,24 +675,6 @@ nr++;
   type[nr] = DOUBLE;
   nr++; */
 
-
-/*
-#define ENVIRONMENT_DC_DEFAULT 1.82e-5
-#define ENVIRONMENT_BC_DEFAULT 0.1575e-6
-#define ENVIRONMENT_ICMEAN_DEFAULT 0.1575e-6
-#define ENVIRONMENT_ICVAR_DEFAULT 0.0
-#define ENVIRONMENT_LAMBDA_DEFAULT 0.0
-
-typedef struct environment_t {
-	char name[128];
-	double diffusioncoefficient;
-	double boundarycondition;
-	double initialconditionmean;
-	double initialconditionvariance;
-	double lambdadelay;
-} environment_t;
-*/
-
 void readenvfile(system_t system,settings_t* settings,environment_t* environment) {
   #define NENVPAR 6
   char envfile[FNLEN];
@@ -757,7 +741,7 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
 
     while(!feof(fhandle)) {
       char *ret;
-      ret = fgets(buf, 200, fhandle);
+      ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
 
       if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
       continue;
@@ -824,17 +808,18 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
 }
 
 void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
-  #define NCELLPAR 8
+  #define NCELLPAR 12
   char cellsfile[FNLEN];
-  char buf[400], buf1[100], buf2[100], buf3[100];
+  char buf[400], buf1[100], buf2[100], buf3[100], buf4[100],buf5[100];
   FILE *fhandle;
   char params[NCELLPAR][64];
   void *addr[NCELLPAR];
   int req[NCELLPAR];
   int set[NCELLPAR];
   int type[NCELLPAR];
-  int i,j;
+  int i,j,k;
   int nr;
+  int nbytes,bytesread;
   int nameset=0;
 
   sprintf(cellsfile,"cells.inp");
@@ -899,9 +884,33 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
     type[nr] = STRING;
     nr++;
 
+    strcpy(params[nr], "ENVPROD");
+    req[nr] = 0;
+    type[nr] = REALVECTOR;
+    addr[nr] = &(celltype[i].production[0]);
+    nr++;
+
+    strcpy(params[nr], "ENVCONS");
+    req[nr] = 0;
+    type[nr] = REALVECTOR;
+    addr[nr] = &(celltype[i].consumption[0]);
+    nr++;
+
+    strcpy(params[nr], "ENVCL1");
+    req[nr] = 0;
+    type[nr] = REALVECTOR;
+    addr[nr] = &(celltype[i].criticallevel1[0]);
+    nr++;
+
+    strcpy(params[nr], "ENVCL2");
+    req[nr] = 0;
+    type[nr] = REALVECTOR;
+    addr[nr] = &(celltype[i].criticallevel2[0]);
+    nr++;
+
     while(!feof(fhandle)) {
       char *ret;
-      ret = fgets(buf, 200, fhandle);
+      ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
 
       if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
       continue;
@@ -915,6 +924,7 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
       for (j = 1; j < NCELLPAR; j++) {
         if (strcmp(buf1, params[j]) == 0) {
           switch (type[j]) {
+
             case REAL:
             *((float *) addr[j]) = atof(buf2);
             #ifdef DEBUG
@@ -924,6 +934,7 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
             }
             #endif
             break;
+
             case STRING:
             strcpy((char *) addr[j], buf2);
             #ifdef DEBUG
@@ -932,6 +943,23 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
               fflush(stdout);
             }
             #endif
+            break;
+
+            case REALVECTOR:
+            bytesread=0;
+            sscanf(buf, "%s%n",buf4,&nbytes);
+            bytesread+=nbytes;
+            for(k=0;k<settings->numberoffields;k++) {
+              sscanf(buf+bytesread,"%s%n",buf5,&nbytes);
+              bytesread+=nbytes;
+              ((float *) addr[j])[k] = atof(buf5);
+              #ifdef DEBUG
+              if (system.rank == 0) {
+                printf("debug: cell type %d read %s[%d] = %f\n", i, params[j],k, ((float *) addr[j])[k]);
+                fflush(stdout);
+              }
+              #endif
+            }
             break;
           }
         }
@@ -1097,7 +1125,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
   while (!feof(fhandle)) {
 
     char *ret;
-    ret = fgets(buf, 200, fhandle);
+    ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
 
     if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
     continue;
@@ -1133,7 +1161,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
   while (!feof(fhandle)) {
 
     char *ret;
-    ret = fgets(buf, 200, fhandle);
+    ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
 
     if (sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
     continue;
