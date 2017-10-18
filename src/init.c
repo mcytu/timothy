@@ -56,6 +56,7 @@ void initialsettings(settings_t* settings){
   settings->maxspeed=0;
   settings->gfdt=0;
   settings->gfh=0;
+  settings->simulationstart=0;
 }
 
 void initialcelltype(int numberofcelltypes,int numberoffields,celltype_t* celltype){
@@ -68,15 +69,17 @@ void initialcelltype(int numberofcelltypes,int numberoffields,celltype_t* cellty
     celltype[i].m=CELLTYPE_M_DEFAULT;
     celltype[i].v=CELLTYPE_V_DEFAULT;
     celltype[i].rd=CELLTYPE_RD_DEFAULT;
+    celltype[i].criticaldensity=CELLTYPE_CDENS_DEFAULT;
   }
   for(i=0;i<numberofcelltypes;i++) {
     for(j=0;j<numberoffields;j++) {
-      celltype[i].production[j]=CELLENVINTER_PROD_DEFAULT;
-      celltype[i].consumption[j]=CELLENFINTER_CONS_DEFAULT;
-      celltype[i].criticallevel1[j]=CELLENVINTER_CL1_DEFAULT;
-      celltype[i].criticallevel2[j]=CELLENVINTER_CL2_DEFAULT;
+      celltype[i].production[j]=CELLTYPE_PROD_DEFAULT;
+      celltype[i].consumption[j]=CELLTYPE_CONS_DEFAULT;
+      celltype[i].criticallevel1[j]=CELLTYPE_CL1_DEFAULT;
+      celltype[i].criticallevel2[j]=CELLTYPE_CL2_DEFAULT;
     }
   }
+  return;
 }
 
 void initialfields(int numberoffields,environment_t* environment) {
@@ -93,6 +96,9 @@ void initialfields(int numberoffields,environment_t* environment) {
 
 void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment,float* cellenvinterbuffer) {
   int i;
+  int periods[3];
+  int reorder;
+
   if (argc < 2 || argc >2) {
     if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
     MPI_Abort(MPI_COMM_WORLD,-1);
@@ -118,12 +124,30 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
   readcellsfile(system,settings,celltype);
   initialfields(settings->numberoffields,environment);
   readenvfile(system,settings,environment);
-  //readcellenvinterfile();
 
+  /* calculating number of cells per process */
+  lnc = settings->maxcells / system.size;
+  if (system.rank < nc % system.size)
+    lnc++;
+
+    printf("lnc=%d\n",lnc);
+  /* allocating tables */
+  //cellsallocate();
+  /* cell cycle init */
+  //cellsCycleInit();
+  /* random cell placement */
+  //cellsRandomInit();
+  /* decomposition - initialization */
+  //decompositionInit(argc, argv, MPI_COMM_WORLD);
+
+  if(settings->restart) {
+    // read restart file
+  }
 //  if (strcmp(argv[1], "-h") == 0)
 //    printHelp();
 
 }
+
 
 void printinfo(system_t system) {
   if (system.rank == 0) {
@@ -170,35 +194,6 @@ void defaultValues()
 
 }
 
-void scInit()
-{
-  nscstages=5;
-  sctprob=(double*)malloc((nscstages-1)*sizeof(double));
-  nscinst=(int64_t*)calloc(nscstages,sizeof(int64_t));
-  gnscinst=(int64_t*)calloc(nscstages,sizeof(int64_t));
-  sctprob[0]=0.8;
-  sctprob[1]=0.8;
-  sctprob[2]=0.8;
-  sctprob[3]=0.8;
-  //sctprob[4]=0.8;
-  localbc=0;
-  globalbc=0;
-}
-
-
-/*!
- * This functions checks the consistence of key simulation parameters.
-*/
-void checkParameters()
-{
-  /* under construction */
-  if (strcmp(cOutType, "VTK") && strcmp(cOutType, "POV")
-      && strcmp(cOutType, "NON"))
-    stopRun(116, "COUTTYPE", __FILE__, __LINE__);
-  if (strcmp(fOutType, "VNF") && strcmp(fOutType, "NON"))
-    stopRun(116, "FOUTTYPE", __FILE__, __LINE__);
-}
-
 /*!
  * This function intializes the simulation by setting all most important simulation parameters.
 */
@@ -209,10 +204,10 @@ void simulationInit(int argc, char **argv)
   int reorder;
 
   /* set default values */
-  defaultValues();
+  //defaultValues();
 
   /* stem cells parameters init */
-  scInit();
+  //scInit();
 
   /* initialize random number generator */
   //randomStreamInit();
@@ -270,7 +265,7 @@ void simulationInit(int argc, char **argv)
   }
 
   /* checking the consistency */
-  checkParameters();
+  //checkParameters();
 
   if (!strcmp(cOutType, "POV"))
     povout = 1;

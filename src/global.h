@@ -146,6 +146,7 @@ typedef struct settings_t {
 		float maxspeed;
 		float gfdt;
 		float gfh;
+		int simulationstart;
 } settings_t;
 
 typedef struct system_t {
@@ -158,7 +159,7 @@ typedef struct system_t {
     int memperproc;
     MPI_Comm MPI_CART_COMM;
     int **coords;
-    int rstReset;
+    //int restart;
 } system_t;
 
 #define CELLTYPE_G1_DEFAULT 11.0
@@ -167,7 +168,11 @@ typedef struct system_t {
 #define CELLTYPE_M_DEFAULT 1.0
 #define CELLTYPE_V_DEFAULT 0.5
 #define CELLTYPE_RD_DEFAULT 0.1
-
+#define CELLTYPE_CDENS_DEFAULT 2
+#define CELLTYPE_PROD_DEFAULT 0.0
+#define CELLTYPE_CONS_DEFAULT 0.0
+#define CELLTYPE_CL1_DEFAULT 100
+#define CELLTYPE_CL2_DEFAULT 100
 #define NUMBER_OF_CELLENV_PAR 4
 
 typedef struct celltype_t {
@@ -179,6 +184,7 @@ typedef struct celltype_t {
 	float v;
 	float rd;
 	char inputfile[128];
+	float criticaldensity;
 	float *production;
 	float *consumption;
 	float *criticallevel1;
@@ -200,17 +206,10 @@ typedef struct environment_t {
 	double lambdadelay;
 } environment_t;
 
-#define CELLENVINTER_PROD_DEFAULT 0.0
-#define CELLENFINTER_CONS_DEFAULT 0.0
-#define CELLENVINTER_CL1_DEFAULT 100
-#define CELLENVINTER_CL2_DEFAULT 100
-
-typedef struct cellenvinter_t {
-	double production;
-	double consumption;
-	double criticallevel1;
-	double criticallevel2;
-} cellenvinter_t;
+//#define CELLENVINTER_PROD_DEFAULT 0.0
+//#define CELLENFINTER_CONS_DEFAULT 0.0
+//#define CELLENVINTER_CL1_DEFAULT 100
+//#define CELLENVINTER_CL2_DEFAULT 100
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

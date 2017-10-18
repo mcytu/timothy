@@ -808,7 +808,7 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
 }
 
 void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
-  #define NCELLPAR 12
+  #define NCELLPAR 13
   char cellsfile[FNLEN];
   char buf[400], buf1[100], buf2[100], buf3[100], buf4[100],buf5[100];
   FILE *fhandle;
@@ -884,6 +884,12 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
     type[nr] = STRING;
     nr++;
 
+    strcpy(params[nr], "CDENS");
+    req[nr] = 0;
+    addr[nr] = &(celltype[i].criticaldensity);
+    type[nr] = REAL;
+    nr++;
+
     strcpy(params[nr], "ENVPROD");
     req[nr] = 0;
     type[nr] = REALVECTOR;
@@ -950,7 +956,9 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
             sscanf(buf, "%s%n",buf4,&nbytes);
             bytesread+=nbytes;
             for(k=0;k<settings->numberoffields;k++) {
-              sscanf(buf+bytesread,"%s%n",buf5,&nbytes);
+              int ret;
+              ret=sscanf(buf+bytesread,"%s%n",buf5,&nbytes);
+              if(ret<=0) break;
               bytesread+=nbytes;
               ((float *) addr[j])[k] = atof(buf5);
               #ifdef DEBUG
