@@ -101,32 +101,54 @@ int64_t maxCells;
 MIC_ATTR int64_t localCellCount[numberOfCounts];
 int64_t totalCellCount[numberOfCounts];
 
-struct cellCountInfo{
-  uint64_t number_of_cells;
-  uint64_t g0_phase_number_of_cells;
-  uint64_t g1_phase_number_of_cells;
-  uint64_t s_phase_number_of_cells;
-  uint64_t g2_phase_number_of_cells;
-  uint64_t m_phase_number_of_cells;
-  uint64_t necrotic_phase_number_of_cells;
-  //TODO check names, all needed?
-};
+typedef struct cellcount_t{
+  uint64_t n;
+  uint64_t g0phase;
+  uint64_t g1phase;
+  uint64_t sphase;
+  uint64_t g2phase;
+  uint64_t mphase;
+  uint64_t necroticphase;
+} cellcount_t;
 
+typedef struct celldata_t {
+  int lifetime;         /* age of the cell */
+  int phase;            /* actual phase of the cell (0=G0,1=G1,2=S,3=G2,4=M,5=Necrotic) */
+  int age;              /* cell's age */
+  int death;
+  float phasetime;      /* actual phase time */
+  float g1;
+  float s;
+  float g2;
+  float m;
+  float young;
+  ZOLTAN_ID_TYPE gid;    /* global ID of the particle */
+  double x;              /* x coordinate of the particle position */
+  double y;              /* y coordinate of the particle position */
+  double z;              /* z coordinate of the particle position */
+  double size;           /* radius of the cell */
+  double h;              /* neighbourhood of the cell */
+  double v;              /* particle potential */
+  double density;        /* particle density */
+  double scalarField;    /* additional scalar field which can be used for analysis of results (printed to the output VTK files) */
+  int ctype;		 /* cell type 1=endothelial */
+} celldata_t;
 
-struct cellsInfo{
-    struct cellCountInfo localCellCount;
-    struct cellCountInfo totalCellCount;
-    uint64_t * localTypeCellCount;
-    uint64_t * totalTypeCellCount;
-    uint64_t * numberOfCellsInEachProcess;
-    struct cellData * cells;
-    double ** cellFields;
-    size_t numberOfCellTypes;
-    struct doubleVector3d *velocity;
-    struct cellTypeData * cellTypes;
-//    str_uint16_dict * cellTypeNumberDict;
-    double minimal_density_to_keep_necrotic_cell;
-};
+typedef struct double3dv_t {
+  double x;
+  double y;
+  double z;
+} double3dv_t;
+
+typedef struct cellsinfo_t{
+	cellcount_t localcount;
+	cellcount_t globalcount;
+	cellcount_t *localtypecount;
+	cellcount_t *globaltypecount;
+	uint64_t *cellsinproc;
+	celldata_t *cells;
+	double3dv_t *forces;
+} cellsinfo_t;
 
 #define ZOLTAN_ID_TYPE int
 
