@@ -130,8 +130,7 @@ typedef struct celldata_t {
   double h;              /* neighbourhood of the cell */
   double v;              /* particle potential */
   double density;        /* particle density */
-  double scalarField;    /* additional scalar field which can be used for analysis of results (printed to the output VTK files) */
-  int ctype;		 /* cell type 1=endothelial */
+  int ctype;
 } celldata_t;
 
 typedef struct double3dv_t {
@@ -143,9 +142,8 @@ typedef struct double3dv_t {
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
 	cellcount_t globalcount;
-	cellcount_t *localtypecount;
-	cellcount_t *globaltypecount;
-	uint64_t *cellsinproc;
+	cellcount_t *typecount;
+	uint64_t *cellsperproc;
 	celldata_t *cells;
 	double3dv_t *forces;
 } cellsinfo_t;

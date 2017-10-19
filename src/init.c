@@ -94,40 +94,51 @@ void initialfields(int numberoffields,environment_t* environment) {
   }
 }
 
-void initialisation(int argc, char **argv, system_t system, settings_t* settings,celltype_t* celltype,environment_t* environment,float* cellenvinterbuffer) {
+void initialisation(int argc, char **argv, system_t *system, settings_t* settings,celltype_t* celltype,environment_t* environment) {
   int i;
   int periods[3];
   int reorder;
 
   if (argc < 2 || argc >2) {
-    if(system.rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
+    if(system->rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
     MPI_Abort(MPI_COMM_WORLD,-1);
   }
   initialsettings(settings);
-  readparamfile(argc,argv,system,settings);
+  readparamfile(argc,argv,*system,settings);
   if (settings->numberofcelltypes<1)
     terminate(system,"no cell types specified", __FILE__, __LINE__);
 
   celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
   environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t));
-  cellenvinterbuffer=(float*)malloc(NUMBER_OF_CELLENV_PAR*(settings->numberofcelltypes)*(settings->numberoffields)*sizeof(float));
   for(i=0;i<settings->numberofcelltypes;i++) {
-    int displ1,displ2;
-    displ1=settings->numberoffields;
-    displ2=displ1*NUMBER_OF_CELLENV_PAR;
-    celltype[i].production=&(cellenvinterbuffer[i*displ2]);
-    celltype[i].consumption=&(cellenvinterbuffer[i*displ2+displ1]);
-    celltype[i].criticallevel1=&(cellenvinterbuffer[i*displ2+2*displ1]);
-    celltype[i].criticallevel2=&(cellenvinterbuffer[i*displ2+3*displ1]);
+    int size=settings->numberoffields*sizeof(float);
+    celltype[i].production=(float*)malloc(size);
+    celltype[i].consumption=(float*)malloc(size);
+    celltype[i].criticallevel1=(float*)malloc(size);
+    celltype[i].criticallevel2=(float*)malloc(size);
   }
   initialcelltype(settings->numberofcelltypes,settings->numberoffields,celltype);
-  readcellsfile(system,settings,celltype);
+  readcellsfile(*system,settings,celltype);
   initialfields(settings->numberoffields,environment);
-  readenvfile(system,settings,environment);
+  readenvfile(*system,settings,environment);
+
+  /* organizing processes in a Cartesian grid for global fields computations */
+  MPI_Dims_create(system->size, settings->dimension, system->dim);
+  periods[0] = 0;
+  periods[1] = 0;
+  periods[2] = 0;
+  reorder = 0;
+  MPI_Cart_create(MPI_COMM_WORLD, settings->dimension, system->dim, periods, reorder,
+                  &MPI_CART_COMM);
+  system->coords = (int **) malloc(system->size * sizeof(int *));
+  for (i = 0; i < system->size; i++) {
+    system->coords[i] = (int *) malloc(3 * sizeof(int));
+    MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
+  }
 
   /* calculating number of cells per process */
-  lnc = settings->maxcells / system.size;
-  if (system.rank < nc % system.size)
+  lnc = settings->maxcells / system->size;
+  if (system->rank < nc % system->size)
     lnc++;
 
     printf("lnc=%d\n",lnc);
@@ -146,6 +157,19 @@ void initialisation(int argc, char **argv, system_t system, settings_t* settings
 //  if (strcmp(argv[1], "-h") == 0)
 //    printHelp();
 
+}
+
+void allocatecells(system_t system,settings_t settings,cellsinfo_t *cellsinfo) {
+  /* calculating number of cells per process */
+  int maxlocalcells;
+  maxlocalcells=settings.maxcells / system.size;
+  cellsinfo->cells=(celldata_t*)malloc(maxlocalcells);
+  cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size);
+  cellsinfo->localcount.n = 0;
+  //if (system.rank < nc % system.size)
+  //  cellsinfo->localcount.n++;
+
+    printf("lnc=%d\n",cellsinfo->localcount.n);
 }
 
 
