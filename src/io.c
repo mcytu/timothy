@@ -1023,13 +1023,13 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
 
   strcpy(params[nr], "GFDT");
   req[nr] = 1;
-  addr[nr] = &gfDt;
+  addr[nr] = &(settings->gfdt);
   type[nr] = REAL;
   nr++;
 
   strcpy(params[nr], "GFH");
   req[nr] = 1;
-  addr[nr] = &gfH;
+  addr[nr] = &(settings->gfh);
   type[nr] = REAL;
   nr++;
 

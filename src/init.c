@@ -194,6 +194,11 @@ void allocatecells(system_t system,settings_t settings,cellsinfo_t *cellsinfo) {
   return;
 }
 
+void allocategrid(system_t system,settings_t settings,gridinfo_t *gridinfo) {
+  computegridsize(system,settings,gridinfo);
+
+}
+
 
 void printinfo(system_t system) {
   if (system.rank == 0) {

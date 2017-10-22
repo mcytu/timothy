@@ -1,8 +1,6 @@
 /* **************************************************************************
- * This file is part of Timothy
- *
- * Copyright (c) 2014/15 Maciej Cytowski
- * Copyright (c) 2014/15 ICM, University of Warsaw, Poland
+ * Timothy - Tissue Modelling Framework
+ * Copyright (C) 2014-2018 Maciej Cytowski
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +29,53 @@
 /*! \file grid.c
  *  \brief contains functions that build the computational grid
  */
+
+
+ /*!
+  * This function computes the sizes of the grid.
+  */
+ void computegridsize(system_t system,settings_t settings,gridinfo_t *gridinfo)
+ {
+   float3dv_t globalgridsize;
+   gridinfo->resolution=settings.gfh;
+
+   gridinfo->lowercorner.x = -BOXSIZEX/2.0;
+   gridinfo->lowercorner.y = -BOXSIZEY/2.0;
+   if(settings.dimension==3) gridinfo->lowercorner.z = -BOXSIZEZ/2.0;
+   else gridinfo->lowercorner.z = 0.0;
+
+   gridinfo->uppercorner.x = (BOXSIZEX/2.0);//-1.0;
+   gridinfo->uppercorner.y = (BOXSIZEY/2.0);//-1.0;
+   if(settings.dimension==3) gridinfo->uppercorner.z = (BOXSIZEZ/2.0);//-1.0;
+   else gridinfo->uppercorner.z = 0.0;
+
+   globalgridsize.x = gridinfo->uppercorner.x - gridinfo->lowercorner.x + 1;
+   globalgridsize.y = gridinfo->uppercorner.y - gridinfo->lowercorner.y + 1;
+   if(settings.dimension==3) globalgridsize.z = gridinfo->uppercorner.z - gridinfo->lowercorner.z + 1;
+   else globalgridsize.z = 0.0;
+
+   gridinfo->globalsize.x = (int64_t)((globalgridsize.x+1)/gridinfo->resolution);
+   gridinfo->globalsize.y = (int64_t)((globalgridsize.y+1)/gridinfo->resolution);
+   if(settings.dimension==3) gridinfo->globalsize.z = (int64_t)((globalgridsize.z+1)/gridinfo->resolution);
+   else gridinfo->globalsize.z = 0.0;
+
+   gridinfo->globalsize.x = gridinfo->globalsize.x + (system.dim[0] - gridinfo->globalsize.x % system.dim[0]);
+   gridinfo->globalsize.y = gridinfo->globalsize.y + (system.dim[1] - gridinfo->globalsize.y % system.dim[1]);
+   if(settings.dimension==3) gridinfo->globalsize.z = gridinfo->globalsize.z + (system.dim[2] - gridinfo->globalsize.z % system.dim[2]);
+
+   gridinfo->localsize.x = gridinfo->globalsize.x / system.dim[0];
+   gridinfo->localsize.y = gridinfo->globalsize.y / system.dim[1];
+   if(settings.dimension==3) gridinfo->localsize.z = gridinfo->globalsize.z / system.dim[2];
+   gridinfo->localsize.z = 1;
+
+   if(system.rank==0) {
+     printf("environment grid size = %" PRId64 "x%" PRId64 "x%" PRId64 "\n", gridinfo->globalsize.x, gridinfo->globalsize.y,gridinfo->globalsize.z);
+     fflush(stdout);
+   }
+
+   return;
+ }
+
 
 /*!
  * This function computes the sizes of the grid.

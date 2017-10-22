@@ -42,6 +42,7 @@ int main(int argc, char **argv)
   celltype_t *celltype;
   environment_t *environment;
   cellsinfo_t cellsinfo;
+  gridinfo_t gridinfo;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &system.size);
@@ -52,6 +53,7 @@ int main(int argc, char **argv)
   printinfo(system);
   initialisation(argc,argv,&system,&settings,celltype,environment);
   allocatecells(system,settings,&cellsinfo);
+  allocategrid(system,settings,&gridinfo);
 
   MPI_Abort(MPI_COMM_WORLD,-1);
 

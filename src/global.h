@@ -58,6 +58,10 @@
 
 #define MIN_CELLS_PER_PROC 16
 
+#define BOXSIZEX 2048
+#define BOXSIZEY 2048
+#define BOXSIZEZ 2048
+
 /* cell data structure */
 //#pragma pack(1)
 struct cellData {
@@ -137,6 +141,18 @@ typedef struct double3dv_t {
   double z;
 } double3dv_t;
 
+typedef struct float3dv_t {
+  float x;
+  float y;
+  float z;
+} float3dv_t;
+
+typedef struct int643dv_t {
+	int64_t x;
+	int64_t y;
+	int64_t z;
+} int643dv_t;
+
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
 	cellcount_t globalcount;
@@ -145,6 +161,18 @@ typedef struct cellsinfo_t{
 	celldata_t *cells;
 	double3dv_t *forces;
 } cellsinfo_t;
+
+/* NEW */
+typedef struct gridinfo_t{
+  int643dv_t globalsize;
+  double3dv_t lowercorner,uppercorner;
+  int643dv_t localsize;
+  float resolution;
+  int643dv_t *loweridx,*upperidx;
+  double3dv_t *buffer;
+} gridinfo_t;
+/* NEW */
+
 
 #define ZOLTAN_ID_TYPE int
 
