@@ -37,7 +37,8 @@ void getsysteminfo(system_t* system) {
   getLocalRankAndSize(system->rank, system->size, &(system->noderank), &(system->nodesize));
   system->memperproc = getMemoryPerProcess(system->nodesize);
   if (!POWER_OF_TWO(system->size))
-    stopRun(101, NULL, __FILE__, __LINE__);
+    terminate(system,"number of processes must be power of two", __FILE__, __LINE__);
+  return;
 }
 
 void initialsettings(settings_t* settings){
@@ -57,6 +58,7 @@ void initialsettings(settings_t* settings){
   settings->gfdt=0;
   settings->gfh=0;
   settings->simulationstart=0;
+  return;
 }
 
 void initialcelltype(int numberofcelltypes,int numberoffields,celltype_t* celltype){
@@ -92,6 +94,7 @@ void initialfields(int numberoffields,environment_t* environment) {
     environment[i].initialconditionvariance=ENVIRONMENT_ICVAR_DEFAULT;
     environment[i].lambdadelay=ENVIRONMENT_LAMBDA_DEFAULT;
   }
+  return;
 }
 
 void initialisation(int argc, char **argv, system_t *system, settings_t* settings,celltype_t* celltype,environment_t* environment) {
@@ -108,8 +111,11 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
   if (settings->numberofcelltypes<1)
     terminate(system,"no cell types specified", __FILE__, __LINE__);
 
-  celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t));
-  environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t));
+  if(!(celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t))))
+    terminate(system,"cannot allocate celltype", __FILE__, __LINE__);
+  if(!(environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t))))
+    terminate(system,"cannot allocate environment", __FILE__, __LINE__);
+
   for(i=0;i<settings->numberofcelltypes;i++) {
     int size=settings->numberoffields*sizeof(float);
     celltype[i].production=(float*)malloc(size);
@@ -130,18 +136,15 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
   reorder = 0;
   MPI_Cart_create(MPI_COMM_WORLD, settings->dimension, system->dim, periods, reorder,
                   &MPI_CART_COMM);
-  system->coords = (int **) malloc(system->size * sizeof(int *));
+
+  if(!(system->coords = (int **) malloc(system->size * sizeof(int *))))
+    terminate(system,"cannot allocate system->coords", __FILE__, __LINE__);
   for (i = 0; i < system->size; i++) {
-    system->coords[i] = (int *) malloc(3 * sizeof(int));
+    if(!(system->coords[i] = (int *) malloc(3 * sizeof(int))))
+      terminate(system,"cannot allocate system->coords[i]", __FILE__, __LINE__);
     MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
   }
 
-  /* calculating number of cells per process */
-  lnc = settings->maxcells / system->size;
-  if (system->rank < nc % system->size)
-    lnc++;
-
-    printf("lnc=%d\n",lnc);
   /* allocating tables */
   //cellsallocate();
   /* cell cycle init */
@@ -159,17 +162,38 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
 
 }
 
+void initcount(cellcount_t *cellcount) {
+  cellcount->n=0;
+  cellcount->g0phase=0;
+  cellcount->g1phase=0;
+  cellcount->sphase=0;
+  cellcount->g2phase=0;
+  cellcount->mphase=0;
+  cellcount->necroticphase=0;
+  return;
+}
+
 void allocatecells(system_t system,settings_t settings,cellsinfo_t *cellsinfo) {
-  /* calculating number of cells per process */
+  int i;
   int maxlocalcells;
   maxlocalcells=settings.maxcells / system.size;
-  cellsinfo->cells=(celldata_t*)malloc(maxlocalcells);
-  cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size);
-  cellsinfo->localcount.n = 0;
-  //if (system.rank < nc % system.size)
-  //  cellsinfo->localcount.n++;
-
-    printf("lnc=%d\n",cellsinfo->localcount.n);
+  if (system.rank < maxlocalcells % system.size)
+    maxlocalcells++;
+  if(!(cellsinfo->cells=(celldata_t*)malloc(maxlocalcells*sizeof(celldata_t))))
+    terminate(system,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);
+  if(!(cellsinfo->forces=(double3dv_t*)malloc(maxlocalcells*sizeof(celldata_t))))
+    terminate(system,"cannot allocate cellsinfo->forces", __FILE__, __LINE__);
+  if(!(cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size)))
+    terminate(system,"cannot allocate cellsinfo->cellsperproc", __FILE__, __LINE__);
+  if(!(cellsinfo->typecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberoffields)))
+    terminate(system,"cannot allocate cellsinfo->typecount", __FILE__, __LINE__);
+  initcount(&(cellsinfo->localcount));
+  initcount(&(cellsinfo->globalcount));
+  for(i=0;i<settings.numberoffields;i++)
+    initcount(&(cellsinfo->typecount[i]));
+  for(i=0;i<system.size;i++)
+    cellsinfo->cellsperproc[i]=0;
+  return;
 }
 
 
