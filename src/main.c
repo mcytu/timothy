@@ -1,8 +1,6 @@
 /* **************************************************************************
- * This file is part of Timothy
- *
- * Copyright (c) 2014/15 Maciej Cytowski
- * Copyright (c) 2014/15 ICM, University of Warsaw, Poland
+ * Timothy - Tissue Modelling Framework
+ * Copyright (C) 2014-2018 Maciej Cytowski
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
