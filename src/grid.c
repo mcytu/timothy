@@ -66,7 +66,7 @@
    gridinfo->localsize.x = gridinfo->globalsize.x / system.dim[0];
    gridinfo->localsize.y = gridinfo->globalsize.y / system.dim[1];
    if(settings.dimension==3) gridinfo->localsize.z = gridinfo->globalsize.z / system.dim[2];
-   gridinfo->localsize.z = 1;
+   else gridinfo->localsize.z = 1;
 
    if(system.rank==0) {
      printf("environment grid size = %" PRId64 "x%" PRId64 "x%" PRId64 "\n", gridinfo->globalsize.x, gridinfo->globalsize.y,gridinfo->globalsize.z);

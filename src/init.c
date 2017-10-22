@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <inttypes.h>
 
 #include "global.h"
 #include "inline.h"
@@ -143,8 +144,6 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
     MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
   }
 
-  /* allocating tables */
-  //cellsallocate();
   /* cell cycle init */
   //cellsCycleInit();
   /* random cell placement */
@@ -195,8 +194,39 @@ void allocatecells(system_t system,settings_t settings,cellsinfo_t *cellsinfo) {
 }
 
 void allocategrid(system_t system,settings_t settings,gridinfo_t *gridinfo) {
+  int i,j,k;
+  #define gridnode(i,j,k) (gridinfo->buffer[gridinfo->localsize.y*gridinfo->localsize.z*i+gridinfo->localsize.z*j+k])
+
   computegridsize(system,settings,gridinfo);
 
+  if(!(gridinfo->loweridx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
+    terminate(system,"cannot allocate gridinfo->loweridx", __FILE__, __LINE__);
+  if(!(gridinfo->upperidx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
+    terminate(system,"cannot allocate gridinfo->upperidx", __FILE__, __LINE__);
+
+  for(i=0;i<system.size;i++) {
+    gridinfo->loweridx[i].x = gridinfo->localsize.x * system.coords[i][0];
+    gridinfo->loweridx[i].y = gridinfo->localsize.y * system.coords[i][1];
+    if(settings.dimension==3) gridinfo->loweridx[i].z = gridinfo->localsize.z * system.coords[i][2];
+    else gridinfo->loweridx[i].z = 0;
+    gridinfo->upperidx[i].x = gridinfo->loweridx[i].x + gridinfo->localsize.x - 1;
+    gridinfo->upperidx[i].y = gridinfo->loweridx[i].y + gridinfo->localsize.y - 1;
+    if(settings.dimension==3) gridinfo->upperidx[i].z = gridinfo->loweridx[i].z + gridinfo->localsize.z - 1;
+    else gridinfo->upperidx[i].z = 0;
+  }
+  if(!(gridinfo->buffer=(double3dv_t*)calloc(gridinfo->localsize.x*gridinfo->localsize.y*gridinfo->localsize.z,sizeof(double3dv_t))))
+    terminate(system,"cannot allocate gridinfo->buffer", __FILE__, __LINE__);
+
+  for(i=0;i<gridinfo->localsize.x;i++)
+    for(j=0;j<gridinfo->localsize.y;j++)
+      for(k=0;k<gridinfo->localsize.z;k++) {
+        gridnode(i,j,k).x = gridinfo->lowercorner.x + gridinfo->resolution * (gridinfo->loweridx[system.rank].x + i);
+        gridnode(i,j,k).y = gridinfo->lowercorner.y + gridinfo->resolution * (gridinfo->loweridx[system.rank].y + j);
+        gridnode(i,j,k).z = gridinfo->lowercorner.z + gridinfo->resolution * (gridinfo->loweridx[system.rank].z + k);
+      }
+
+  #undef grid_node
+  return;
 }
 
 
