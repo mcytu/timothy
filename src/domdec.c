@@ -47,39 +47,30 @@ int *exportToPart;		/* partition to which each object will belong */
 /*!
  * Zoltan callback function. This function returns the dimension (2D or 3D) of the system.
  */
-int ztnReturnDimension(void *data, int *ierr)
-{
-  if (sdim == 3)
-    return 3;
-  if (sdim == 2)
-    return 2;
-  return 0;
+int lbdimension(void *data, int *ierr) {
+  return 3;
 }
 
 /*!
  * Zoltan callback function. This function returns the spatial coordinates of the cell identified by its global and local id.
  */
-void ztnReturnCoords(void *data, int numGidEntries, int numLidEntries,
+void lbcoords(void *data, int numGidEntries, int numLidEntries,
                      ZOLTAN_ID_PTR globalId, ZOLTAN_ID_PTR localId,
                      double *geomVec, int *ierr)
 {
-  if (sdim == 3) {
-    geomVec[0] = cells[localId[0]].x;
-    geomVec[1] = cells[localId[0]].y;
-    geomVec[2] = cells[localId[0]].z;
-  }
-  if (sdim == 2) {
-    geomVec[0] = cells[localId[0]].x;
-    geomVec[1] = cells[localId[0]].y;
-  }
+  cellinfo_t *cellsinfo = (cellinfo_t*) data;
+  geomVec[0] = cellsinfo.data[localID[0]].x;
+  geomVec[1] = cellsinfo.data[localID[0]].y;
+  geomVec[2] = cellsinfo.data[localID[0]].z;
 }
 
 /*!
  * Zoltan callback function. This function returns the number of cells assigned to this process.
  */
-int ztnReturnNumNode(void *data, int *ierr)
+int lbncells(void *data, int *ierr)
 {
-  return lnc;
+  cellsinfo_t *cells = (cellsinfo*) data;
+  return cellsinfo->localcount.n;
 }
 
 /*!
@@ -188,7 +179,7 @@ void ztnUnpack(void *data, int numGIdEntries, ZOLTAN_ID_PTR globalId,
  * This function initializes the Zoltan library.
  * It is called at the beginning of the simulation.
  */
-void decompositionInit(int argc, char **argv, MPI_Comm Comm)
+void lbinit(int argc, char **argv, MPI_Comm Comm,settings_t *settings,cellsinfo_t *cellsinfo)
 {
   int rc;
   float version;
@@ -211,12 +202,10 @@ void decompositionInit(int argc, char **argv, MPI_Comm Comm)
   Zoltan_Set_Param(ztn, "KEEP_CUTS", "1");	/* save the cuts for later use */
   Zoltan_Set_Param(ztn, "AUTO_MIGRATE", "1");	/* use the auto migration mechanism */
 
-  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE,
-                (void (*)()) ztnReturnDimension, cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)()) ztnReturnCoords,
-                cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)()) ztnReturnNumNode,
-                cells);
+  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)()) lbdimension, NULL);
+  Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)()) lboords, cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)()) lbncells,
+                cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_LIST_FN_TYPE,
                 (void (*)()) ztnReturnOwnedNodes, cells);
   Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,

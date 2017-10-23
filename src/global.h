@@ -163,14 +163,14 @@ typedef struct cellsinfo_t{
 } cellsinfo_t;
 
 /* NEW */
-typedef struct gridinfo_t{
+typedef struct grid_t{
   int643dv_t globalsize;
   double3dv_t lowercorner,uppercorner;
   int643dv_t localsize;
   float resolution;
   int643dv_t *loweridx,*upperidx;
-  double3dv_t *buffer;
-} gridinfo_t;
+  double3dv_t *data;
+} grid_t;
 /* NEW */
 
 
@@ -250,6 +250,7 @@ typedef struct environment_t {
 	double initialconditionmean;
 	double initialconditionvariance;
 	double lambdadelay;
+	double *data;
 } environment_t;
 
 //#define CELLENVINTER_PROD_DEFAULT 0.0

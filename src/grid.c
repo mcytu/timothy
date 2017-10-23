@@ -24,52 +24,51 @@
 #include <inttypes.h>
 
 #include "global.h"
-#include "fields.h"
+//#include "fields.h"
 
 /*! \file grid.c
  *  \brief contains functions that build the computational grid
  */
 
-
  /*!
   * This function computes the sizes of the grid.
   */
- void computegridsize(system_t system,settings_t settings,gridinfo_t *gridinfo)
+ void computegridsize(system_t system,settings_t settings,grid_t *grid)
  {
    float3dv_t globalgridsize;
-   gridinfo->resolution=settings.gfh;
+   grid->resolution=settings.gfh;
 
-   gridinfo->lowercorner.x = -BOXSIZEX/2.0;
-   gridinfo->lowercorner.y = -BOXSIZEY/2.0;
-   if(settings.dimension==3) gridinfo->lowercorner.z = -BOXSIZEZ/2.0;
-   else gridinfo->lowercorner.z = 0.0;
+   grid->lowercorner.x = -BOXSIZEX/2.0;
+   grid->lowercorner.y = -BOXSIZEY/2.0;
+   if(settings.dimension==3) grid->lowercorner.z = -BOXSIZEZ/2.0;
+   else grid->lowercorner.z = 0.0;
 
-   gridinfo->uppercorner.x = (BOXSIZEX/2.0);//-1.0;
-   gridinfo->uppercorner.y = (BOXSIZEY/2.0);//-1.0;
-   if(settings.dimension==3) gridinfo->uppercorner.z = (BOXSIZEZ/2.0);//-1.0;
-   else gridinfo->uppercorner.z = 0.0;
+   grid->uppercorner.x = (BOXSIZEX/2.0);//-1.0;
+   grid->uppercorner.y = (BOXSIZEY/2.0);//-1.0;
+   if(settings.dimension==3) grid->uppercorner.z = (BOXSIZEZ/2.0);//-1.0;
+   else grid->uppercorner.z = 0.0;
 
-   globalgridsize.x = gridinfo->uppercorner.x - gridinfo->lowercorner.x + 1;
-   globalgridsize.y = gridinfo->uppercorner.y - gridinfo->lowercorner.y + 1;
-   if(settings.dimension==3) globalgridsize.z = gridinfo->uppercorner.z - gridinfo->lowercorner.z + 1;
+   globalgridsize.x = grid->uppercorner.x - grid->lowercorner.x + 1;
+   globalgridsize.y = grid->uppercorner.y - grid->lowercorner.y + 1;
+   if(settings.dimension==3) globalgridsize.z = grid->uppercorner.z - grid->lowercorner.z + 1;
    else globalgridsize.z = 0.0;
 
-   gridinfo->globalsize.x = (int64_t)((globalgridsize.x+1)/gridinfo->resolution);
-   gridinfo->globalsize.y = (int64_t)((globalgridsize.y+1)/gridinfo->resolution);
-   if(settings.dimension==3) gridinfo->globalsize.z = (int64_t)((globalgridsize.z+1)/gridinfo->resolution);
-   else gridinfo->globalsize.z = 0.0;
+   grid->globalsize.x = (int64_t)((globalgridsize.x+1)/grid->resolution);
+   grid->globalsize.y = (int64_t)((globalgridsize.y+1)/grid->resolution);
+   if(settings.dimension==3) grid->globalsize.z = (int64_t)((globalgridsize.z+1)/grid->resolution);
+   else grid->globalsize.z = 0.0;
 
-   gridinfo->globalsize.x = gridinfo->globalsize.x + (system.dim[0] - gridinfo->globalsize.x % system.dim[0]);
-   gridinfo->globalsize.y = gridinfo->globalsize.y + (system.dim[1] - gridinfo->globalsize.y % system.dim[1]);
-   if(settings.dimension==3) gridinfo->globalsize.z = gridinfo->globalsize.z + (system.dim[2] - gridinfo->globalsize.z % system.dim[2]);
+   grid->globalsize.x = grid->globalsize.x + (system.dim[0] - grid->globalsize.x % system.dim[0]);
+   grid->globalsize.y = grid->globalsize.y + (system.dim[1] - grid->globalsize.y % system.dim[1]);
+   if(settings.dimension==3) grid->globalsize.z = grid->globalsize.z + (system.dim[2] - grid->globalsize.z % system.dim[2]);
 
-   gridinfo->localsize.x = gridinfo->globalsize.x / system.dim[0];
-   gridinfo->localsize.y = gridinfo->globalsize.y / system.dim[1];
-   if(settings.dimension==3) gridinfo->localsize.z = gridinfo->globalsize.z / system.dim[2];
-   else gridinfo->localsize.z = 1;
+   grid->localsize.x = grid->globalsize.x / system.dim[0];
+   grid->localsize.y = grid->globalsize.y / system.dim[1];
+   if(settings.dimension==3) grid->localsize.z = grid->globalsize.z / system.dim[2];
+   else grid->localsize.z = 1;
 
    if(system.rank==0) {
-     printf("environment grid size = %" PRId64 "x%" PRId64 "x%" PRId64 "\n", gridinfo->globalsize.x, gridinfo->globalsize.y,gridinfo->globalsize.z);
+     printf("environment grid size = %" PRId64 "x%" PRId64 "x%" PRId64 "\n", grid->globalsize.x, grid->globalsize.y,grid->globalsize.z);
      fflush(stdout);
    }
 
@@ -77,97 +76,38 @@
  }
 
 
-/*!
- * This function computes the sizes of the grid.
- */
-void computeGridSize()
-{
-  gridResolution = csize * gfH;
-  boxVolume = pow((gridResolution / csize) * csizeInUnits * 0.0001, 3);
-  lowerGridCorner.x = 0.0;
-  lowerGridCorner.y = 0.0;
-  lowerGridCorner.z = 0.0;
-  upperGridCorner.x = (double) nx - 1;
-  upperGridCorner.y = (double) ny - 1;
-  upperGridCorner.z = (double) nz - 1;
+ void allocategrid(system_t system,settings_t settings,grid_t *grid) {
+   int i,j,k;
+   #define gridnode(i,j,k) (grid->data[grid->localsize.y*grid->localsize.z*i+grid->localsize.z*j+k])
 
+   computegridsize(system,settings,grid);
 
-  globalGridSize.x = upperGridCorner.x - lowerGridCorner.x + 1;
-  globalGridSize.y = upperGridCorner.y - lowerGridCorner.y + 1;
-  globalGridSize.z = upperGridCorner.z - lowerGridCorner.z + 1;
+   if(!(grid->loweridx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
+     terminate(system,"cannot allocate grid->loweridx", __FILE__, __LINE__);
+   if(!(grid->upperidx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
+     terminate(system,"cannot allocate grid->upperidx", __FILE__, __LINE__);
 
-  gridI = (int64_t) ((globalGridSize.x + 1) / gridResolution);
-  gridJ = (int64_t) ((globalGridSize.y + 1) / gridResolution);
-  if (sdim == 3)
-    gridK = (int64_t) ((globalGridSize.z + 1) / gridResolution);
-  else
-    gridK = 0;
+   for(i=0;i<system.size;i++) {
+     grid->loweridx[i].x = grid->localsize.x * system.coords[i][0];
+     grid->loweridx[i].y = grid->localsize.y * system.coords[i][1];
+     if(settings.dimension==3) grid->loweridx[i].z = grid->localsize.z * system.coords[i][2];
+     else grid->loweridx[i].z = 0;
+     grid->upperidx[i].x = grid->loweridx[i].x + grid->localsize.x - 1;
+     grid->upperidx[i].y = grid->loweridx[i].y + grid->localsize.y - 1;
+     if(settings.dimension==3) grid->upperidx[i].z = grid->loweridx[i].z + grid->localsize.z - 1;
+     else grid->upperidx[i].z = 0;
+   }
+   if(!(grid->data=(double3dv_t*)calloc(grid->localsize.x*grid->localsize.y*grid->localsize.z,sizeof(double3dv_t))))
+     terminate(system,"cannot allocate grid->data", __FILE__, __LINE__);
 
-  gridI = gridI + (MPIdim[0] - gridI % MPIdim[0]);
-  gridJ = gridJ + (MPIdim[1] - gridJ % MPIdim[1]);
-  if (sdim == 3)
-    gridK = gridK + (MPIdim[2] - gridK % MPIdim[2]);
+   for(i=0;i<grid->localsize.x;i++)
+     for(j=0;j<grid->localsize.y;j++)
+       for(k=0;k<grid->localsize.z;k++) {
+         gridnode(i,j,k).x = grid->lowercorner.x + grid->resolution * (grid->loweridx[system.rank].x + i);
+         gridnode(i,j,k).y = grid->lowercorner.y + grid->resolution * (grid->loweridx[system.rank].y + j);
+         gridnode(i,j,k).z = grid->lowercorner.z + grid->resolution * (grid->loweridx[system.rank].z + k);
+       }
 
-  gridSize.x = gridI / MPIdim[0];
-  gridSize.y = gridJ / MPIdim[1];
-  if (sdim == 3)
-    gridSize.z = gridK / MPIdim[2];
-  else
-    gridSize.z = 1;
-
-  if (MPIrank == 0)
-    printf("Grid size:%" PRId64 "x%" PRId64 "x%" PRId64 "\n", gridI, gridJ,
-           gridK);
-}
-
-/*!
- * This function allocates grid arrays.
- */
-void allocateGrid()
-{
-  int i, j, k;
-
-  gridStartIdx =
-    (struct int64Vector3d *) malloc(MPIsize *
-                                    sizeof(struct int64Vector3d));
-  gridEndIdx =
-    (struct int64Vector3d *) malloc(MPIsize *
-                                    sizeof(struct int64Vector3d));
-
-  for (i = 0; i < MPIsize; i++) {
-    gridStartIdx[i].x = gridSize.x * MPIcoords[i][0];
-    gridStartIdx[i].y = gridSize.y * MPIcoords[i][1];
-    if (sdim == 3)
-      gridStartIdx[i].z = gridSize.z * MPIcoords[i][2];
-    else
-      gridStartIdx[i].z = 0;
-    gridEndIdx[i].x = gridStartIdx[i].x + gridSize.x - 1;
-    gridEndIdx[i].y = gridStartIdx[i].y + gridSize.y - 1;
-    if (sdim == 3)
-      gridEndIdx[i].z = gridStartIdx[i].z + gridSize.z - 1;
-    else
-      gridEndIdx[i].z = 0;
-  }
-
-  if (!
-      (gridBuffer =
-         (struct doubleVector3d *) calloc(gridSize.x * gridSize.y *
-                                          gridSize.z,
-                                          sizeof(struct doubleVector3d))))
-    stopRun(106, "gridBuffer", __FILE__, __LINE__);
-
-
-  for (i = 0; i < gridSize.x; i++)
-    for (j = 0; j < gridSize.y; j++)
-      for (k = 0; k < gridSize.z; k++) {
-        grid(i, j, k).x =
-          lowerGridCorner.x + gridResolution * (gridStartIdx[MPIrank].x +
-                                                i);
-        grid(i, j, k).y =
-          lowerGridCorner.y + gridResolution * (gridStartIdx[MPIrank].y +
-                                                j);
-        grid(i, j, k).z =
-          lowerGridCorner.z + gridResolution * (gridStartIdx[MPIrank].z +
-                                                k);
-      }
-}
+   #undef grid_node
+   return;
+ }
