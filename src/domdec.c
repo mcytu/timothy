@@ -48,7 +48,8 @@ int *exportToPart;		/* partition to which each object will belong */
  * Zoltan callback function. This function returns the dimension (2D or 3D) of the system.
  */
 int lbdimension(void *data, int *ierr) {
-  return 3;
+  cellinfo_t *cellsinfo = (cellinfo_t*) data;
+  return cellsinfo->dimension;
 }
 
 /*!
@@ -59,9 +60,10 @@ void lbcoords(void *data, int numGidEntries, int numLidEntries,
                      double *geomVec, int *ierr)
 {
   cellinfo_t *cellsinfo = (cellinfo_t*) data;
-  geomVec[0] = cellsinfo.data[localID[0]].x;
-  geomVec[1] = cellsinfo.data[localID[0]].y;
-  geomVec[2] = cellsinfo.data[localID[0]].z;
+  geomVec[0] = cellsinfo->data[localID[0]].x;
+  geomVec[1] = cellsinfo->data[localID[0]].y;
+  if(cellsinfo->dimension==3)
+    geomVec[2] = cellsinfo->data[localID[0]].z;
 }
 
 /*!
@@ -76,13 +78,14 @@ int lbncells(void *data, int *ierr)
 /*!
  * Zoltan callback function. This function fills the tables of global ids, local ids and weights for all cells assigned to this process.
  */
-void ztnReturnOwnedNodes(void *data, int numGIdEntries, int numLIdEntries,
-                         ZOLTAN_ID_PTR globalIds, ZOLTAN_ID_PTR localIds,
-                         int wgtDim, float *objWgts, int *ierr)
+void lbmycells(void *data, int numGIdEntries, int numLIdEntries,
+               ZOLTAN_ID_PTR globalIds, ZOLTAN_ID_PTR localIds,
+               int wgtDim, float *objWgts, int *ierr)
 {
   int i;
-  for (i = 0; i < lnc; i++) {
-    globalIds[i * numGIdEntries] = cells[i].gid;
+  cellsinfo_t *cells = (cellsinfo*) data;
+  for (i = 0; i < cellsinfo->localcount.n; i++) {
+    globalIds[i * numGIdEntries] = cellsinfo->data[i].gid;
     localIds[i * numLIdEntries] = i;
     objWgts[i] = 1.0;
     //if(nc==1 || step==0) objWgts[i]=1.0;
@@ -93,11 +96,11 @@ void ztnReturnOwnedNodes(void *data, int numGIdEntries, int numLIdEntries,
 /*!
  * Zoltan callback function. This function returns the size of a data structure used for keeping the data of a single cell.
  */
-int ztnReturnParticleDataSize(void *data, int numGIdEntries,
+int lbcelldatasize(void *data, int numGIdEntries,
                               int numLIdEntries, ZOLTAN_ID_PTR globalId,
                               ZOLTAN_ID_PTR localId, int *ierr)
 {
-  return sizeof(struct cellData);
+  return sizeof(celldata_t);
 }
 
 /*!
@@ -202,14 +205,11 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,settings_t *settings,cellsinfo_
   Zoltan_Set_Param(ztn, "KEEP_CUTS", "1");	/* save the cuts for later use */
   Zoltan_Set_Param(ztn, "AUTO_MIGRATE", "1");	/* use the auto migration mechanism */
 
-  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)()) lbdimension, NULL);
+  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)()) lbdimension, cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)()) lboords, cellsinfo);
-  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)()) lbncells,
-                cellsinfo);
-  Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_LIST_FN_TYPE,
-                (void (*)()) ztnReturnOwnedNodes, cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,
-                (void (*)()) ztnReturnParticleDataSize, cells);
+  Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)()) lbncells,cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_LIST_FN_TYPE,(void (*)()) lbmycells, cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,(void (*)()) lbcelldatasize, cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_PACK_OBJ_FN_TYPE, (void (*)()) ztnPack, cells);
   Zoltan_Set_Fn(ztn, ZOLTAN_UNPACK_OBJ_FN_TYPE, (void (*)()) ztnUnpack,
                 cells);

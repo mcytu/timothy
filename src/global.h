@@ -160,6 +160,7 @@ typedef struct cellsinfo_t{
 	uint64_t *cellsperproc;
 	celldata_t *cells;
 	double3dv_t *forces;
+	int dimension;
 } cellsinfo_t;
 
 /* NEW */
@@ -252,6 +253,7 @@ typedef struct environment_t {
 	double lambdadelay;
 	double *data;
 } environment_t;
+
 
 //#define CELLENVINTER_PROD_DEFAULT 0.0
 //#define CELLENFINTER_CONS_DEFAULT 0.0

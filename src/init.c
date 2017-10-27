@@ -144,6 +144,8 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
     MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
   }
 
+  lbinit(argc,argv,MPI_COMM_WORLD,settings);
+
   /* cell cycle init */
   //cellsCycleInit();
   /* random cell placement */
@@ -190,6 +192,7 @@ void allocatecells(system_t system,settings_t settings,cellsinfo_t *cellsinfo) {
     initcount(&(cellsinfo->typecount[i]));
   for(i=0;i<system.size;i++)
     cellsinfo->cellsperproc[i]=0;
+  cellsinfo->dimension=settings.dimension;
   return;
 }
 
