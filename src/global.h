@@ -179,6 +179,7 @@ typedef struct grid_t{
 
 typedef struct settings_t {
  		int64_t maxcells;   /* maximal number of cells (set in parameter file) */
+		int64_t maxlocalcells;
 		int numberofsteps;
 		float secondsperstep;
 		int numberofcelltypes;

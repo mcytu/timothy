@@ -100,6 +100,7 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
         int i;
         int periods[3];
         int reorder;
+        int maxlocalcells;
 
         if (argc < 2 || argc >2) {
                 if(system->rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
@@ -143,6 +144,13 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                         terminate(system,"cannot allocate system->coords[i]", __FILE__, __LINE__);
                 MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
         }
+
+        maxlocalcells=settings->maxcells / system->size;
+        if (system->rank < maxlocalcells % system->size)
+                maxlocalcells++;
+
+        settings->maxlocalcells=maxlocalcells;
+
         return;
 }
 
@@ -161,9 +169,7 @@ void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cell
         int i;
         int maxlocalcells;
 
-        maxlocalcells=settings.maxcells / system.size;
-        if (system.rank < maxlocalcells % system.size)
-                maxlocalcells++;
+        maxlocalcells=settings.maxlocalcells;
 
         if(!(cellsinfo->cells=(celldata_t*)malloc(maxlocalcells*sizeof(celldata_t))))
                 terminate(system,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);

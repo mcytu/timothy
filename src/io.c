@@ -44,24 +44,44 @@ void readRstFile(int argc, char **argv);
 
 void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
         FILE *fhandle;
+        char buf[128],bufx[16],bufy[16],bufz[16];
         int i;
-        for(i=0; i<settings.numberofcelltypes; i++) {
-                if(strlen(celltype[i].inputfile)==0) {
-                        if(system.rank==0) printf("filename for %s cells coordinates not specified\n",celltype[i].name);
-                        continue;
-                } else {
-                        fhandle = fopen(celltype[i].inputfile, "r");
-                        if(fhandle==NULL) {
-                                if (system.rank==0) printf("filename for %s cells coordinates not found\n",celltype[i].name);
+        /* cell coordinate files are read only by rank 0 */
+        if(system.rank==0) {
+                for(i=0; i<settings.numberofcelltypes; i++) {
+                        if(strlen(celltype[i].inputfile)==0) {
+                                printf("filename for %s cells coordinates not specified\n",celltype[i].name);
+                                continue;
+                        } else {
+                                fhandle = fopen(celltype[i].inputfile, "r");
+                                if(fhandle==NULL) {
+                                        printf("filename for %s cells coordinates not found\n",celltype[i].name);
+                                        continue;
+                                }
+                                while(!feof(fhandle)) {
+                                        char *ret;
+                                        int ncoords;
+                                        if(cellsinfo->localcount.n==settings.maxlocalcells) break;
+                                        ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
+                                        ncoords=sscanf(buf, "%s%s%s", bufx, bufy, bufz);
+                                        if(ncoords!=cellsinfo->dimension)
+                                                printf("warning: missing cells coordinates");
+                                        if(ncoords>0)
+                                                cellsinfo->cells[cellsinfo->localcount.n].x=atof(bufx);
+                                        if(ncoords>1)
+                                                cellsinfo->cells[cellsinfo->localcount.n].y=atof(bufy);
+                                        if(ncoords>2)
+                                                cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
+                                        cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                        cellsinfo->localcount.n+=1;
+                                }
+                                fclose(fhandle);
+                                if(cellsinfo->localcount.n==settings.maxlocalcells) {
+                                        printf("warning: too many local cells, skipping rest of file %s\n",celltype[i].inputfile);
+                                        break;
+                                }
                         }
                 }
-                //printf("name: %s",celltype[i].inputfile);
-                //printf("lenght=%f\n",celltype[i].g1);
-
-                //fhandle = fopen(envfile, "r");
-                //if (fhandle == NULL || )
-                //        terminate(system, "could not open environment file", __FILE__, __LINE__);
-                //fclose(fhandle);
         }
         return;
 }
@@ -72,13 +92,14 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
         FILE *fhandle;
         int i,j;
         int nr;
-        int nameset=0;
+        int firstnameset=0;
 
         sprintf(envfile,"environment.inp");
 
-        if (system.rank == 0)
+        if (system.rank == 0) {
                 printf("reading environment file: %s\n", envfile);
-        fflush(stdout);
+                fflush(stdout);
+        }
 
         fhandle = fopen(envfile, "r");
         if (fhandle == NULL)
@@ -100,8 +121,8 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
                                 continue;
 
                         if (strcmp(buf1,"ENVNAME")==0) {
-                                if(nameset) i++;
-                                else nameset++;
+                                if(firstnameset) i++;
+                                else firstnameset=1;
                                 strcpy(environment[i].name, buf2);
                                 continue;
                         }
@@ -125,7 +146,7 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
         int i,k;
         int nr;
         int nbytes,bytesread;
-        int nameset=0;
+        int firstnameset=0;
 
         sprintf(cellsfile,"cells.inp");
 
@@ -153,8 +174,8 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
                                 continue;
 
                         if (strcmp(buf1,"CNAME")==0) {
-                                if(nameset) i++;
-                                else nameset++;
+                                if(firstnameset) i++;
+                                else firstnameset=1;
                                 strcpy(celltype[i].name, buf2);
                                 continue;
                         }
