@@ -144,8 +144,6 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
     MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
   }
 
-  lbinit(argc,argv,MPI_COMM_WORLD,settings);
-
   /* cell cycle init */
   //cellsCycleInit();
   /* random cell placement */
@@ -282,7 +280,7 @@ void simulationInit(int argc, char **argv)
     cellsRandomInit();
     //initVessel();
     /* decomposition - initialization */
-    decompositionInit(argc, argv, MPI_COMM_WORLD);
+    //decompositionInit(argc, argv, MPI_COMM_WORLD);
   }
 
   /* maximum distance cell can travel in 1 sec */

@@ -55,6 +55,7 @@ int main(int argc, char **argv)
   allocatecells(system,settings,&cellsinfo);
   allocategrid(system,settings,&grid);
   allocatefields(system,settings,&environment);
+  lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
   MPI_Abort(MPI_COMM_WORLD,-1);
 

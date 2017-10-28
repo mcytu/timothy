@@ -1,8 +1,6 @@
 /* **************************************************************************
- * This file is part of Timothy
- *
- * Copyright (c) 2014/15 Maciej Cytowski
- * Copyright (c) 2014/15 ICM, University of Warsaw, Poland
+ * Timothy - Tissue Modelling Framework
+ * Copyright (C) 2014-2018 Maciej Cytowski
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,9 +46,11 @@ int *exportToPart;		/* partition to which each object will belong */
  * Zoltan callback function. This function returns the dimension (2D or 3D) of the system.
  */
 int lbdimension(void *data, int *ierr) {
-  cellinfo_t *cellsinfo = (cellinfo_t*) data;
+  cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
   return cellsinfo->dimension;
 }
+
+
 
 /*!
  * Zoltan callback function. This function returns the spatial coordinates of the cell identified by its global and local id.
@@ -59,11 +59,11 @@ void lbcoords(void *data, int numGidEntries, int numLidEntries,
                      ZOLTAN_ID_PTR globalId, ZOLTAN_ID_PTR localId,
                      double *geomVec, int *ierr)
 {
-  cellinfo_t *cellsinfo = (cellinfo_t*) data;
-  geomVec[0] = cellsinfo->data[localID[0]].x;
-  geomVec[1] = cellsinfo->data[localID[0]].y;
+  cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
+  geomVec[0] = cellsinfo->cells[(localId[0])].x;
+  geomVec[1] = cellsinfo->cells[localId[0]].y;
   if(cellsinfo->dimension==3)
-    geomVec[2] = cellsinfo->data[localID[0]].z;
+    geomVec[2] = cellsinfo->cells[localId[0]].z;
 }
 
 /*!
@@ -71,7 +71,7 @@ void lbcoords(void *data, int numGidEntries, int numLidEntries,
  */
 int lbncells(void *data, int *ierr)
 {
-  cellsinfo_t *cells = (cellsinfo*) data;
+  cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
   return cellsinfo->localcount.n;
 }
 
@@ -83,9 +83,9 @@ void lbmycells(void *data, int numGIdEntries, int numLIdEntries,
                int wgtDim, float *objWgts, int *ierr)
 {
   int i;
-  cellsinfo_t *cells = (cellsinfo*) data;
+  cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
   for (i = 0; i < cellsinfo->localcount.n; i++) {
-    globalIds[i * numGIdEntries] = cellsinfo->data[i].gid;
+    globalIds[i * numGIdEntries] = cellsinfo->cells[i].gid;
     localIds[i * numLIdEntries] = i;
     objWgts[i] = 1.0;
     //if(nc==1 || step==0) objWgts[i]=1.0;
@@ -106,19 +106,19 @@ int lbcelldatasize(void *data, int numGIdEntries,
 /*!
  * Zoltan callback function. This function packs data into a send buffer before migration.
  */
-void ztnPack(void *data, int numGIdEntries, int numLIdEntries,
+void lbpack(void *data, int numGIdEntries, int numLIdEntries,
              ZOLTAN_ID_PTR globalId, ZOLTAN_ID_PTR localId, int dest,
              int size, char *buf, int *ierr)
 {
-  struct cellData *c = (struct cellData *) data;
-  memcpy(buf, &(c[localId[0]]), sizeof(struct cellData));
-  c[(int) (*localId)].gid = -1;	/* mark local particle as exported */
+  celldata_t *cells = (celldata_t *) data;
+  memcpy(buf, &(cells[localId[0]]), sizeof(celldata_t));
+  cells[(int) (*localId)].gid = -1;	/* mark local particle as exported */
 }
 
 /*!
  * Zoltan callback function. This function is executed before migration of data between processes.
  */
-void ztnPre(void *data, int numGIdEntries, int numLIdEntries,
+void lbpre(void *data, int numGIdEntries, int numLIdEntries,
             int numImport, ZOLTAN_ID_PTR importGlobalIds,
             ZOLTAN_ID_PTR importLocalIds, int *importProcs,
             int *importToPart, int numExport,
@@ -131,7 +131,7 @@ void ztnPre(void *data, int numGIdEntries, int numLIdEntries,
 /*!
  * Zoltan callback function. This function is executed after packing of send buffer and unpacking of receive buffer during migration.
  */
-void ztnMid(void *data, int numGIdEntries, int numLIdEntries,
+void lbmid(void *data, int numGIdEntries, int numLIdEntries,
             int numImport, ZOLTAN_ID_PTR importGlobalIds,
             ZOLTAN_ID_PTR importLocalIds, int *importProcs,
             int *importToPart, int numExport,
@@ -139,50 +139,51 @@ void ztnMid(void *data, int numGIdEntries, int numLIdEntries,
             int *exportProcs, int *exportToPart, int *ierr)
 {
   int pos, i;
-  struct cellData *c = (struct cellData *) data;
+  cellsinfo_t *cellsinfo = (cellsinfo_t *) data;
   pos = 0;
-  for (i = 0; i < lnc; i++) {
-    if (i != pos && c[i].gid != -1) {
-      c[pos] = c[i];
+  for (i = 0; i < cellsinfo->localcount.n; i++) {
+    if (i != pos && cellsinfo->cells[i].gid != -1) {
+      cellsinfo->cells[pos] = cellsinfo->cells[i];
     }
-    if (c[i].gid != -1)
+    if (cellsinfo->cells[i].gid != -1)
       pos++;
   }
-  lnc = lnc - numExport;
+  cellsinfo->localcount.n = cellsinfo->localcount.n - numExport;
 }
 
 /*!
  * Zoltan callback function. This function is executed after migration of data between processes.
  */
-void ztnPost(void *data, int numGIdEntries, int numLIdEntries,
+void lbpost(void *data, int numGIdEntries, int numLIdEntries,
              int numImport, ZOLTAN_ID_PTR importGlobalIds,
              ZOLTAN_ID_PTR importLocalIds, int *importProcs,
              int *importToPart, int numExport,
              ZOLTAN_ID_PTR exportGlobalIds, ZOLTAN_ID_PTR exportLocalIds,
              int *exportProcs, int *exportToPart, int *ierr)
 {
+  cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
   /* any post communication operations should go here */
   /* gather number of cells from each process */
-  MPI_Allgather(&lnc, 1, MPI_LONG_LONG, tlnc, 1, MPI_LONG_LONG,
+  MPI_Allgather(&(cellsinfo->localcount.n), 1, MPI_LONG_LONG, cellsinfo->cellsperproc, 1, MPI_LONG_LONG,
                 MPI_COMM_WORLD);
 }
 
 /*!
  * Zoltan callback function. This function unpacks data from the receive buffer.
  */
-void ztnUnpack(void *data, int numGIdEntries, ZOLTAN_ID_PTR globalId,
+void lbunpack(void *data, int numGIdEntries, ZOLTAN_ID_PTR globalId,
                int size, char *buf, int *ierr)
 {
-  struct cellData *c = (struct cellData *) data;
-  memcpy(&c[lnc], buf, sizeof(struct cellData));
-  lnc++;
+  cellsinfo_t *cellsinfo = (cellsinfo_t *) data;
+  memcpy(&(cellsinfo->cells[cellsinfo->localcount.n]), buf, sizeof(celldata_t));
+  (cellsinfo->localcount.n)++;
 }
 
 /*!
  * This function initializes the Zoltan library.
  * It is called at the beginning of the simulation.
  */
-void lbinit(int argc, char **argv, MPI_Comm Comm,settings_t *settings,cellsinfo_t *cellsinfo)
+void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *cellsinfo)
 {
   int rc;
   float version;
@@ -191,7 +192,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,settings_t *settings,cellsinfo_
   if (rc != ZOLTAN_OK)
     stopRun(112, NULL, __FILE__, __LINE__);
 
-  if (MPIrank == 0)
+  if (system.rank == 0)
     printf("Zoltan Version %.3f. Initialized.\n", version);
 
   ztn = Zoltan_Create(MPI_COMM_WORLD);
@@ -206,19 +207,15 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,settings_t *settings,cellsinfo_
   Zoltan_Set_Param(ztn, "AUTO_MIGRATE", "1");	/* use the auto migration mechanism */
 
   Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)()) lbdimension, cellsinfo);
-  Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)()) lboords, cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)()) lbcoords, cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)()) lbncells,cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_LIST_FN_TYPE,(void (*)()) lbmycells, cellsinfo);
   Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,(void (*)()) lbcelldatasize, cellsinfo);
-  Zoltan_Set_Fn(ztn, ZOLTAN_PACK_OBJ_FN_TYPE, (void (*)()) ztnPack, cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_UNPACK_OBJ_FN_TYPE, (void (*)()) ztnUnpack,
-                cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_PRE_MIGRATE_PP_FN_TYPE, (void (*)()) ztnPre,
-                cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_MID_MIGRATE_PP_FN_TYPE, (void (*)()) ztnMid,
-                cells);
-  Zoltan_Set_Fn(ztn, ZOLTAN_POST_MIGRATE_PP_FN_TYPE, (void (*)()) ztnPost,
-                cells);
+  Zoltan_Set_Fn(ztn, ZOLTAN_PACK_OBJ_FN_TYPE, (void (*)()) lbpack, cellsinfo->cells);
+  Zoltan_Set_Fn(ztn, ZOLTAN_UNPACK_OBJ_FN_TYPE, (void (*)()) lbunpack,cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_PRE_MIGRATE_PP_FN_TYPE, (void (*)()) lbpre,cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_MID_MIGRATE_PP_FN_TYPE, (void (*)()) lbmid,cellsinfo);
+  Zoltan_Set_Fn(ztn, ZOLTAN_POST_MIGRATE_PP_FN_TYPE, (void (*)()) lbpost,cellsinfo);
 
 }
 
