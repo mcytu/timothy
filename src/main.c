@@ -18,11 +18,11 @@
  *
  * *************************************************************************/
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<mpi.h>
-#include<omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
+#include <omp.h>
 
 #include "global.h"
 
@@ -33,81 +33,81 @@
 /*!
  * This function intializes MPI, calls Timothy initialization and allocation functions.
  * It also contains the main simulation loop where all important simulation steps are called.
-*/
+ */
 
 int main(int argc, char **argv)
 {
-  system_t system;
-  settings_t settings;
-  celltype_t *celltype;
-  environment_t *environment;
-  cellsinfo_t cellsinfo;
-  grid_t grid;
+        system_t system;
+        settings_t settings;
+        celltype_t *celltype;
+        environment_t *environment;
+        cellsinfo_t cellsinfo;
+        grid_t grid;
 
-  MPI_Init(&argc, &argv);
-  MPI_Comm_size(MPI_COMM_WORLD, &system.size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &system.rank);
-  system.nthreads = omp_get_max_threads();
+        MPI_Init(&argc, &argv);
+        MPI_Comm_size(MPI_COMM_WORLD, &system.size);
+        MPI_Comm_rank(MPI_COMM_WORLD, &system.rank);
+        system.nthreads = omp_get_max_threads();
 
-  getsysteminfo(&system);
-  printinfo(system);
-  initialisation(argc,argv,&system,&settings,celltype,environment);
-  allocatecells(system,settings,&cellsinfo);
-  allocategrid(system,settings,&grid);
-  allocatefields(system,settings,&environment);
-  lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
+        getsysteminfo(&system);
+        printinfo(system);
+        initialisation(argc,argv,&system,&settings,&celltype,&environment);
+        allocatecells(system,settings,celltype,&cellsinfo);
+        allocategrid(system,settings,&grid);
+        allocatefields(system,settings,&environment);
+        lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
-  MPI_Abort(MPI_COMM_WORLD,-1);
+        MPI_Abort(MPI_COMM_WORLD,-1);
 
-  simulationInit(argc, argv);
+        simulationInit(argc, argv);
 
 
-  for (step = 0; step < nsteps; step++) {
+        for (step = 0; step < nsteps; step++) {
 
 //    ioWriteStepVTK(step);
 
-    if (!(step % statOutStep))
-      printStepNum();
+                if (!(step % statOutStep))
+                        printStepNum();
 
-    decompositionExecute();
-    octBuild();
-    createExportList();
-    computeStep();
+                decompositionExecute();
+                octBuild();
+                createExportList();
+                computeStep();
 
-    if (!(step % statOutStep))
-      statisticsPrint();
+                if (!(step % statOutStep))
+                        statisticsPrint();
 
-    if (simStart)
-      simTime += secondsPerStep / 3600.0;	/* biological process time in hours */
+                if (simStart)
+                        simTime += secondsPerStep / 3600.0; /* biological process time in hours */
 
-    if (!(step % vtkOutStep)) {
-      if (vtkout)
-        ioWriteStepVTK(step);
-      if (povout)
-        ioWriteStepPovRay(step, 0);
+                if (!(step % vtkOutStep)) {
+                        if (vtkout)
+                                ioWriteStepVTK(step);
+                        if (povout)
+                                ioWriteStepPovRay(step, 0);
 //      if (vnfout)
 //        ioWriteFields(step);
-    }
+                }
 
-    updateCellPositions();
-    updateCellStates();
-    commCleanup();
-    octFree();
+                updateCellPositions();
+                updateCellStates();
+                commCleanup();
+                octFree();
 
-    if (!(step % rstOutStep))
-      saveRstFile();
-  }
+                if (!(step % rstOutStep))
+                        saveRstFile();
+        }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
-  decompositionFinalize();
-  randomStreamFree();
-  cellsCleanup();
+        decompositionFinalize();
+        randomStreamFree();
+        cellsCleanup();
 
-  if (MPIrank == 0)
-    printf("\nEnd of simulation run.\n");
+        if (MPIrank == 0)
+                printf("\nEnd of simulation run.\n");
 
-  MPI_Finalize();
+        MPI_Finalize();
 
-  return 0;
+        return 0;
 }
