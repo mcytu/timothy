@@ -44,7 +44,7 @@ void readRstFile(int argc, char **argv);
 
 void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
         FILE *fhandle;
-        char buf[128],bufx[16],bufy[16],bufz[16];
+        char buf[128],bufx[16],bufy[16],bufz[16],bufn[16];
         int i;
         /* cell coordinate files are read only by rank 0 */
         if(system.rank==0) {
@@ -63,17 +63,34 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                         int ncoords;
                                         if(cellsinfo->localcount.n==settings.maxlocalcells) break;
                                         ret = fgets(buf, INPUT_FILE_LINE_LENGTH, fhandle);
-                                        ncoords=sscanf(buf, "%s%s%s", bufx, bufy, bufz);
-                                        if(ncoords!=cellsinfo->dimension)
-                                                printf("warning: missing cells coordinates");
-                                        if(ncoords>0)
+                                        if (feof(fhandle))
+                                                break;
+                                        ncoords=sscanf(buf, "%s%s%s%s", bufx, bufy, bufz, bufn);
+
+                                        if(ncoords==cellsinfo->dimension) {
                                                 cellsinfo->cells[cellsinfo->localcount.n].x=atof(bufx);
-                                        if(ncoords>1)
                                                 cellsinfo->cells[cellsinfo->localcount.n].y=atof(bufy);
-                                        if(ncoords>2)
-                                                cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
-                                        cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
-                                        cellsinfo->localcount.n+=1;
+                                                if(ncoords>2)
+                                                        cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
+                                                cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->localcount.n+=1;
+                                        }
+
+                                        if(ncoords==cellsinfo->dimension+1) {
+                                                int nrandom;
+                                                cellsinfo->cells[cellsinfo->localcount.n].x=atof(bufx);
+                                                cellsinfo->cells[cellsinfo->localcount.n].y=atof(bufy);
+                                                if(ncoords>3)
+                                                        cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
+                                                cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->localcount.n+=1;
+                                                nrandom=atoi(bufn);
+                                                cellsrandominit(nrandom,i,system,settings,celltype,cellsinfo);
+                                        }
+
+                                        if(ncoords<cellsinfo->dimension || ncoords>cellsinfo->dimension+1)
+                                                printf("warning: missing cell coordinates in %s\n",celltype[i].inputfile);
+
                                 }
                                 fclose(fhandle);
                                 if(cellsinfo->localcount.n==settings.maxlocalcells) {
