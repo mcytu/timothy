@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 
         decompositionFinalize();
-        randomStreamFree();
+        randomstreamfree(&settings);
         cellsCleanup();
 
         if (MPIrank == 0)

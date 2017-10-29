@@ -83,9 +83,9 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
                 while (r2 >= 1.0) {
                         r1 = 1.1;
                         while (r1 == 0 || r1 >= 1.0) {
-                                x1 = sprng(stream) * 2 - 1;
-                                x2 = sprng(stream) * 2 - 1;
-                                x3 = sprng(stream) * 2 - 1;
+                                x1 = ((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
+                                x2 = ((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
+                                x3 = ((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                                 r1 = x1 * x1 + x2 * x2 + x3 * x3;
                         }
                         l = sqrt(-2 * log(r1) / r1);
@@ -95,7 +95,7 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
 
                         r2 = z1 * z1 + z2 * z2 + z3 * z3;
                 }
-/*
+
                 cellsinfo->cells[cellsinfo->localcount.n].x=z1 * D + cellsinfo->cells[cellsinfo->localcount.n-1].x;
                 cellsinfo->cells[cellsinfo->localcount.n].y=z2 * D + cellsinfo->cells[cellsinfo->localcount.n-1].y;
                 if(settings.dimension>3)
@@ -107,7 +107,7 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
                         printf("warning: too many local cells, skipping rest of file %s\n",celltype[i].inputfile);
                         break;
                 }
- */
+
         }
 
 /*      cells[i].size = pow(2.0, -(1.0 / 3.0)) * csize;

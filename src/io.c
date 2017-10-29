@@ -1307,7 +1307,7 @@ void readRstFile(int argc, char **argv)
 
         localID = lnc;
 
-        randomStreamInit();
+        //randomStreamInit();
 
         MPI_Allreduce(localCellCount, totalCellCount, numberOfCounts,
                       MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);

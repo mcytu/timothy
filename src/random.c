@@ -32,17 +32,20 @@
 /*!
  * This function initializes the RNG.
  */
-void randomStreamInit()
+void randomstreaminit(system_t *system,settings_t *settings)
 {
-  int gtype;			// RNG type: DEFAULT_RNG_TYPE, SPRNG_LFG, SPRNG_LCG, SPRNG_LCG64, SPRNG_CMRG, SPRNG_MLFG, SPRNG_PMLCG
-  gtype = DEFAULT_RNG_TYPE;
-  stream = init_sprng(gtype, MPIrank, MPIsize, SEED, SPRNG_DEFAULT);
+
+        settings->rseed=time(NULL) + system->rank;
+        //      int gtype; // RNG type: DEFAULT_RNG_TYPE, SPRNG_LFG, SPRNG_LCG, SPRNG_LCG64, SPRNG_CMRG, SPRNG_MLFG, SPRNG_PMLCG
+        //      gtype = DEFAULT_RNG_TYPE;
+        //      stream=init_sprng(gtype,system->rank, system->size, SEED, SPRNG_DEFAULT);
+        //settings->rstream = init_sprng(gtype, system->rank, system->size, SEED, SPRNG_DEFAULT);
 }
 
 /*!
  * This function deallocates memory used by the RNG.
  */
-void randomStreamFree()
+void randomstreamfree(settings_t *settings)
 {
-  free_sprng(stream);
+        //free_sprng(settings->rstream);
 }

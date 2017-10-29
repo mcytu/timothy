@@ -128,6 +128,8 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
         initialfields(settings->numberoffields,*environment);
         readenvfile(*system,settings,*environment);
 
+        randomstreaminit(system,settings);
+
         /* organizing processes in a Cartesian grid for global fields computations */
         MPI_Dims_create(system->size, settings->dimension, system->dim);
         periods[0] = 0;

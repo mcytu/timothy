@@ -195,6 +195,7 @@ typedef struct settings_t {
 		float gfdt;
 		float gfh;
 		int simulationstart;
+		unsigned int rseed;
 } settings_t;
 
 typedef struct system_t {
