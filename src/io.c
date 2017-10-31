@@ -662,6 +662,139 @@ void ioDefineOutputFields()
         }
 }
 
+
+void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
+        int i,j;
+        MPI_File fhandle;
+        float *floatvectorfield;
+        float *floatscalarfield;
+        int *intscalarfield;
+        int64_t nprev=0;
+        char fstname[256];
+        char buffer[256];
+        MPI_Offset offset,goffset;
+
+        floatvectorfield = (float *) calloc(lnc * 3, sizeof(float));
+        floatscalarfield = (float *) calloc(lnc, sizeof(float));
+        intscalarfield = (int *) calloc(lnc, sizeof(int));
+
+        sprintf(fstname,"vtk/step%08d.vtk",settings.step);
+
+        goffset = 0;
+        MPI_File_open(MPI_COMM_WORLD, fstname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fhandle);
+
+        /* truncate the file */
+        MPI_File_set_size(fhandle, 0);
+
+        /* write vtk header */
+        sprintf(buffer,"# vtk DataFile Version 2.0\nTimothy output\nBINARY\nDATASET UNSTRUCTURED_GRID\n");
+        if (system.rank == 0)
+                MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        for (i = 0; i < system.rank; i++)
+                nprev += cellsinfo.cellsperproc[i];
+
+        /* write cell positions */
+        memset(buffer, 0, 256);
+        sprintf(buffer, "\nPOINTS %" PRId64 " float\n",cellsinfo.globalcount.n);
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+        offset = nprev * sizeof(float) * 3;
+        MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+        for (i = 0; i < cellsinfo.localcount.n; i++) {
+                floatvectorfield[3 * i] = (float) (cellsinfo.cells[i].x);
+                floatvectorfield[3 * i + 1] = (float) (cellsinfo.cells[i].y);
+                floatvectorfield[3 * i + 2] = (float) (cellsinfo.cells[i].z);
+        }
+        if (system.endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
+        MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
+        goffset += cellsinfo.globalcount.n * sizeof(float) * 3;
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        /* write cell types */
+        memset(buffer, 0, 256);
+        sprintf(buffer, "\nCELL_TYPES %" PRId64 "\n", cellsinfo.globalcount.n);
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+        offset = nprev * sizeof(int);
+        MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+        for (i = 0; i < cellsinfo.localcount.n; i++)
+                intscalarfield[i] = 1;
+        if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+        MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
+        goffset += cellsinfo.globalcount.n * sizeof(int);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        /* write point data */
+        memset(buffer, 0, 256);
+        sprintf(buffer, "\nPOINT_DATA %" PRId64, cellsinfo.globalcount.n);
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        /* write ranks */
+        memset(buffer, 0, 256);
+        sprintf(buffer, "\nSCALARS rank integer 1\nLOOKUP_TABLE default\n");
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+        for (i = 0; i < cellsinfo.localcount.n; i++)
+                intscalarfield[i] = system.rank;
+        offset = nprev * sizeof(int);
+        MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+        if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+        MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
+        goffset += cellsinfo.globalcount.n * sizeof(int);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        /* write density */
+        memset(buffer, 0, 256);
+        sprintf(buffer, "\nSCALARS density float 1\nLOOKUP_TABLE default\n");
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+        for (i = 0; i < cellsinfo.localcount.n; i++)
+                floatscalarfield[i] = cellsinfo.cells[i].density;
+        offset = nprev * sizeof(float);
+        MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+        if (system.endian) swapnbyte((char *) floatscalarfield, cellsinfo.localcount.n, sizeof(float));
+        MPI_File_write(fhandle, floatscalarfield, cellsinfo.localcount.n, MPI_FLOAT, MPI_STATUS_IGNORE);
+        goffset += cellsinfo.globalcount.n * sizeof(float);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        /* write forces */
+        sprintf(buffer, "\nVECTORS force float\n");
+        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        goffset += strlen(buffer);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+        for (i = 0; i < cellsinfo.localcount.n; i++) {
+                floatvectorfield[3 * i] = cellsinfo.forces[i].x;
+                floatvectorfield[3 * i + 1] = cellsinfo.forces[i].y;
+                floatvectorfield[3 * i + 2] = cellsinfo.forces[i].z;
+        }
+        offset = nprev * sizeof(float) * 3;
+        MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+        if (endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
+        MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
+        goffset += cellsinfo.localcount.n * 3 * sizeof(float);
+        MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+
+        free(floatvectorfield);
+        free(floatscalarfield);
+        free(intscalarfield);
+
+        MPI_File_close(&fhandle);
+
+        return;
+}
+
+
+
+
 /*!
  * This function writes a VTK file with all cells for a given step.
  */

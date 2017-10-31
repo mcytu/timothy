@@ -23,7 +23,8 @@
 #include <string.h>
 #include <math.h>
 #include <inttypes.h>
-
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "global.h"
 #include "inline.h"
 
@@ -101,13 +102,17 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
         int periods[3];
         int reorder;
         int maxlocalcells;
+        struct stat st = {0};
 
         if (argc < 2 || argc >2) {
                 if(system->rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
                 MPI_Abort(MPI_COMM_WORLD,-1);
         }
         initialsettings(settings);
+        checkendiannes(system);
         readparamfile(argc,argv,*system,settings);
+        settings->step=0;
+
         if (settings->numberofcelltypes<1)
                 terminate(system,"no cell types specified", __FILE__, __LINE__);
 
@@ -152,6 +157,14 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                 maxlocalcells++;
 
         settings->maxlocalcells=maxlocalcells;
+
+        /* create output directories */
+        if (stat("vtk", &st) == -1) {
+                mkdir("vtk", 0755);
+        }
+        if (stat("rst", &st) == -1) {
+                mkdir("rst", 0755);
+        }
 
         return;
 }

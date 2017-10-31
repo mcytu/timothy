@@ -196,6 +196,7 @@ typedef struct settings_t {
 		float gfh;
 		int simulationstart;
 		unsigned int rseed;
+		int step;
 } settings_t;
 
 typedef struct system_t {
@@ -208,6 +209,7 @@ typedef struct system_t {
     int memperproc;
     MPI_Comm MPI_CART_COMM;
     int **coords;
+		int endian;
     //int restart;
 } system_t;
 
