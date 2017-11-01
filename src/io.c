@@ -73,7 +73,11 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                                 if(ncoords>2)
                                                         cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
                                                 cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
                                                 cellsinfo->localcount.n+=1;
+                                                cellsinfo->localcount.g0phase+=1;
+                                                cellsinfo->localtypecount[i].n+=1;
+                                                cellsinfo->localtypecount[i].g0phase+=1;
                                         }
 
                                         if(ncoords==cellsinfo->dimension+1) {
@@ -83,7 +87,11 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                                 if(ncoords>3)
                                                         cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
                                                 cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
                                                 cellsinfo->localcount.n+=1;
+                                                cellsinfo->localcount.g0phase+=1;
+                                                cellsinfo->localtypecount[i].n+=1;
+                                                cellsinfo->localtypecount[i].g0phase+=1;
                                                 nrandom=atoi(bufn);
                                                 cellsrandominit(nrandom,i,system,settings,celltype,cellsinfo);
                                         }
@@ -674,9 +682,11 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         char buffer[256];
         MPI_Offset offset,goffset;
 
-        floatvectorfield = (float *) calloc(lnc * 3, sizeof(float));
-        floatscalarfield = (float *) calloc(lnc, sizeof(float));
-        intscalarfield = (int *) calloc(lnc, sizeof(int));
+        printf("AAA %d\n",cellsinfo.localcount.n);
+
+        floatvectorfield = (float *) calloc(cellsinfo.localcount.n * 3, sizeof(float));
+        floatscalarfield = (float *) calloc(cellsinfo.localcount.n, sizeof(float));
+        intscalarfield = (int *) calloc(cellsinfo.localcount.n, sizeof(int));
 
         sprintf(fstname,"vtk/step%08d.vtk",settings.step);
 
@@ -696,6 +706,8 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         for (i = 0; i < system.rank; i++)
                 nprev += cellsinfo.cellsperproc[i];
 
+        printf("%d nprev=%d\n",system.rank,nprev);
+
         /* write cell positions */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nPOINTS %" PRId64 " float\n",cellsinfo.globalcount.n);
@@ -708,7 +720,9 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
                 floatvectorfield[3 * i] = (float) (cellsinfo.cells[i].x);
                 floatvectorfield[3 * i + 1] = (float) (cellsinfo.cells[i].y);
                 floatvectorfield[3 * i + 2] = (float) (cellsinfo.cells[i].z);
+                printf("[%f,%f,%f]\n",floatvectorfield[3*i],floatvectorfield[3*i+1],floatvectorfield[3*i+2]);
         }
+        printf("endian=%d gc=%d\n",system.endian,cellsinfo.globalcount.n);
         if (system.endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
         MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(float) * 3;
@@ -751,8 +765,23 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         goffset += cellsinfo.globalcount.n * sizeof(int);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
 
+        /* write cell type */
+        /*    memset(buffer, 0, 256);
+            sprintf(buffer, "\nSCALARS type integer 1\nLOOKUP_TABLE default\n");
+            if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+            goffset += strlen(buffer);
+            MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+            for (i = 0; i < cellsinfo.localcount.n; i++)
+                    intscalarfield[i] = cellsinfo.cells[i].ctype;
+            offset = nprev * sizeof(int);
+            MPI_File_seek(fhandle, offset, MPI_SEEK_CUR);
+            if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+            MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
+            goffset += cellsinfo.globalcount.n * sizeof(int);
+            MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
+         */
         /* write density */
-        memset(buffer, 0, 256);
+/*        memset(buffer, 0, 256);
         sprintf(buffer, "\nSCALARS density float 1\nLOOKUP_TABLE default\n");
         if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
@@ -765,9 +794,9 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         MPI_File_write(fhandle, floatscalarfield, cellsinfo.localcount.n, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(float);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
-
+ */
         /* write forces */
-        sprintf(buffer, "\nVECTORS force float\n");
+/*        sprintf(buffer, "\nVECTORS force float\n");
         if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
@@ -782,7 +811,7 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.localcount.n * 3 * sizeof(float);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
-
+ */
         free(floatvectorfield);
         free(floatscalarfield);
         free(intscalarfield);

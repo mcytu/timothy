@@ -98,10 +98,15 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
 
                 cellsinfo->cells[cellsinfo->localcount.n].x=z1 * D + cellsinfo->cells[cellsinfo->localcount.n-1].x;
                 cellsinfo->cells[cellsinfo->localcount.n].y=z2 * D + cellsinfo->cells[cellsinfo->localcount.n-1].y;
-                if(settings.dimension>3)
+                if(settings.dimension>2)
                         cellsinfo->cells[cellsinfo->localcount.n].z=z3 * D + cellsinfo->cells[cellsinfo->localcount.n-1].z;
 
+                cellsinfo->cells[cellsinfo->localcount.n].ctype=ctype;
+                cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
                 cellsinfo->localcount.n+=1;
+                cellsinfo->localcount.g0phase+=1;
+                cellsinfo->localtypecount[ctype].n+=1;
+                cellsinfo->localtypecount[ctype].g0phase+=1;
 
                 if(cellsinfo->localcount.n==settings.maxlocalcells) {
                         printf("warning: too many local cells, skipping rest of file %s\n",celltype[i].inputfile);

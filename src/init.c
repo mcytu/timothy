@@ -189,20 +189,24 @@ void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cell
         if(!(cellsinfo->cells=(celldata_t*)malloc(maxlocalcells*sizeof(celldata_t))))
                 terminate(system,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);
 
-        if(!(cellsinfo->forces=(double3dv_t*)malloc(maxlocalcells*sizeof(celldata_t))))
+        if(!(cellsinfo->forces=(double3dv_t*)calloc(maxlocalcells,sizeof(celldata_t))))
                 terminate(system,"cannot allocate cellsinfo->forces", __FILE__, __LINE__);
 
         if(!(cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size)))
                 terminate(system,"cannot allocate cellsinfo->cellsperproc", __FILE__, __LINE__);
 
-        if(!(cellsinfo->typecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberoffields)))
-                terminate(system,"cannot allocate cellsinfo->typecount", __FILE__, __LINE__);
+        if(!(cellsinfo->localtypecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberofcelltypes)))
+                terminate(system,"cannot allocate cellsinfo->localtypecount", __FILE__, __LINE__);
+
+        if(!(cellsinfo->globaltypecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberofcelltypes)))
+                terminate(system,"cannot allocate cellsinfo->globaltypecount", __FILE__, __LINE__);
 
         initcount(&(cellsinfo->localcount));
         initcount(&(cellsinfo->globalcount));
-
-        for(i=0; i<settings.numberoffields; i++)
-                initcount(&(cellsinfo->typecount[i]));
+        for(i=0; i<settings.numberofcelltypes; i++) {
+                initcount(&(cellsinfo->localtypecount[i]));
+                initcount(&(cellsinfo->globaltypecount[i]));
+        }
 
         for(i=0; i<system.size; i++)
                 cellsinfo->cellsperproc[i]=0;

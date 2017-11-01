@@ -57,6 +57,9 @@ int main(int argc, char **argv)
         allocatefields(system,settings,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
+        updateglobalcounts(&cellsinfo);
+        writevtk(system,settings,cellsinfo);
+
         MPI_Abort(MPI_COMM_WORLD,-1);
 
         simulationInit(argc, argv);

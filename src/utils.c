@@ -49,6 +49,14 @@ int checkendiannes(system_t *system)
         return 0;
 }
 
+uint64_t n;
+uint64_t g0phase;
+uint64_t g1phase;
+uint64_t sphase;
+uint64_t g2phase;
+uint64_t mphase;
+uint64_t necroticphase;
+
 int checkEndiannes() {
 }
 
@@ -66,6 +74,29 @@ void swapnbyte(char *data, int n, int m)
                 for (i = 0; i < m; i++)
                         data[j * m + i] = old_data[m - i - 1];
         }
+}
+
+void updateglobalcounts(cellsinfo_t* cellsinfo){
+        uint64_t localcount[8];
+        uint64_t globalcount[8];
+        localcount[0]=cellsinfo->localcount.n;
+        localcount[1]=cellsinfo->localcount.g0phase;
+        localcount[2]=cellsinfo->localcount.g1phase;
+        localcount[3]=cellsinfo->localcount.sphase;
+        localcount[4]=cellsinfo->localcount.g2phase;
+        localcount[5]=cellsinfo->localcount.mphase;
+        localcount[6]=cellsinfo->localcount.necroticphase;
+        localcount[7]=0;
+        MPI_Allreduce(localcount,globalcount,8,MPI_UINT64_T,MPI_SUM,MPI_COMM_WORLD);
+        cellsinfo->globalcount.n=globalcount[0];
+        cellsinfo->globalcount.g0phase=globalcount[1];
+        cellsinfo->globalcount.g1phase=globalcount[2];
+        cellsinfo->globalcount.sphase=globalcount[3];
+        cellsinfo->globalcount.g2phase=globalcount[4];
+        cellsinfo->globalcount.mphase=globalcount[5];
+        cellsinfo->globalcount.necroticphase=globalcount[6];
+        MPI_Allgather(&(cellsinfo->localcount.n),1,MPI_UINT64_T,cellsinfo->cellsperproc,1,MPI_UINT64_T,MPI_COMM_WORLD);
+        return;
 }
 
 void swap_Nbyte(char *data, int n, int m) {

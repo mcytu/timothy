@@ -156,7 +156,8 @@ typedef struct int643dv_t {
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
 	cellcount_t globalcount;
-	cellcount_t *typecount;
+	cellcount_t *localtypecount;
+	cellcount_t *globaltypecount;
 	uint64_t *cellsperproc;
 	celldata_t *cells;
 	double3dv_t *forces;
