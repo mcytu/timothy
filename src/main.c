@@ -63,9 +63,6 @@ int main(int argc, char **argv)
 
         MPI_Abort(MPI_COMM_WORLD,-1);
 
-        simulationInit(argc, argv);
-
-
         for (step = 0; step < nsteps; step++) {
 
 //    ioWriteStepVTK(step);

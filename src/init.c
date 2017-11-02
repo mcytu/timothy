@@ -166,6 +166,21 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                 mkdir("rst", 0755);
         }
 
+        /* define colormaps for PovRay outputs */
+        /* defineColormaps(); */
+
+        /* density critical levels (very important parameters) */
+        /*      if (sdim == 3) {
+                      densityCriticalLevel1 = 6 * h3 * sph_kernel(1.6 * csize); //1.8  //1.4 //1.75
+                      densityCriticalLevel2 = 6 * h3 * sph_kernel(1.1 * csize); //1.1 //1.4
+                      printf("%f %f\n",densityCriticalLevel1,densityCriticalLevel2);
+              }
+              if (sdim == 2) {
+                      densityCriticalLevel1 = 4 * h2 * sph_kernel(1.4 * csize); //1.4 //1.75
+                      densityCriticalLevel2 = 4 * h2 * sph_kernel(1.15 * csize); //1.1 //1.4
+              }*/
+
+
         return;
 }
 
@@ -239,121 +254,4 @@ void printinfo(system_t system) {
                 fflush(stdout);
         }
         return;
-}
-
-/*!
- * This function sets default values for the simulation.
- */
-void defaultValues()
-{
-        rst = 0;
-        rstReset = 0;
-        nhs = -1;
-        tgs = 0;
-
-        bvsim=0;
-        bnsim=0;
-        scsim=0;
-
-        statOutStep = 1;
-        rstOutStep = 1;
-        vtkOutStep = 1;
-
-        povout = 0;
-        vtkout = 0;
-        vnfout = 0;
-
-        csizeInUnits = 10.0; /* eukaryotic cell size is usually between 10-30 micrometers */
-        cellVolume = (4.0 / 3.0) * M_PI * pow(csizeInUnits * 0.0001, 3.0);
-
-}
-
-/*!
- * This function intializes the simulation by setting all most important simulation parameters.
- */
-void simulationInit(int argc, char **argv)
-{
-        int i;
-        int periods[3];
-        int reorder;
-
-        /* set default values */
-        //defaultValues();
-
-        /* stem cells parameters init */
-        //scInit();
-
-        /* initialize random number generator */
-        //randomStreamInit();
-
-        /* read parameters file and restart file (if present) */
-        //readParams(argc, argv);
-        /* generate random cells if not a restart simulation */
-        if (!rst) {
-                simStart = 0;
-                /* calculating number of cells per process */
-                lnc = nc / MPIsize;
-                if (MPIrank < nc % MPIsize)
-                        lnc++;
-                /* allocating tables */
-                cellsAllocate();
-                if(bvsim) initVessel();
-                if(bnsim) initBone();
-                /* total number of cells - initialization */
-//    for (i = 0; i < MPIsize; i++)
-//      tlnc[i] = lnc;		//ZLE!!!!!
-                /* cell cycle init */
-                cellsCycleInit();
-                /* random cell placement */
-                //initVessel();
-                cellsRandomInit();
-                //initVessel();
-                /* decomposition - initialization */
-                //decompositionInit(argc, argv, MPI_COMM_WORLD);
-        }
-
-        /* maximum distance cell can travel in 1 sec */
-        maxSpeedInUnits = (maxSpeed * csize) / (24.0 * 60.0 * 60.0);
-        /* at least one global fields iteration per step */
-        gfDt = (gfDt > secondsPerStep ? secondsPerStep : gfDt);
-        /* global fields iterations per step */
-        gfIterPerStep = (int) (secondsPerStep / gfDt);
-
-        if (sdim == 3)
-                tnc = 8;
-        if (sdim == 2)
-                tnc = 4;
-
-        printf("h=%f\n",h);
-        printf("h3=%f %f\n",h3,h*h*h);
-
-        /* density critical levels (very important parameters) */
-        if (sdim == 3) {
-                densityCriticalLevel1 = 6 * h3 * sph_kernel(1.6 * csize); //1.8  //1.4 //1.75
-                densityCriticalLevel2 = 6 * h3 * sph_kernel(1.1 * csize); //1.1 //1.4
-                printf("%f %f\n",densityCriticalLevel1,densityCriticalLevel2);
-        }
-        if (sdim == 2) {
-                densityCriticalLevel1 = 4 * h2 * sph_kernel(1.4 * csize); //1.4 //1.75
-                densityCriticalLevel2 = 4 * h2 * sph_kernel(1.15 * csize); //1.1 //1.4
-        }
-
-        /* checking the consistency */
-        //checkParameters();
-
-        if (!strcmp(cOutType, "POV"))
-                povout = 1;
-        if (!strcmp(cOutType, "VTK"))
-                vtkout = 1;
-        if (!strcmp(fOutType, "VNF"))
-                vnfout = 1;
-
-
-        fieldsInit();
-
-        /* define colormaps for PovRay outputs */
-        defineColormaps();
-
-        /* define vessels - TBD */
-        //initVessel();
 }
