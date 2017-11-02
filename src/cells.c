@@ -68,6 +68,9 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
         double r1, r2;
         double l;
         double D=1.0;
+        uint64_t idx;
+
+        idx=cellsinfo->localcount.n-1;
 
         csize=1;
         if (settings.dimension == 2)
@@ -96,10 +99,10 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
                         r2 = z1 * z1 + z2 * z2 + z3 * z3;
                 }
 
-                cellsinfo->cells[cellsinfo->localcount.n].x=z1 * D + cellsinfo->cells[cellsinfo->localcount.n-1].x;
-                cellsinfo->cells[cellsinfo->localcount.n].y=z2 * D + cellsinfo->cells[cellsinfo->localcount.n-1].y;
+                cellsinfo->cells[cellsinfo->localcount.n].x=z1 * D + cellsinfo->cells[idx].x;
+                cellsinfo->cells[cellsinfo->localcount.n].y=z2 * D + cellsinfo->cells[idx].y;
                 if(settings.dimension>2)
-                        cellsinfo->cells[cellsinfo->localcount.n].z=z3 * D + cellsinfo->cells[cellsinfo->localcount.n-1].z;
+                        cellsinfo->cells[cellsinfo->localcount.n].z=z3 * D + cellsinfo->cells[idx].z;
 
                 cellsinfo->cells[cellsinfo->localcount.n].ctype=ctype;
                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;

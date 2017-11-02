@@ -56,7 +56,7 @@ MPIINC=-I/usr/include/mpi
 #HYPREINC=-I/home/mcytowski/libs/hypre/include
 #MPIINC=
 
-# Boreasz (ibm-p775) system configuration 
+# Boreasz (ibm-p775) system configuration
 #ZOLTANLIB=-L/p7data/opt/zoltan/3.6/lib -lzoltan
 #SPRNGLIB=-L/p7data/opt/sprng/2.0/lib -lsprng
 #GMPLIB=-L/p7data/opt/gmp/5.0.5/lib -lgmp
@@ -67,7 +67,7 @@ MPIINC=-I/usr/include/mpi
 #MPIINC=
 
 #############################################################################
-# Prepare configuration for your system 
+# Prepare configuration for your system
 #
 #ifeq ($(SYSTYPE),HOSTNAME_OF_YOUR_SYSTEM)
 #CC = mpicc
@@ -98,8 +98,8 @@ endif
 
 # Intel compiler, Intel MIC architecture
 ifeq ($(SYSTYPE),intel-mic)
-CC = mpiicc 
-OPT = -O3 -openmp 
+CC = mpiicc
+OPT = -O3 -openmp
 DEFS = #-DDEBUG
 INCLUDES = -I. $(ZOLTANINC) $(SPRNGINC) $(HYPREINC) $(MPIINC)
 LIBS = -lm $(ZOLTANLIB) $(SPRNGLIB) $(GMPLIB) $(HYPRELIB)
@@ -120,11 +120,11 @@ EXEC = ../timothy
 
 OPTIONS = $(OPT) $(DEFS)
 
-OBJS = main.o io.o utils.o cells.o domdec.o octree.o potential.o comm.o stats.o random.o init.o grid.o interp.o fields.o tempf.o chemf.o vessel.o bone.o compute.o
+OBJS = main.o io.o utils.o cells.o lb.o octree.o potential.o comm.o stats.o random.o init.o grid.o interp.o fields.o tempf.o chemf.o vessel.o bone.o compute.o
 
 INCL = global.h io.h inline.h fields.h potential.h octree.h
 
-CFLAGS = $(OPTIONS) $(INCLUDES) 
+CFLAGS = $(OPTIONS) $(INCLUDES)
 
 $(EXEC): $(OBJS)
 	$(CC) $(OPTIONS) $(OBJS) $(LIBS) -o $(EXEC)
@@ -136,5 +136,3 @@ clean:
 
 doc:
 	doxygen Doxyfile
-
-

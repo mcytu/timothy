@@ -58,6 +58,7 @@ int main(int argc, char **argv)
         lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
         updateglobalcounts(&cellsinfo);
+        lbexecute();
         writevtk(system,settings,cellsinfo);
 
         MPI_Abort(MPI_COMM_WORLD,-1);
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
                 if (!(step % statOutStep))
                         printStepNum();
 
-                decompositionExecute();
+                //decompositionExecute();
                 octBuild();
                 createExportList();
                 computeStep();
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        decompositionFinalize();
+        //decompositionFinalize();
         randomstreamfree(&settings);
         cellsCleanup();
 
