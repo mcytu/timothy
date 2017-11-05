@@ -46,11 +46,11 @@ int temperature;
 int64_t gridI,gridJ,gridK;
 struct int64Vector3d gridSize;
 struct int64Vector3d *gridStartIdx,*gridEndIdx;
-struct doubleVector3d *gridBuffer;
+double3dv_t *gridBuffer;
 #define grid(i,j,k) (gridBuffer[gridSize.y*gridSize.z*i+gridSize.z*j+k])
 double gridResolution;
-struct doubleVector3d lowerGridCorner,upperGridCorner;
-struct doubleVector3d globalGridSize;
+double3dv_t lowerGridCorner,upperGridCorner;
+double3dv_t globalGridSize;
 double boxVolume;
 
 /* field data */

@@ -94,7 +94,6 @@ struct cellData {
 /* the most important data */
 MIC_ATTR struct cellData *cells;
 double **cellFields;
-MIC_ATTR struct doubleVector3d *velocity;
 /* !!!!!!!!!!!!!!!!!!!!!!! */
 
 int64_t maxCells;
@@ -159,6 +158,21 @@ typedef struct uint3dv_t {
   unsigned int z;
 } uint3dv_t;
 
+typedef struct octnode_t {
+  unsigned int xcode;
+  unsigned int ycode;
+  unsigned int zcode;
+  unsigned int xlimit;
+  unsigned int ylimit;
+  unsigned int zlimit;
+  unsigned int level;
+  int64_t father;
+  int64_t child[8];
+  int data;
+} octnode_t;
+
+double3dv_t *velocity;
+
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
 	cellcount_t globalcount;
@@ -167,6 +181,8 @@ typedef struct cellsinfo_t{
 	uint64_t *cellsperproc;
 	celldata_t *cells;
 	double3dv_t *forces;
+	octnode_t *octree;
+	int64_t octsize;
 	int dimension;
 } cellsinfo_t;
 
@@ -417,11 +433,11 @@ int64_t nhs;            /* number of cells to activate random dying - homeostasi
 
 int tgs;		/* - tumor growth simulation, 0 - no tumor growth */
 
-struct doubleVector3d {
+/*struct doubleVector3d {
   double x;
   double y;
   double z;
-};
+};*/
 
 struct int64Vector3d {
   int64_t x;
@@ -433,12 +449,6 @@ struct floatVector3d {
   float x;
   float y;
   float z;
-};
-
-struct uintVector3d {
-  unsigned int x;
-  unsigned int y;
-  unsigned int z;
 };
 
 //struct uintVector3d *locCode;
@@ -485,38 +495,16 @@ int *stream;
 #define ROOT_LEVEL N_LEVELS-1
 #define MAXVALUE powf(2,ROOT_LEVEL)
 
-typedef struct _octNode {
-  unsigned int xcode;
-  unsigned int ycode;
-  unsigned int zcode;
-  unsigned int xlimit;
-  unsigned int ylimit;
-  unsigned int zlimit;
-  unsigned int level;
-  int64_t father;
-  int64_t child[8];
-  int data;
-} octNode;
-
-octNode MIC_ATTR *octree;
-int64_t octSize;
-
 /* properties of the affine transformation */
-struct doubleVector3d MIC_ATTR affShift;
+double3dv_t MIC_ATTR affShift;
 double MIC_ATTR affScale;
 int64_t root;
 
-/*typedef struct _heap {
-  int size;
-  int count;
-  struct bht_node **data;
-} heap;
-*/
-typedef struct _octHeap {
+typedef struct octheap_t {
   int size;
   int count;
   int *data;
-} octHeap;
+} octheap_t;
 
 int MIC_ATTR tnc;
 

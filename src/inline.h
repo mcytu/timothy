@@ -23,11 +23,11 @@
 /*! \file inline.h
  *  \brief contains various Timothy inline functions
  */
-MIC_ATTR static inline int octNodeIntersection(int idx,struct uintVector3d minLocCode,struct uintVector3d maxLocCode)
+static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo)
 {
-  if( maxLocCode.x<=octree[idx].xcode || minLocCode.x>=octree[idx].xlimit ) return 0;
-  if( maxLocCode.y<=octree[idx].ycode || minLocCode.y>=octree[idx].ylimit ) return 0;
-  if( maxLocCode.z<=octree[idx].zcode || minLocCode.z>=octree[idx].zlimit ) return 0;
+  if( maxLocCode.x<=cellsinfo.octree[idx].xcode || minLocCode.x>=cellsinfo.octree[idx].xlimit ) return 0;
+  if( maxLocCode.y<=cellsinfo.octree[idx].ycode || minLocCode.y>=cellsinfo.octree[idx].ylimit ) return 0;
+  if( maxLocCode.z<=cellsinfo.octree[idx].zcode || minLocCode.z>=cellsinfo.octree[idx].zlimit ) return 0;
   return 1;
 }
 
@@ -37,7 +37,7 @@ MIC_ATTR static inline int octNodeIntersection(int idx,struct uintVector3d minLo
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-MIC_ATTR static inline float sph_kernel(double r)
+static inline float sph_kernel(double r)
 {
   double u,c=1.0;
 
@@ -107,4 +107,3 @@ MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],in
   }
   return 0;
 }
-

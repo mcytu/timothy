@@ -34,40 +34,45 @@
 /*!
  * This function creates an empty octree node in a given position.
  */
-void octEmptyNode(int64_t father,int level,unsigned int xbit,unsigned int ybit,unsigned int zbit)
+void octemptynode(int64_t father,int level,unsigned int xbit,unsigned int ybit,unsigned int zbit,cellsinfo_t *cellsinfo)
 {
         int i;
         unsigned int bit;
         unsigned int len;
+        octnode_t *octree=cellsinfo->octree;
+        int64_t octsize=cellsinfo->octsize;
+
         if(father==-1) {
-                octree[octSize].xcode=0;
-                octree[octSize].ycode=0;
-                octree[octSize].zcode=0;
-                octree[octSize].xlimit=1<<level;
-                octree[octSize].ylimit=1<<level;
-                octree[octSize].zlimit=1<<level;
+                octree[octsize].xcode=0;
+                octree[octsize].ycode=0;
+                octree[octsize].zcode=0;
+                octree[octsize].xlimit=1<<level;
+                octree[octsize].ylimit=1<<level;
+                octree[octsize].zlimit=1<<level;
         } else {
                 bit=1<<level;
-                octree[octSize].xcode=octree[father].xcode|xbit;
-                octree[octSize].ycode=octree[father].ycode|ybit;
-                octree[octSize].zcode=octree[father].zcode|zbit;
+                octree[octsize].xcode=octree[father].xcode|xbit;
+                octree[octsize].ycode=octree[father].ycode|ybit;
+                octree[octsize].zcode=octree[father].zcode|zbit;
                 len=(octree[father].xlimit-octree[father].xcode)/2;
-                octree[octSize].xlimit=octree[octSize].xcode+len;
-                octree[octSize].ylimit=octree[octSize].ycode+len;
-                octree[octSize].zlimit=octree[octSize].zcode+len;
+                octree[octsize].xlimit=octree[octsize].xcode+len;
+                octree[octsize].ylimit=octree[octsize].ycode+len;
+                octree[octsize].zlimit=octree[octsize].zcode+len;
         }
-        octree[octSize].father=father;
+        octree[octsize].father=father;
         for(i=0; i<8; i++)
-                octree[octSize].child[i]=-1;
-        octree[octSize].data=-1;
-        octree[octSize].level=level;
-        octSize++;
+                octree[octsize].child[i]=-1;
+        octree[octsize].data=-1;
+        octree[octsize].level=level;
+        cellsinfo->octsize++;
+
+        return;
 }
 
 /*!
  * This function inserts a given cell c into a proper position in octree.
  */
-void octInsertCell(int64_t c,uint3dv_t *loccode)
+void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
 {
         int64_t octIdx=0;
         int64_t father,child;
@@ -75,6 +80,7 @@ void octInsertCell(int64_t c,uint3dv_t *loccode)
         unsigned int childBranchBit,childIndex;
         unsigned int xbit,ybit,zbit;
         int inserted=0;
+        octnode_t *octree=cellsinfo->octree;
 
         level=ROOT_LEVEL-1;
         while(!inserted) {
@@ -94,9 +100,9 @@ void octInsertCell(int64_t c,uint3dv_t *loccode)
                                 father=octIdx;
                                 child = octree[octIdx].child[childIndex];
                                 if(child==-1) {
-                                        octree[octIdx].child[childIndex]=octSize;
-                                        child=octSize;
-                                        octEmptyNode(father,level,xbit,ybit,zbit);
+                                        octree[octIdx].child[childIndex]=cellsinfo->octsize;
+                                        child=cellsinfo->octsize;
+                                        octemptynode(father,level,xbit,ybit,zbit,cellsinfo);
                                 }
                                 octIdx=child;
                         } else { /* occupied leaf */
@@ -111,9 +117,9 @@ void octInsertCell(int64_t c,uint3dv_t *loccode)
                                                  + ((zbit) >> (level-2)) );
                                 level--;
                                 father=octIdx;
-                                octree[octIdx].child[childIndex]=octSize;
-                                child=octSize;
-                                octEmptyNode(father,level,xbit,ybit,zbit);
+                                octree[octIdx].child[childIndex]=cellsinfo->octsize;
+                                child=cellsinfo->octsize;
+                                octemptynode(father,level,xbit,ybit,zbit,cellsinfo);
                                 octree[child].data=octree[father].data;
                                 octree[father].data=-2;
                                 octIdx=father;
@@ -121,20 +127,21 @@ void octInsertCell(int64_t c,uint3dv_t *loccode)
                         }
                 }
         }
+        return;
 }
 
 /*!
  * This is a driving function for creating an octree.
  */
-void octbuild(cellsinfo_t cellsinfo)
+void octbuild(cellsinfo_t *cellsinfo)
 {
         int i,c;
-        int64_t octMaxSize;
-        struct doubleVector3d bMin,bMax;
+        int64_t octmaxsize;
+        double3dv_t bMin,bMax;
         double epsilon=0.01;
         uint3dv_t *loccode;
 
-        if(cellsinfo.localcount.n==0)
+        if(cellsinfo->localcount.n==0)
                 return;
 
         bMin.x= DBL_MAX;
@@ -143,12 +150,12 @@ void octbuild(cellsinfo_t cellsinfo)
         bMax.x=-DBL_MAX;
         bMax.y=-DBL_MAX;
         bMax.z=-DBL_MAX;
-        for(i=0; i<cellsinfo.localcount.n; i++) {
+        for(i=0; i<cellsinfo->localcount.n; i++) {
                 double x,y,z;
                 double e;
-                x=cellsinfo.cells[i].x;
-                y=cellsinfo.cells[i].y;
-                z=cellsinfo.cells[i].z;
+                x=cellsinfo->cells[i].x;
+                y=cellsinfo->cells[i].y;
+                z=cellsinfo->cells[i].z;
                 e=h+epsilon;
                 bMin.x=(x-e<bMin.x ? x-e : bMin.x);
                 bMax.x=(x+e>bMax.x ? x+e : bMax.x);
@@ -165,26 +172,22 @@ void octbuild(cellsinfo_t cellsinfo)
         affShift.z=bMin.z;
         /* each cell coordinate will be shifted by affShift and scaled by affScale */
 
-        loccode=(uint3dv_t*) malloc(sizeof(uint3dv_t)*cellsinfo.localcount.n);
+        loccode=(uint3dv_t*) malloc(sizeof(uint3dv_t)*cellsinfo->localcount.n);
         //#pragma omp parallel for
-        for(c=0; c<cellsinfo.localcount.n; c++) {
-                loccode[c].x=(unsigned int)( ((cellsinfo.cells[c].x-affShift.x)/affScale) * MAXVALUE );
-                loccode[c].y=(unsigned int)( ((cellsinfo.cells[c].y-affShift.y)/affScale) * MAXVALUE );
-                loccode[c].z=(unsigned int)( ((cellsinfo.cells[c].z-affShift.z)/affScale) * MAXVALUE );
+        for(c=0; c<cellsinfo->localcount.n; c++) {
+                loccode[c].x=(unsigned int)( ((cellsinfo->cells[c].x-affShift.x)/affScale) * MAXVALUE );
+                loccode[c].y=(unsigned int)( ((cellsinfo->cells[c].y-affShift.y)/affScale) * MAXVALUE );
+                loccode[c].z=(unsigned int)( ((cellsinfo->cells[c].z-affShift.z)/affScale) * MAXVALUE );
         }
         /* memory space required to store octree (to be reviewed again!) */
-        octMaxSize=cellsinfo.localcount.n*64;
-#ifdef __MIC__
-        octree=_mm_malloc(sizeof(octNode)*octMaxSize,64);
-#else
-        octree=(octNode*) malloc(sizeof(octNode)*octMaxSize);
-#endif
+        octmaxsize=cellsinfo->localcount.n*64;
+        cellsinfo->octree=(octnode_t*) malloc(sizeof(octnode_t)*octmaxsize);
         root=0;
-        octSize=0;
-        octEmptyNode(-1,ROOT_LEVEL,0,0,0);
+        cellsinfo->octsize=0;
+        octemptynode(-1,ROOT_LEVEL,0,0,0,cellsinfo);
 
-        for(c=0; c<cellsinfo.localcount.n; c++) {
-                octInsertCell(c,loccode);
+        for(c=0; c<cellsinfo->localcount.n; c++) {
+                octinsertcell(c,loccode,cellsinfo);
         }
 
         /* a security check for space available in the octree buffer should be implemented */
@@ -195,7 +198,7 @@ void octbuild(cellsinfo_t cellsinfo)
 /*!
  * This function computes binary code for a given cell.
  */
-void octComputeCode(int64_t c,struct uintVector3d *code)
+void octcomputecode(int64_t c,uint3dv_t *code)
 {
         code[0].x=(unsigned int)( ((cells[c].x-affShift.x)/affScale) * MAXVALUE );
         code[0].y=(unsigned int)( ((cells[c].y-affShift.y)/affScale) * MAXVALUE );
@@ -207,159 +210,158 @@ void octComputeCode(int64_t c,struct uintVector3d *code)
  * Difference between remote and local versions is the box croping which is applied
  * to some remote cells.
  */
-MIC_ATTR void octComputeBoxR(int64_t c,struct uintVector3d *minLocCode,struct uintVector3d *maxLocCode)
+void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode)
 {
-        struct doubleVector3d minCor,maxCor;
+        double3dv_t mincor,maxcor;
         /* compute corners */
-        minCor.x=(recvData[c].x-h-affShift.x)/affScale;
-        minCor.y=(recvData[c].y-h-affShift.y)/affScale;
-        minCor.z=(recvData[c].z-h-affShift.z)/affScale;
-        maxCor.x=(recvData[c].x+h-affShift.x)/affScale;
-        maxCor.y=(recvData[c].y+h-affShift.y)/affScale;
-        maxCor.z=(recvData[c].z+h-affShift.z)/affScale;
+        mincor.x=(recvData[c].x-h-affShift.x)/affScale;
+        mincor.y=(recvData[c].y-h-affShift.y)/affScale;
+        mincor.z=(recvData[c].z-h-affShift.z)/affScale;
+        maxcor.x=(recvData[c].x+h-affShift.x)/affScale;
+        maxcor.y=(recvData[c].y+h-affShift.y)/affScale;
+        maxcor.z=(recvData[c].z+h-affShift.z)/affScale;
         /* for remote cells - box crop */
-        minCor.x=(minCor.x<0.0 ? 0.0 : minCor.x);
-        minCor.y=(minCor.y<0.0 ? 0.0 : minCor.y);
-        minCor.z=(minCor.z<0.0 ? 0.0 : minCor.z);
-        maxCor.x=(maxCor.x>1.0 ? 1.0 : maxCor.x);
-        maxCor.y=(maxCor.y>1.0 ? 1.0 : maxCor.y);
-        maxCor.z=(maxCor.z>1.0 ? 1.0 : maxCor.z);
+        mincor.x=(mincor.x<0.0 ? 0.0 : mincor.x);
+        mincor.y=(mincor.y<0.0 ? 0.0 : mincor.y);
+        mincor.z=(mincor.z<0.0 ? 0.0 : mincor.z);
+        maxcor.x=(maxcor.x>1.0 ? 1.0 : maxcor.x);
+        maxcor.y=(maxcor.y>1.0 ? 1.0 : maxcor.y);
+        maxcor.z=(maxcor.z>1.0 ? 1.0 : maxcor.z);
         /* compute location codes of corners */
-        minLocCode[0].x=(unsigned int)(minCor.x*MAXVALUE);
-        minLocCode[0].y=(unsigned int)(minCor.y*MAXVALUE);
-        minLocCode[0].z=(unsigned int)(minCor.z*MAXVALUE);
-        maxLocCode[0].x=(unsigned int)(maxCor.x*MAXVALUE);
-        maxLocCode[0].y=(unsigned int)(maxCor.y*MAXVALUE);
-        maxLocCode[0].z=(unsigned int)(maxCor.z*MAXVALUE);
+        minloccode[0].x=(unsigned int)(mincor.x*MAXVALUE);
+        minloccode[0].y=(unsigned int)(mincor.y*MAXVALUE);
+        minloccode[0].z=(unsigned int)(mincor.z*MAXVALUE);
+        maxloccode[0].x=(unsigned int)(maxcor.x*MAXVALUE);
+        maxloccode[0].y=(unsigned int)(maxcor.y*MAXVALUE);
+        maxloccode[0].z=(unsigned int)(maxcor.z*MAXVALUE);
+
+        return;
 }
 
 /*!
  * This function computes bounding box of a local cell to be used for neighbour searching.
  */
-MIC_ATTR void octComputeBox(int64_t c,struct uintVector3d *minLocCode,struct uintVector3d *maxLocCode)
+void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode)
 {
-        struct doubleVector3d minCor,maxCor;
+        double3dv_t mincor,maxcor;
         /* compute corners */
-        minCor.x=(cells[c].x-h-affShift.x)/affScale;
-        minCor.y=(cells[c].y-h-affShift.y)/affScale;
-        minCor.z=(cells[c].z-h-affShift.z)/affScale;
-        maxCor.x=(cells[c].x+h-affShift.x)/affScale;
-        maxCor.y=(cells[c].y+h-affShift.y)/affScale;
-        maxCor.z=(cells[c].z+h-affShift.z)/affScale;
+        mincor.x=(cells[c].x-h-affShift.x)/affScale;
+        mincor.y=(cells[c].y-h-affShift.y)/affScale;
+        mincor.z=(cells[c].z-h-affShift.z)/affScale;
+        maxcor.x=(cells[c].x+h-affShift.x)/affScale;
+        maxcor.y=(cells[c].y+h-affShift.y)/affScale;
+        maxcor.z=(cells[c].z+h-affShift.z)/affScale;
         /* compute location codes of corners */
-        minLocCode[0].x=(unsigned int)(minCor.x*MAXVALUE);
-        minLocCode[0].y=(unsigned int)(minCor.y*MAXVALUE);
-        minLocCode[0].z=(unsigned int)(minCor.z*MAXVALUE);
-        maxLocCode[0].x=(unsigned int)(maxCor.x*MAXVALUE);
-        maxLocCode[0].y=(unsigned int)(maxCor.y*MAXVALUE);
-        maxLocCode[0].z=(unsigned int)(maxCor.z*MAXVALUE);
+        minloccode[0].x=(unsigned int)(mincor.x*MAXVALUE);
+        minloccode[0].y=(unsigned int)(mincor.y*MAXVALUE);
+        minloccode[0].z=(unsigned int)(mincor.z*MAXVALUE);
+        maxloccode[0].x=(unsigned int)(maxcor.x*MAXVALUE);
+        maxloccode[0].y=(unsigned int)(maxcor.y*MAXVALUE);
+        maxloccode[0].z=(unsigned int)(maxcor.z*MAXVALUE);
+
+        return;
 }
 
 /*!
  * This function traverses the tree to a given level and returns node index.
  */
-MIC_ATTR int octTraverseToLevel(unsigned int level,unsigned int xloc,unsigned int yloc,unsigned int zloc,unsigned int lmin)
+MIC_ATTR int octtraversetolevel(unsigned int level,unsigned int xloc,unsigned int yloc,unsigned int zloc,unsigned int lmin,cellsinfo_t cellsinfo)
 {
-        int cellIdx=0;
+        int cellidx=0;
         int parent=0;
         unsigned int n;
-        unsigned int childBranchBit,childIndex;
+        unsigned int childbranchbit,childindex;
         n=(level)-(lmin)+1;
         while(n--) {
-                childBranchBit = 1 << (level);
-                childIndex = (   (((xloc) & childBranchBit) >> (level))
-                                 + (((yloc) & childBranchBit) >> (level-1))
-                                 + (((zloc) & childBranchBit) >> ((level-2))) );
+                childbranchbit = 1 << (level);
+                childindex = (   (((xloc) & childbranchbit) >> (level))
+                                 + (((yloc) & childbranchbit) >> (level-1))
+                                 + (((zloc) & childbranchbit) >> ((level-2))) );
                 level--;
-                parent=cellIdx;
-                cellIdx=octree[cellIdx].child[childIndex];
-                if(octree[cellIdx].data != -2) break; /* a leaf */
+                parent=cellidx;
+                cellidx=cellsinfo.octree[cellidx].child[childindex];
+                if(cellsinfo.octree[cellidx].data != -2) break; /* a leaf */
         }
-        if(cellIdx==-1) cellIdx=parent;
-        return cellIdx;
+        if(cellidx==-1) cellidx=parent;
+        return cellidx;
 }
 
 /*!
  * This function determines the level of the smallest cell containing a given region.
  */
-MIC_ATTR int octLocateRegion(struct uintVector3d minLocCode,struct uintVector3d maxLocCode)
+int octlocateregion(uint3dv_t minloccode,uint3dv_t maxloccode,cellsinfo_t cellsinfo)
 {
         unsigned int l1,l2,lmin;
         unsigned int level;
-        int cellIdx;
-        struct uintVector3d locDiff;
+        int cellidx;
+        uint3dv_t locdiff;
         /* XOR of location codes */
-        locDiff.x=minLocCode.x ^ maxLocCode.x;
-        locDiff.y=minLocCode.y ^ maxLocCode.y;
-        locDiff.z=minLocCode.z ^ maxLocCode.z;
+        locdiff.x=minloccode.x ^ maxloccode.x;
+        locdiff.y=minloccode.y ^ maxloccode.y;
+        locdiff.z=minloccode.z ^ maxloccode.z;
         /* Determining the level of the smallest cell containing the region */
         l1=ROOT_LEVEL;
         l2=ROOT_LEVEL;
         lmin=ROOT_LEVEL;
-        while(!(locDiff.x & (1<<l1)) && l1) l1--;
-        while(!(locDiff.y & (1<<l2)) && (l2>l1)) l2--;
-        while(!(locDiff.z & (1<<lmin)) && (lmin>l2)) lmin--;
+        while(!(locdiff.x & (1<<l1)) && l1) l1--;
+        while(!(locdiff.y & (1<<l2)) && (l2>l1)) l2--;
+        while(!(locdiff.z & (1<<lmin)) && (lmin>l2)) lmin--;
         lmin++;
         level=ROOT_LEVEL-1;
-        cellIdx=octTraverseToLevel(level,minLocCode.x,minLocCode.y,minLocCode.z,lmin);
-        return cellIdx;
+        cellidx=octtraversetolevel(level,minloccode.x,minloccode.y,minloccode.z,lmin,cellsinfo);
+        return cellidx;
 }
 
 /*!
  * This function deallocates memory used by octree.
  */
-void octFree()
+void octfree(cellsinfo_t cellsinfo)
 {
-        if(lnc==0) return;
-#ifdef __MIC__
-        _mm_free(octree);
-#else
-        free(octree);
-#endif
+        if(cellsinfo.localcount.n==0) return;
+        free(cellsinfo.octree);
+        return;
         //  free(locCode);
 }
-
-#pragma offload_attribute(push,target(mic))
 
 /*!
  * This function initializes heap for tree traversal.
  */
-void octHeapInit(octHeap *ttHeap)
+void octheapinit(octheap_t *ttheap)
 {
-        ttHeap->size=64;
-        ttHeap->count=0;
-        ttHeap->data=malloc(sizeof(int)*ttHeap->size);
+        ttheap->size=64;
+        ttheap->count=0;
+        ttheap->data=malloc(sizeof(int)*ttheap->size);
+        return;
 }
 
 /*!
  * This function adds an element to the heap.
  */
-void octHeapPush(octHeap *ttHeap,int idx)
+void octheappush(octheap_t *ttheap,int idx)
 {
-        if(ttHeap->count==ttHeap->size) {
-                ttHeap->size+=64;
-                ttHeap->data=realloc(ttHeap->data,sizeof(int)*ttHeap->size);
-                printf("realloc again\n");
+        if(ttheap->count==ttheap->size) {
+                ttheap->size+=64;
+                ttheap->data=realloc(ttheap->data,sizeof(int)*ttheap->size);
         }
-        ttHeap->data[ttHeap->count]=idx;
-        ttHeap->count+=1;
+        ttheap->data[ttheap->count]=idx;
+        ttheap->count+=1;
+        return;
 }
 
 /*!
  * This function removes an element from the heap.
  */
-int octHeapPop(octHeap *ttHeap)
+int octheappop(octheap_t *ttheap)
 {
-        ttHeap->count-=1;
-        return ttHeap->data[ttHeap->count];
+        ttheap->count-=1;
+        return ttheap->data[ttheap->count];
 }
 
 /*!
  * This functione deallocates memory used by the heap.
  */
-void octHeapFree(octHeap *ttHeap)
+void octheapfree(octheap_t *ttheap)
 {
-        free(ttHeap->data);
+        free(ttheap->data);
+        return;
 }
-
-#pragma offload_attribute(pop)

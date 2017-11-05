@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         updateglobalcounts(&cellsinfo);
         lbexecute();
         writevtk(system,settings,cellsinfo);
-        octbuild(cellsinfo);
+        octbuild(&cellsinfo);
 
         MPI_Abort(MPI_COMM_WORLD,-1);
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
                 updateCellPositions();
                 updateCellStates();
                 commCleanup();
-                octFree();
+                octfree();
 
                 if (!(step % rstOutStep))
                         saveRstFile();

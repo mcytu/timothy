@@ -20,11 +20,11 @@
  *
  * *************************************************************************/
 
-MIC_ATTR void octHeapInit(octHeap *ttHeap);
-MIC_ATTR void octComputeBox(int64_t c,struct uintVector3d *minLocCode,struct uintVector3d *maxLocCode);
-MIC_ATTR int octLocateRegion(struct uintVector3d minLocCode,struct uintVector3d maxLocCode);
-MIC_ATTR void octHeapPush(octHeap *ttHeap,int idx);
-MIC_ATTR int octHeapPop(octHeap *ttHeap);
-MIC_ATTR void octHeapFree(octHeap *ttHeap);
-MIC_ATTR static inline int octNodeIntersection(int idx,struct uintVector3d minLocCode,struct uintVector3d maxLocCode);
-MIC_ATTR void octComputeBoxR(int64_t c,struct uintVector3d *minLocCode,struct uintVector3d *maxLocCode);
+MIC_ATTR void octheapinit(octheap_t *ttheap);
+MIC_ATTR void octcomputebox(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode);
+MIC_ATTR int octlocateregion(uint3dv_t minLocCode,uint3dv_t maxLocCode);
+MIC_ATTR void octheappush(octheap_t *ttheap,int idx);
+MIC_ATTR int octheappop(octheap_t *ttheap);
+MIC_ATTR void octheapfree(octheap_t *ttheap);
+MIC_ATTR static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
+MIC_ATTR void octcomputeboxr(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode);

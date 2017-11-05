@@ -174,12 +174,12 @@ void cellsAllocate()
 #endif
 
 #ifdef __MIC__
-        if (!(velocity = (struct doubleVector3d *) _mm_malloc(maxCellsPerProc *
-                                                              sizeof(struct doubleVector3d),64)))
+        if (!(velocity = (struct double3dv_t *) _mm_malloc(maxCellsPerProc *
+                                                           sizeof(struct double3dv_t),64)))
                 stopRun(106, "velocity", __FILE__, __LINE__);
 #else
-        if (!(velocity = (struct doubleVector3d *) malloc(maxCellsPerProc *
-                                                          sizeof(struct doubleVector3d))))
+        if (!(velocity = (struct double3dv_t *) malloc(maxCellsPerProc *
+                                                       sizeof(struct double3dv_t))))
                 stopRun(106, "velocity", __FILE__, __LINE__);
 #endif
 
