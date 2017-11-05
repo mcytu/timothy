@@ -25,6 +25,7 @@ int main(int argc, char **argv)
         environment_t *environment;
         cellsinfo_t cellsinfo;
         grid_t grid;
+        commdata_t commdata;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_size(MPI_COMM_WORLD, &system.size);
@@ -43,6 +44,8 @@ int main(int argc, char **argv)
         lbexecute();
         writevtk(system,settings,cellsinfo);
         octbuild(&cellsinfo);
+        createexportlist(system,settings,cellsinfo,&commdata);
+        commcleanup(system,cellsinfo,&commdata);
 
         MPI_Abort(MPI_COMM_WORLD,-1);
 
@@ -55,7 +58,7 @@ int main(int argc, char **argv)
 
                 //decompositionExecute();
                 //octBuild();
-                createExportList();
+                //createExportList();
                 computeStep();
 
                 if (!(step % statOutStep))
@@ -75,7 +78,7 @@ int main(int argc, char **argv)
 
                 updateCellPositions();
                 updateCellStates();
-                commCleanup();
+                //commCleanup();
                 octfree();
 
                 if (!(step % rstOutStep))

@@ -198,6 +198,44 @@ typedef struct grid_t{
 } grid_t;
 /* NEW */
 
+typedef struct expcelldata_t { /* this structure keeps cell data needed in potential computations */
+  double x;
+  double y;
+  double z;
+  double h;
+  double size;
+  double young;
+  int ctype;
+} expcelldata_t;
+
+typedef struct expdpdata_t { /* this structure keeps additional cell data (potential & density) */
+  double v;
+  double density;
+} expdpdata_t;
+
+typedef struct explist_t {
+        int cell;
+        int proc;
+} explist_t;
+
+typedef struct commdata_t {
+	explist_t *explist;
+	int explistmaxsize;
+	MPI_Request *reqsend;
+	MPI_Request *reqrecv;
+	int64_t *sendoffset;
+	int64_t *recvoffset;
+	int *recvcount;
+	int *sendcount;
+	expcelldata_t *sendcelldata;
+	expcelldata_t *recvcelldata;
+	expdpdata_t *senddpdata;
+	expdpdata_t *recvdpdata;
+	int numExp;
+	int numImp;
+} commdata_t;
+
+
 
 #define ZOLTAN_ID_TYPE int
 
@@ -326,23 +364,6 @@ int64_t globalbc;
 int64_t middleCellIdx;
 /* Parallelization */
 
-//#pragma pack(1)
-struct partData { /* this structure keeps cell data needed in potential computations */
-  double x;
-  double y;
-  double z;
-  double h;
-  double size;
-  double young;
-  int ctype;
-};
-
-//#pragma pack(1)
-struct densPotData { /* this structure keeps additional cell data (potential & density) */
-  double v;
-  double density;
-};
-
 //#define MAX_CELLS_PER_PROC 10485760
 int maxCellsPerProc;
 
@@ -359,14 +380,6 @@ MPI_Comm MPI_CART_COMM;
 int **MPIcoords;
 
 struct Zoltan_Struct *ztn;
-
-struct partData *sendData;
-MIC_ATTR struct partData *recvData;
-struct densPotData *sendDensPotData;
-MIC_ATTR struct densPotData *recvDensPotData;
-
-int numExp;
-MIC_ATTR int numImp;
 
 /* system */
 int endian;		/* =0 - big endian, =1 - little endian */
