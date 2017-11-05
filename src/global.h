@@ -153,6 +153,12 @@ typedef struct int643dv_t {
 	int64_t z;
 } int643dv_t;
 
+typedef struct uint3dv_t {
+	unsigned int x;
+  unsigned int y;
+  unsigned int z;
+} uint3dv_t;
+
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
 	cellcount_t globalcount;
@@ -435,7 +441,7 @@ struct uintVector3d {
   unsigned int z;
 };
 
-struct uintVector3d *locCode;
+//struct uintVector3d *locCode;
 
 int64_t localID;
 
