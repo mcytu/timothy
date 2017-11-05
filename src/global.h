@@ -183,6 +183,7 @@ typedef struct cellsinfo_t{
 	double3dv_t *forces;
 	octnode_t *octree;
 	int64_t octsize;
+	int64_t octmaxsize;
 	int dimension;
 } cellsinfo_t;
 

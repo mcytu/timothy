@@ -64,6 +64,12 @@ void octemptynode(int64_t father,int level,unsigned int xbit,unsigned int ybit,u
                 octree[octsize].child[i]=-1;
         octree[octsize].data=-1;
         octree[octsize].level=level;
+        if(cellsinfo->octsize+1==cellsinfo->octmaxsize) {
+                cellsinfo->octmaxsize+=64;
+                if(!(cellsinfo->octree=(octnode_t*)realloc(cellsinfo->octree,sizeof(octnode_t)*cellsinfo->octmaxsize))) {
+                        terminate(system,"cannot reallocate cellsinfo->octree", __FILE__, __LINE__);
+                }
+        }
         cellsinfo->octsize++;
 
         return;
@@ -136,7 +142,6 @@ void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
 void octbuild(cellsinfo_t *cellsinfo)
 {
         int i,c;
-        int64_t octmaxsize;
         double3dv_t bMin,bMax;
         double epsilon=0.01;
         uint3dv_t *loccode;
@@ -172,7 +177,8 @@ void octbuild(cellsinfo_t *cellsinfo)
         affShift.z=bMin.z;
         /* each cell coordinate will be shifted by affShift and scaled by affScale */
 
-        loccode=(uint3dv_t*) malloc(sizeof(uint3dv_t)*cellsinfo->localcount.n);
+        if(!(loccode=(uint3dv_t*) malloc(sizeof(uint3dv_t)*cellsinfo->localcount.n)))
+                terminate(system,"cannot allocate loccode", __FILE__, __LINE__);
         //#pragma omp parallel for
         for(c=0; c<cellsinfo->localcount.n; c++) {
                 loccode[c].x=(unsigned int)( ((cellsinfo->cells[c].x-affShift.x)/affScale) * MAXVALUE );
@@ -180,8 +186,9 @@ void octbuild(cellsinfo_t *cellsinfo)
                 loccode[c].z=(unsigned int)( ((cellsinfo->cells[c].z-affShift.z)/affScale) * MAXVALUE );
         }
         /* memory space required to store octree (to be reviewed again!) */
-        octmaxsize=cellsinfo->localcount.n*64;
-        cellsinfo->octree=(octnode_t*) malloc(sizeof(octnode_t)*octmaxsize);
+        cellsinfo->octmaxsize=cellsinfo->localcount.n*64;
+        if(!(cellsinfo->octree=(octnode_t*) malloc(sizeof(octnode_t)*cellsinfo->octmaxsize)))
+                terminate(system,"cannot allocate cellsinfo->octree", __FILE__, __LINE__);
         root=0;
         cellsinfo->octsize=0;
         octemptynode(-1,ROOT_LEVEL,0,0,0,cellsinfo);
@@ -330,7 +337,8 @@ void octheapinit(octheap_t *ttheap)
 {
         ttheap->size=64;
         ttheap->count=0;
-        ttheap->data=malloc(sizeof(int)*ttheap->size);
+        if(!(ttheap->data=malloc(sizeof(int)*ttheap->size)))
+                terminate(system,"cannot allocate ttheap->data", __FILE__, __LINE__);
         return;
 }
 
@@ -341,7 +349,8 @@ void octheappush(octheap_t *ttheap,int idx)
 {
         if(ttheap->count==ttheap->size) {
                 ttheap->size+=64;
-                ttheap->data=realloc(ttheap->data,sizeof(int)*ttheap->size);
+                if(!(ttheap->data=realloc(ttheap->data,sizeof(int)*ttheap->size)))
+                        terminate(system,"cannot reallocate ttheap->data", __FILE__, __LINE__);
         }
         ttheap->data[ttheap->count]=idx;
         ttheap->count+=1;
