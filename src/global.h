@@ -214,7 +214,7 @@ typedef struct expdpdata_t { /* this structure keeps additional cell data (poten
 } expdpdata_t;
 
 typedef struct explist_t {
-        int cell;
+        int64_t cell;
         int proc;
 } explist_t;
 
@@ -231,8 +231,8 @@ typedef struct commdata_t {
 	expcelldata_t *recvcelldata;
 	expdpdata_t *senddpdata;
 	expdpdata_t *recvdpdata;
-	int numExp;
-	int numImp;
+	int numexp;
+	int numimp;
 } commdata_t;
 
 
@@ -519,7 +519,5 @@ typedef struct octheap_t {
   int count;
   int *data;
 } octheap_t;
-
-int MIC_ATTR tnc;
 
 int ni;

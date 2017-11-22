@@ -42,11 +42,15 @@ int main(int argc, char **argv)
 
         updateglobalcounts(&cellsinfo);
         lbexecute();
-        writevtk(system,settings,cellsinfo);
+        //writevtk(system,settings,cellsinfo);
         octbuild(&cellsinfo);
         createexportlist(system,settings,cellsinfo,&commdata);
-        commcleanup(system,cellsinfo,&commdata);
+        computestep(system,&cellsinfo,&commdata);
 
+        MPI_Abort(MPI_COMM_WORLD,-1);
+
+        commcleanup(system,cellsinfo,&commdata);
+        writevtk(system,settings,cellsinfo);
         MPI_Abort(MPI_COMM_WORLD,-1);
 
         for (step = 0; step < nsteps; step++) {
@@ -59,7 +63,7 @@ int main(int argc, char **argv)
                 //decompositionExecute();
                 //octBuild();
                 //createExportList();
-                computeStep();
+                //computeStep();
 
                 if (!(step % statOutStep))
                         statisticsPrint();

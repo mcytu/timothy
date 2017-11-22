@@ -217,16 +217,16 @@ void octcomputecode(int64_t c,uint3dv_t *code)
  * Difference between remote and local versions is the box croping which is applied
  * to some remote cells.
  */
-void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode)
+void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,commdata_t commdata)
 {
         double3dv_t mincor,maxcor;
         /* compute corners */
-        mincor.x=(recvData[c].x-h-affShift.x)/affScale;
-        mincor.y=(recvData[c].y-h-affShift.y)/affScale;
-        mincor.z=(recvData[c].z-h-affShift.z)/affScale;
-        maxcor.x=(recvData[c].x+h-affShift.x)/affScale;
-        maxcor.y=(recvData[c].y+h-affShift.y)/affScale;
-        maxcor.z=(recvData[c].z+h-affShift.z)/affScale;
+        mincor.x=(commdata.recvcelldata[c].x-h-affShift.x)/affScale;
+        mincor.y=(commdata.recvcelldata[c].y-h-affShift.y)/affScale;
+        mincor.z=(commdata.recvcelldata[c].z-h-affShift.z)/affScale;
+        maxcor.x=(commdata.recvcelldata[c].x+h-affShift.x)/affScale;
+        maxcor.y=(commdata.recvcelldata[c].y+h-affShift.y)/affScale;
+        maxcor.z=(commdata.recvcelldata[c].z+h-affShift.z)/affScale;
         /* for remote cells - box crop */
         mincor.x=(mincor.x<0.0 ? 0.0 : mincor.x);
         mincor.y=(mincor.y<0.0 ? 0.0 : mincor.y);
@@ -248,16 +248,17 @@ void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode)
 /*!
  * This function computes bounding box of a local cell to be used for neighbour searching.
  */
-void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode)
+void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,cellsinfo_t cellsinfo)
 {
         double3dv_t mincor,maxcor;
+        double h=cellsinfo.cells[c].h;
         /* compute corners */
-        mincor.x=(cells[c].x-h-affShift.x)/affScale;
-        mincor.y=(cells[c].y-h-affShift.y)/affScale;
-        mincor.z=(cells[c].z-h-affShift.z)/affScale;
-        maxcor.x=(cells[c].x+h-affShift.x)/affScale;
-        maxcor.y=(cells[c].y+h-affShift.y)/affScale;
-        maxcor.z=(cells[c].z+h-affShift.z)/affScale;
+        mincor.x=(cellsinfo.cells[c].x-h-affShift.x)/affScale;
+        mincor.y=(cellsinfo.cells[c].y-h-affShift.y)/affScale;
+        mincor.z=(cellsinfo.cells[c].z-h-affShift.z)/affScale;
+        maxcor.x=(cellsinfo.cells[c].x+h-affShift.x)/affScale;
+        maxcor.y=(cellsinfo.cells[c].y+h-affShift.y)/affScale;
+        maxcor.z=(cellsinfo.cells[c].z+h-affShift.z)/affScale;
         /* compute location codes of corners */
         minloccode[0].x=(unsigned int)(mincor.x*MAXVALUE);
         minloccode[0].y=(unsigned int)(mincor.y*MAXVALUE);

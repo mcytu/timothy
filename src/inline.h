@@ -61,26 +61,26 @@ static inline float sph_kernel(double r)
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],int mode,double r)
+MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],int mode,double r,cellsinfo_t cellsinfo,commdata_t commdata)
 {
   double u=1.0,c=1.0,w=1.0;
   double x1,x2,y1,y2,z1,z2;
 
   if(mode==0) {
-    x1=cells[p1].x;
-    x2=cells[p2].x;
-    y1=cells[p1].y;
-    y2=cells[p2].y;
-    z1=cells[p1].z;
-    z2=cells[p2].z;
+    x1=cellsinfo.cells[p1].x;
+    x2=cellsinfo.cells[p2].x;
+    y1=cellsinfo.cells[p1].y;
+    y2=cellsinfo.cells[p2].y;
+    z1=cellsinfo.cells[p1].z;
+    z2=cellsinfo.cells[p2].z;
   }
   if(mode==1) {
-    x1=recvData[p1].x;
-    x2=cells[p2].x;
-    y1=recvData[p1].y;
-    y2=cells[p2].y;
-    z1=recvData[p1].z;
-    z2=cells[p2].z;
+    x1=commdata.recvcelldata[p1].x;
+    x2=cellsinfo.cells[p2].x;
+    y1=commdata.recvcelldata[p1].y;
+    y2=cellsinfo.cells[p2].y;
+    z1=commdata.recvcelldata[p1].z;
+    z2=cellsinfo.cells[p2].z;
   }
 
   if(r>=0.0 && r<=h) {

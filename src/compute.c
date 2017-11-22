@@ -37,172 +37,138 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int computeStep()
+int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
 {
-  int p;
-  double dvel,sf;
-#ifdef __MIC__
-  double *phiwork1,*phiwork2;
-#endif
+        int p;
+        double dvel,sf;
 
-  /* 0. Initialization */
+        /* 0. Initialization */
 
-  /* initialize statistics data */
-  if(nc>1)
-    statistics.mindist=DBL_MAX;
-  else
-    statistics.mindist=0.0;
-  statistics.minvel=DBL_MAX;
-  statistics.maxvel=0.0;
-  statistics.minsize=DBL_MAX;
-  statistics.maxsize=0.0;
+        /* initialize statistics data */
+        if(nc>1)
+                statistics.mindist=DBL_MAX;
+        else
+                statistics.mindist=0.0;
+        statistics.minvel=DBL_MAX;
+        statistics.maxvel=0.0;
+        statistics.minsize=DBL_MAX;
+        statistics.maxsize=0.0;
 
-  initCellsToGridExchange();
+        //initCellsToGridExchange();
 
-  /* initiate asynchronous data transfers between processors */
-  cellsExchangeInit();
+        /* initiate asynchronous data transfers between processors */
+        cellscomminit(system,*cellsinfo,commdata);
 
-  /* 1. Compute potential for local cells */
+        /* 1. Compute potential for local cells */
 
-  /* offload trasfer: host -> accelerator  */
-#ifdef __MIC__
-#pragma offload_transfer target(mic:MPIrank%2) in(cells:length(lnc) alloc_if(1) free_if(0)) in(octree:length(octSize) alloc_if(1) free_if(0)) nocopy(velocity:length(lnc) alloc_if(1) free_if(0)) in(statistics)
-#endif
-  /* compute potential for local cells */
-#ifdef __MIC__
-#pragma offload target(mic:MPIrank%2) signal(phiwork1) nocopy(cells:length(lnc) alloc_if(0) free_if(0)) nocopy(octree:length(octSize) alloc_if(0) free_if(0)) in(affShift,affScale,h,tnc,lnc,nx,sdim,h2,h3,csize)
-#endif
-  compPot();
+        /* compute potential for local cells */
+        computepotential(cellsinfo,*commdata);
 
-  /* 2. Solve global fields */
+        /* 2. Solve global fields */
 
-  if(step>0) {
-    waitCellsToGridExchange();
-    fieldsSolve();
-  }
-#ifdef __MIC__
-#pragma offload_wait target(mic:MPIrank%2) wait(phiwork1)
-#endif
-  /* wait for data transfers to finish */
-  cellsExchangeWait();
+        //if(step>0) {
+        //        waitCellsToGridExchange();
+        //        fieldsSolve();
+        //}
 
-  /* 3. Compute potential for remote cells */
 
-#ifdef __MIC__
-#pragma offload target(mic:MPIrank%2) nocopy(cells:length(lnc) alloc_if(0) free_if(0)) nocopy(octree:length(octSize) alloc_if(0) free_if(0)) in(recvData:length(numImp) alloc_if(1) free_if(0))  in(affShift,affScale,h,tnc,lnc,nx,sdim,h2,h3,csize,numImp)
-#endif
-  compRPot();
+        /* wait for data transfers to finish */
+        cellscommwait(system,*cellsinfo,commdata);
 
-  /* 4. Add chemotactic term to potential */
+        /* 3. Compute potential for remote cells */
+        computeremotepotential(cellsinfo,*commdata);
 
-  /* add chemotaxis term to potential */
-/*  if(bvsim) {
-    int p;
-    for(p=0; p<lnc; p++)
-      cells[p].v+=100*sqrt(pow(cellFields[NFIELDS][p],2)+pow(cellFields[NFIELDS+1][p],2)+pow(cellFields[NFIELDS+2][p],2));
-  }*/
+        /* 4. Add chemotactic term to potential */
 
-  /* 5. Compute gradient of the potential for local cells */
+        /* add chemotaxis term to potential */
 
-#ifdef __MIC__
-#pragma offload_transfer target(mic:MPIrank%2) out(cells:length(lnc) alloc_if(0) free_if(0)) out(statistics)
-#endif
-  /* initiate transfer of the density and potential data from remote cells */
-  densPotExchangeInit();
-  /* compute gradient of the potential for local cells */
-#ifdef __MIC__
-#pragma offload target(mic:MPIrank%2) signal(phiwork2) nocopy(cells:length(lnc) alloc_if(0) free_if(0)) nocopy(octree:length(octSize) alloc_if(0) free_if(0)) in(affShift,affScale,h,tnc,lnc,nx,sdim,h2,h3,h4,csize) nocopy(velocity:length(lnc) alloc_if(0) free_if(0))
-#endif
-  compPotGrad();
+        /* 5. Compute gradient of the potential for local cells */
+        /* initiate transfer of the density and potential data from remote cells */
+        dpcomminit(system,*cellsinfo,commdata);
+        /* compute gradient of the potential for local cells */
+        computegradient(cellsinfo,*commdata);
 
-  /* 6. Interpolate global fields and compute gradient */
+        /* 6. Interpolate global fields and compute gradient */
 
-  /* interpolate data */
-  interpolateFieldsToCells();
-  /* compute gradient of global fields */
-  fieldGradient();
-#ifdef __MIC__
-#pragma offload_wait target(mic:MPIrank%2) wait(phiwork2)
-#endif
+        /* interpolate data */
+        //interpolateFieldsToCells();
+        /* compute gradient of global fields */
+        //fieldGradient();
 
-  /* 7. Compute gradient of the potential for remote cells */
-  /* wait for density and potential data from remote cells */
-  densPotExchangeWait();
-#ifdef __MIC__
-#pragma offload_transfer target(mic:MPIrank%2) out(cells:length(lnc) alloc_if(0) free_if(1)) nocopy(octree:length(octSize) alloc_if(0) free_if(1)) out(velocity:length(lnc) alloc_if(0) free_if(1))
-#endif
-#ifdef __MIC__
-#pragma offload_transfer target(mic:MPIrank%2) nocopy(recvData:length(numImp) alloc_if(0) free_if(1))
-#endif
-  /* compute gradient of the potential for remote cells */
-  compRPotGrad();
+        /* 7. Compute gradient of the potential for remote cells */
+        /* wait for density and potential data from remote cells */
+        dpcommwait(system,*cellsinfo,commdata);
 
-  /* 8. Correct velocity for various cell types */
-  for(p=0; p<lnc; p++)
-    if(cells[p].ctype!=1) {
-      velocity[p].x += 0.01*cellFields[NFIELDS][p];
-      velocity[p].y += 0.01*cellFields[NFIELDS+1][p];
-      velocity[p].z += 0.01*cellFields[NFIELDS+2][p];
-    }
+        /* compute gradient of the potential for remote cells */
+        computeremotegradient(cellsinfo,*commdata);
 
-  /* 9. Compute and collect statistical data */
-  for (p = 0; p < lnc; p++) {
-    dvel =
-      sqrt(velocity[p].x * velocity[p].x +
-           velocity[p].y * velocity[p].y +
-           velocity[p].z * velocity[p].z);
-    if (dvel < statistics.minvel)
-      statistics.minvel = dvel;
-    if (dvel > statistics.maxvel)
-      statistics.maxvel = dvel;
-    if (cells[p].size < statistics.minsize)
-      statistics.minsize = cells[p].size;
-    if (cells[p].size > statistics.maxsize)
-      statistics.maxsize = cells[p].size;
-  }
-  /* this should be removed soon (do we really need to reduceall here?) */
-  MPI_Allreduce(&statistics.minvel, &globalMinVel, 1, MPI_DOUBLE, MPI_MIN,
-                MPI_COMM_WORLD);
-  MPI_Allreduce(&statistics.maxvel, &globalMaxVel, 1, MPI_DOUBLE, MPI_MAX,
-                MPI_COMM_WORLD);
+        /* 8. Correct velocity for various cell types */
+/*i        for(p=0; p<lnc; p++)
+                if(cells[p].ctype!=1) {
+                        velocity[p].x += 0.01*cellFields[NFIELDS][p];
+                        velocity[p].y += 0.01*cellFields[NFIELDS+1][p];
+                        velocity[p].z += 0.01*cellFields[NFIELDS+2][p];
+                }
+ */
+        /* 9. Compute and collect statistical data */
+/*i        for (p = 0; p < lnc; p++) {
+                dvel =
+                        sqrt(velocity[p].x * velocity[p].x +
+                             velocity[p].y * velocity[p].y +
+                             velocity[p].z * velocity[p].z);
+                if (dvel < statistics.minvel)
+                        statistics.minvel = dvel;
+                if (dvel > statistics.maxvel)
+                        statistics.maxvel = dvel;
+                if (cells[p].size < statistics.minsize)
+                        statistics.minsize = cells[p].size;
+                if (cells[p].size > statistics.maxsize)
+                        statistics.maxsize = cells[p].size;
+        }
+ */
+        /* this should be removed soon (do we really need to reduceall here?) */
+/*i        MPI_Allreduce(&statistics.minvel, &globalMinVel, 1, MPI_DOUBLE, MPI_MIN,
+                      MPI_COMM_WORLD);
+        MPI_Allreduce(&statistics.maxvel, &globalMaxVel, 1, MPI_DOUBLE, MPI_MAX,
+                      MPI_COMM_WORLD);
 
-  if (globalMaxVel == 0.0)
-    sf = 0.0;
-  else
-    sf =  maxSpeedInUnits * secondsPerStep / globalMaxVel;
+        if (globalMaxVel == 0.0)
+                sf = 0.0;
+        else
+                sf =  maxSpeedInUnits * secondsPerStep / globalMaxVel;
 
-  //printf("sf=%f\n",sf);
-  //sf=0.001;
+        //printf("sf=%f\n",sf);
+        //sf=0.001;
 
-  //printf("globalMaxVel=%f sf=%.16f\n",globalMaxVel,sf);
+        //printf("globalMaxVel=%f sf=%.16f\n",globalMaxVel,sf);
 
-  printf("maxspeed=%f\n", maxSpeedInUnits * secondsPerStep);
+        printf("maxspeed=%f\n", maxSpeedInUnits * secondsPerStep);
+ */
+//i        statistics.minvel = DBL_MAX; /* minimal velocity is set to DBL_MAX */
+//i        statistics.maxvel = 0;  /* maximal velocity is set to zero */
 
-  statistics.minvel = DBL_MAX;  /* minimal velocity is set to DBL_MAX */
-  statistics.maxvel = 0;        /* maximal velocity is set to zero */
+/*i        for (p = 0; p < lnc; p++) {
+   //    velocity[p].x *= sf;
+   //    velocity[p].y *= sf;
+   //    velocity[p].z *= sf;
+                dvel =
+                        sqrt(velocity[p].x * velocity[p].x +
+                             velocity[p].y * velocity[p].y +
+                             velocity[p].z * velocity[p].z);
+                if(dvel > maxSpeedInUnits*secondsPerStep) {
+                        velocity[p].x *= maxSpeedInUnits*secondsPerStep/dvel;
+                        velocity[p].y *= maxSpeedInUnits*secondsPerStep/dvel;
+                        velocity[p].z *= maxSpeedInUnits*secondsPerStep/dvel;
+                }
+                dvel =
+                        sqrt(velocity[p].x * velocity[p].x +
+                             velocity[p].y * velocity[p].y +
+                             velocity[p].z * velocity[p].z);
 
-  for (p = 0; p < lnc; p++) {
-//    velocity[p].x *= sf;
-//    velocity[p].y *= sf;
-//    velocity[p].z *= sf;
-    dvel =
-      sqrt(velocity[p].x * velocity[p].x +
-           velocity[p].y * velocity[p].y +
-           velocity[p].z * velocity[p].z);
-    if(dvel > maxSpeedInUnits*secondsPerStep) {
-      velocity[p].x *= maxSpeedInUnits*secondsPerStep/dvel;
-      velocity[p].y *= maxSpeedInUnits*secondsPerStep/dvel;
-      velocity[p].z *= maxSpeedInUnits*secondsPerStep/dvel;
-    }
-    dvel =
-      sqrt(velocity[p].x * velocity[p].x +
-           velocity[p].y * velocity[p].y +
-           velocity[p].z * velocity[p].z);
-
-    if (dvel < statistics.minvel)
-      statistics.minvel = dvel;
-    if (dvel > statistics.maxvel)
-      statistics.maxvel = dvel;
-  }
-
+                if (dvel < statistics.minvel)
+                        statistics.minvel = dvel;
+                if (dvel > statistics.maxvel)
+                        statistics.maxvel = dvel;
+        }
+ */
 }
