@@ -112,6 +112,7 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
                 cellsinfo->localcount.g0phase+=1;
                 cellsinfo->localtypecount[ctype].n+=1;
                 cellsinfo->localtypecount[ctype].g0phase+=1;
+                cellsinfo->cells[cellsinfo->localcount.n].young=2100.0 + (float)rand_r(&(settings.rseed)) * 100.0;
 
 
                 if(cellsinfo->localcount.n==settings.maxlocalcells) {

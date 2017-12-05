@@ -204,7 +204,7 @@ void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cell
         if(!(cellsinfo->cells=(celldata_t*)malloc(maxlocalcells*sizeof(celldata_t))))
                 terminate(system,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);
 
-        if(!(cellsinfo->forces=(double3dv_t*)calloc(maxlocalcells,sizeof(celldata_t))))
+        if(!(cellsinfo->forces=(double3dv_t*)calloc(maxlocalcells,sizeof(double3dv_t))))
                 terminate(system,"cannot allocate cellsinfo->forces", __FILE__, __LINE__);
 
         if(!(cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size)))

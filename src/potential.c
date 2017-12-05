@@ -51,6 +51,8 @@ MIC_ATTR double ccpot(int p1, int p2, int mode,double *mindist,cellsinfo_t *cell
         double young;
         int ctype;
 
+        csize=1.0;
+
         if (mode == 0 && p1 == p2)
                 return 0.0;
 
@@ -319,16 +321,18 @@ void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commda
 
         /* update forces */
         if (mode == 0) {
-                velocity[p1].x += sc * grad[0];
-                velocity[p1].y += sc * grad[1];
-                velocity[p1].z += sc * grad[2];
+                cellsinfo->forces[p1].x += sc * grad[0];
+                cellsinfo->forces[p1].y += sc * grad[1];
+                cellsinfo->forces[p1].z += sc * grad[2];
+                //printf("%f %f %f %f %f %f %f %f\n",sc*grad[0],sc*grad[1],sc*grad[2],sc,density,size,csize,v);
+
         } else {
  #pragma omp atomic
-                velocity[p2].x -= sc * grad[0];
+                cellsinfo->forces[p2].x -= sc * grad[0];
  #pragma omp atomic
-                velocity[p2].y -= sc * grad[1];
+                cellsinfo->forces[p2].y -= sc * grad[1];
  #pragma omp atomic
-                velocity[p2].z -= sc * grad[2];
+                cellsinfo->forces[p2].z -= sc * grad[2];
         }
 }
 
@@ -339,9 +343,9 @@ void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commda
 void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
 {
         int p;
-        if(lnc<=1) return;
+        if(cellsinfo->localcount.n<=1) return;
   #pragma omp parallel for schedule(dynamic,64)
-        for(p=0; p<lnc; p++) {
+        for(p=0; p<cellsinfo->localcount.n; p++) {
                 int64_t cellIdx;
                 int newIdx;
                 int s;
@@ -350,9 +354,9 @@ void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
                 octheap_t octh;
 
                 octheapinit(&octh);
-                velocity[p].x=0.0;
-                velocity[p].y=0.0;
-                velocity[p].z=0.0;
+                cellsinfo->forces[p].x=0.0;
+                cellsinfo->forces[p].y=0.0;
+                cellsinfo->forces[p].z=0.0;
 
                 //if(cells[p].ctype==1) continue;
 
@@ -365,7 +369,6 @@ void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
                         if(idx!=-1 && octnodeintersection(idx,minLocCode,maxLocCode,*cellsinfo))
                                 octheappush(&octh,idx);
                 }
-
                 while(octh.count>0) {
                         int idx;
                         idx=octheappop(&octh);

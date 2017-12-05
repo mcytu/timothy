@@ -102,32 +102,33 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         /* compute gradient of the potential for remote cells */
         computeremotegradient(cellsinfo,*commdata);
 
-        /* 8. Correct velocity for various cell types */
-/*i        for(p=0; p<lnc; p++)
+        /* 8. Correct forces for various cell types */
+/*        for(p=0; p<lnc; p++)
                 if(cells[p].ctype!=1) {
-                        velocity[p].x += 0.01*cellFields[NFIELDS][p];
-                        velocity[p].y += 0.01*cellFields[NFIELDS+1][p];
-                        velocity[p].z += 0.01*cellFields[NFIELDS+2][p];
+                        cellsinfo->forces[p].x += 0.01*cellFields[NFIELDS][p];
+                        cellsinfo->forces[p].y += 0.01*cellFields[NFIELDS+1][p];
+                        cellsinfo->forces[p].z += 0.01*cellFields[NFIELDS+2][p];
                 }
  */
         /* 9. Compute and collect statistical data */
-/*i        for (p = 0; p < lnc; p++) {
+        for (p = 0; p < cellsinfo->localcount.n; p++) {
                 dvel =
-                        sqrt(velocity[p].x * velocity[p].x +
-                             velocity[p].y * velocity[p].y +
-                             velocity[p].z * velocity[p].z);
+                        sqrt(cellsinfo->forces[p].x * cellsinfo->forces[p].x +
+                             cellsinfo->forces[p].y * cellsinfo->forces[p].y +
+                             cellsinfo->forces[p].z * cellsinfo->forces[p].z);
+                printf("dvel=%f\n",dvel);
                 if (dvel < statistics.minvel)
                         statistics.minvel = dvel;
                 if (dvel > statistics.maxvel)
                         statistics.maxvel = dvel;
-                if (cells[p].size < statistics.minsize)
-                        statistics.minsize = cells[p].size;
-                if (cells[p].size > statistics.maxsize)
-                        statistics.maxsize = cells[p].size;
+                if (cellsinfo->cells[p].size < statistics.minsize)
+                        statistics.minsize = cellsinfo->cells[p].size;
+                if (cellsinfo->cells[p].size > statistics.maxsize)
+                        statistics.maxsize = cellsinfo->cells[p].size;
         }
- */
+
         /* this should be removed soon (do we really need to reduceall here?) */
-/*i        MPI_Allreduce(&statistics.minvel, &globalMinVel, 1, MPI_DOUBLE, MPI_MIN,
+        MPI_Allreduce(&statistics.minvel, &globalMinVel, 1, MPI_DOUBLE, MPI_MIN,
                       MPI_COMM_WORLD);
         MPI_Allreduce(&statistics.maxvel, &globalMaxVel, 1, MPI_DOUBLE, MPI_MAX,
                       MPI_COMM_WORLD);
@@ -140,10 +141,10 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         //printf("sf=%f\n",sf);
         //sf=0.001;
 
-        //printf("globalMaxVel=%f sf=%.16f\n",globalMaxVel,sf);
+        printf("globalMaxVel=%f sf=%.16f\n",globalMaxVel,sf);
 
-        printf("maxspeed=%f\n", maxSpeedInUnits * secondsPerStep);
- */
+        //printf("maxspeed=%f\n", maxSpeedInUnits * secondsPerStep);
+
 //i        statistics.minvel = DBL_MAX; /* minimal velocity is set to DBL_MAX */
 //i        statistics.maxvel = 0;  /* maximal velocity is set to zero */
 

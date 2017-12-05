@@ -185,6 +185,7 @@ typedef struct cellsinfo_t{
 	int64_t octsize;
 	int64_t octmaxsize;
 	int dimension;
+	double3dv_t *velocity;
 } cellsinfo_t;
 
 /* NEW */
