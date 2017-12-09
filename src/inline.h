@@ -37,31 +37,13 @@ static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t max
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-static inline float sph_kernel(int type,double r, cellsinfo_t *cellsinfo, celltype_t *celltype)
+static inline float sphkernel(int dimension,double dist,double h,double h2,double h3)
 {
   double u,c=1.0;
-  double h,h2,h3;
-  h=celltype[type].h;
-  h2=celltype[type].h2;
-  h3=celltype[type].h3;
-  if(r<0.0) return 0.0;
-
-  u=r/h;
-  if(cellsinfo->dimension==2) c=40/(7*M_PI*h2);
-  if(cellsinfo->dimension==3) c=8/(M_PI*h3);
-  if(u>=0.0 && u<=0.5) return c*(1-6*u*u+6*u*u*u);
-  if(u>0.5 && u<=1.0) return c*(2*(1-u)*(1-u)*(1-u));
-  if(u>1.0) return 0.0;
-  return 0.0;
-}
-
-static inline float sph_kernel_new(int sdim,double r,double h,double h2,double h3)
-{
-  double u,c=1.0;
-  if(r<0.0) return 0.0;
-  u=r/h;
-  if(sdim==2) c=40/(7*M_PI*h2);
-  if(sdim==3) c=8/(M_PI*h3);
+  if(dist<0.0) return 0.0;
+  u=dist/h;
+  if(dimension==2) c=40/(7*M_PI*h2);
+  if(dimension==3) c=8/(M_PI*h3);
   if(u>=0.0 && u<=0.5) return c*(1-6*u*u+6*u*u*u);
   if(u>0.5 && u<=1.0) return c*(2*(1-u)*(1-u)*(1-u));
   if(u>1.0) return 0.0;
@@ -70,62 +52,32 @@ static inline float sph_kernel_new(int sdim,double r,double h,double h2,double h
 
 /*!
  * This function return the value of the SPH kernel function gradient.
- * mode=0 - computations for local particles
- * mode=1 - computations for remote particles
  * Kernel function as in
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],int mode,double r,cellsinfo_t cellsinfo,celltype_t* celltype,commdata_t commdata)
+static inline int sphgradient(int dimension, celldata_t c1, celldata_t c2, double3dv_t* f,double h,double h3,double h4)
 {
   double u=1.0,c=1.0,w=1.0;
-  double x1,x2,y1,y2,z1,z2;
-  double h,h3,h4;
+  double dist;
 
-  if(mode==0) {
-    x1=cellsinfo.cells[p1].x;
-    x2=cellsinfo.cells[p2].x;
-    y1=cellsinfo.cells[p1].y;
-    y2=cellsinfo.cells[p2].y;
-    z1=cellsinfo.cells[p1].z;
-    z2=cellsinfo.cells[p2].z;
-    h=celltype[cellsinfo.cells[p1].ctype].h;
-    h3=celltype[cellsinfo.cells[p1].ctype].h3;
-    h4=celltype[cellsinfo.cells[p1].ctype].h4;
-  }
-  if(mode==1) {
-    x1=commdata.recvcelldata[p1].x;
-    x2=cellsinfo.cells[p2].x;
-    y1=commdata.recvcelldata[p1].y;
-    y2=cellsinfo.cells[p2].y;
-    z1=commdata.recvcelldata[p1].z;
-    z2=cellsinfo.cells[p2].z;
-    h=celltype[cellsinfo.cells[p2].ctype].h;
-    h3=celltype[cellsinfo.cells[p2].ctype].h3;
-    h4=celltype[cellsinfo.cells[p2].ctype].h4;
-  }
+  f->x=0.0;
+  f->y=0.0;
+  f->z=0.0;
+  dist = sqrt((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) + (c1.z - c2.z) * (c1.z - c2.z));
 
-  if(r>=0.0 && r<=h) {
-
-    u=r/h;
-    if(sdim==2) c=(40*8)/(7*M_PI*h3);
-    if(sdim==3) c=48/(M_PI*h4);
+  if(dist>=0.0 && dist<=h) {
+    u=dist/h;
+    if(dimension==2) c=(40*8)/(7*M_PI*h3);
+    if(dimension==3) c=48/(M_PI*h4);
 
     if(u>=0.0 && u<=0.5) w=-2.0*u+3.0*u*u;
     if(u>0.5 && u<=1.0) w=-(1.0-u)*(1.0-u);
     if(u>1.0) w=0.0;
 
-    grad[0]=w*c*(x2-x1)/r;
-    grad[1]=w*c*(y2-y1)/r;
-    if(sdim==3) grad[2]=w*c*(z2-z1)/r;
-    if(sdim==2) grad[2]=0.0;
-
-  } else {
-
-    grad[0]=0.0;
-    grad[1]=0.0;
-    grad[2]=0.0;
-
+    f->x=w*c*(c2.x-c1.x)/dist;
+    f->y=w*c*(c2.y-c1.y)/dist;
+    if(dimension==3) f->z=w*c*(c2.z-c1.z)/dist;
   }
   return 0;
 }
