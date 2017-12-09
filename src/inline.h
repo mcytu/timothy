@@ -37,16 +37,31 @@ static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t max
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-static inline float sph_kernel(double r)
+static inline float sph_kernel(int type,double r, cellsinfo_t *cellsinfo, celltype_t *celltype)
 {
   double u,c=1.0;
-
+  double h,h2,h3;
+  h=celltype[type].h;
+  h2=celltype[type].h2;
+  h3=celltype[type].h3;
   if(r<0.0) return 0.0;
 
   u=r/h;
+  if(cellsinfo->dimension==2) c=40/(7*M_PI*h2);
+  if(cellsinfo->dimension==3) c=8/(M_PI*h3);
+  if(u>=0.0 && u<=0.5) return c*(1-6*u*u+6*u*u*u);
+  if(u>0.5 && u<=1.0) return c*(2*(1-u)*(1-u)*(1-u));
+  if(u>1.0) return 0.0;
+  return 0.0;
+}
+
+static inline float sph_kernel_new(int sdim,double r,double h,double h2,double h3)
+{
+  double u,c=1.0;
+  if(r<0.0) return 0.0;
+  u=r/h;
   if(sdim==2) c=40/(7*M_PI*h2);
   if(sdim==3) c=8/(M_PI*h3);
-
   if(u>=0.0 && u<=0.5) return c*(1-6*u*u+6*u*u*u);
   if(u>0.5 && u<=1.0) return c*(2*(1-u)*(1-u)*(1-u));
   if(u>1.0) return 0.0;
@@ -61,10 +76,11 @@ static inline float sph_kernel(double r)
  * - J.J.Monaghan,"Smoothed Particle Hydrodynamics",Annu.Rev.Astron.Astrophys.,1992,30:543-74
  * - V.Springel,"Smoothed Particle Hydrodynamics in Astrophysics",arXiv:1109.2219v1
  */
-MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],int mode,double r,cellsinfo_t cellsinfo,commdata_t commdata)
+MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],int mode,double r,cellsinfo_t cellsinfo,celltype_t* celltype,commdata_t commdata)
 {
   double u=1.0,c=1.0,w=1.0;
   double x1,x2,y1,y2,z1,z2;
+  double h,h3,h4;
 
   if(mode==0) {
     x1=cellsinfo.cells[p1].x;
@@ -73,6 +89,9 @@ MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],in
     y2=cellsinfo.cells[p2].y;
     z1=cellsinfo.cells[p1].z;
     z2=cellsinfo.cells[p2].z;
+    h=celltype[cellsinfo.cells[p1].ctype].h;
+    h3=celltype[cellsinfo.cells[p1].ctype].h3;
+    h4=celltype[cellsinfo.cells[p1].ctype].h4;
   }
   if(mode==1) {
     x1=commdata.recvcelldata[p1].x;
@@ -81,6 +100,9 @@ MIC_ATTR static inline int sph_kernel_gradient(int p1, int p2, double grad[3],in
     y2=cellsinfo.cells[p2].y;
     z1=commdata.recvcelldata[p1].z;
     z2=cellsinfo.cells[p2].z;
+    h=celltype[cellsinfo.cells[p2].ctype].h;
+    h3=celltype[cellsinfo.cells[p2].ctype].h3;
+    h4=celltype[cellsinfo.cells[p2].ctype].h4;
   }
 
   if(r>=0.0 && r<=h) {

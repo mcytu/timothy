@@ -139,7 +139,7 @@ void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
 /*!
  * This is a driving function for creating an octree.
  */
-void octbuild(cellsinfo_t *cellsinfo)
+void octbuild(cellsinfo_t *cellsinfo,celltype_t* celltype)
 {
         int i,c;
         double3dv_t bMin,bMax;
@@ -161,7 +161,7 @@ void octbuild(cellsinfo_t *cellsinfo)
                 x=cellsinfo->cells[i].x;
                 y=cellsinfo->cells[i].y;
                 z=cellsinfo->cells[i].z;
-                e=h+epsilon;
+                e=celltype[cellsinfo->cells[i].ctype].h+epsilon;
                 bMin.x=(x-e<bMin.x ? x-e : bMin.x);
                 bMax.x=(x+e>bMax.x ? x+e : bMax.x);
                 bMin.y=(y-e<bMin.y ? y-e : bMin.y);
@@ -175,6 +175,7 @@ void octbuild(cellsinfo_t *cellsinfo)
         affShift.x=bMin.x;
         affShift.y=bMin.y;
         affShift.z=bMin.z;
+
         /* each cell coordinate will be shifted by affShift and scaled by affScale */
 
         if(!(loccode=(uint3dv_t*) malloc(sizeof(uint3dv_t)*cellsinfo->localcount.n)))
@@ -217,9 +218,10 @@ void octcomputecode(int64_t c,uint3dv_t *code)
  * Difference between remote and local versions is the box croping which is applied
  * to some remote cells.
  */
-void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,commdata_t commdata)
+void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,commdata_t commdata,celltype_t* celltype)
 {
         double3dv_t mincor,maxcor;
+        double h=celltype[commdata.recvcelldata[c].ctype].h;
         /* compute corners */
         mincor.x=(commdata.recvcelldata[c].x-h-affShift.x)/affScale;
         mincor.y=(commdata.recvcelldata[c].y-h-affShift.y)/affScale;
@@ -248,10 +250,10 @@ void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,commda
 /*!
  * This function computes bounding box of a local cell to be used for neighbour searching.
  */
-void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,cellsinfo_t cellsinfo)
+void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,cellsinfo_t cellsinfo,celltype_t* celltype)
 {
         double3dv_t mincor,maxcor;
-        double h=cellsinfo.cells[c].h;
+        double h=celltype[cellsinfo.cells[c].ctype].h;
         /* compute corners */
         mincor.x=(cellsinfo.cells[c].x-h-affShift.x)/affScale;
         mincor.y=(cellsinfo.cells[c].y-h-affShift.y)/affScale;

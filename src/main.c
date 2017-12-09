@@ -43,9 +43,9 @@ int main(int argc, char **argv)
         updateglobalcounts(&cellsinfo);
         lbexecute();
         //writevtk(system,settings,cellsinfo);
-        octbuild(&cellsinfo);
-        createexportlist(system,settings,cellsinfo,&commdata);
-        computestep(system,&cellsinfo,&commdata);
+        octbuild(&cellsinfo,celltype);
+        createexportlist(system,settings,cellsinfo,celltype,&commdata);
+        computestep(system,&cellsinfo,celltype,&commdata);
 
         MPI_Abort(MPI_COMM_WORLD,-1);
 
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
                 //commCleanup();
                 octfree();
 
-                if (!(step % rstOutStep))
-                        saveRstFile();
+                //if (!(step % rstOutStep))
+                //        saveRstFile();
         }
 
         MPI_Barrier(MPI_COMM_WORLD);

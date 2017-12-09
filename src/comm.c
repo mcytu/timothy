@@ -61,7 +61,7 @@ int explistcompare(const void *a, const void *b)
  * to find possible intersections of cells' neighbourhoods
  * and other processes' geometries.
  */
-void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,commdata_t *commdata)
+void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,celltype_t* celltype,commdata_t *commdata)
 {
 
         int i, p;
@@ -96,8 +96,7 @@ void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,
                 if (cellsinfo.globalcount.n < system.size*MIN_CELLS_PER_PROC)
                         continue;
 
-                r = cellsinfo.cells[p].h * 1.5;
-
+                r = celltype[cellsinfo.cells[p].ctype].h * 1.5;
                 /* compute neighbourhood box */
                 xmin = cellsinfo.cells[p].x - r;
                 xmax = cellsinfo.cells[p].x + r;
@@ -110,10 +109,8 @@ void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,
                         zmin = 0.0;
                         zmax = 0.0;
                 }
-
                 /* look for possible neighbours */
                 Zoltan_LB_Box_Assign(ztn, xmin, ymin, zmin, xmax, ymax, zmax, procs, &numprocs);
-
                 /* loop over receivers */
                 for (i = 0; i < numprocs; i++) {
                         if (procs[i] == system.rank || cellsinfo.cellsperproc[procs[i]] == 0)
@@ -134,10 +131,8 @@ void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,
 
         /* sort export list with respect to process number */
         qsort(commdata->explist, commdata->numexp, sizeof(explist_t), explistcompare);
-
         /* distribute the information on transfer sizes between each process */
         MPI_Alltoall(commdata->sendcount, 1, MPI_INT, commdata->recvcount, 1, MPI_INT, MPI_COMM_WORLD);
-
         /* compute send offsets */
         commdata->sendoffset[0] = 0;
         for (i = 1; i < system.size; i++)
@@ -151,7 +146,6 @@ void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,
         /* count cells to be imported */
         for (i = 0; i < system.size; i++)
                 commdata->numimp += commdata->recvcount[i];
-
         return;
 }
 
@@ -200,7 +194,6 @@ void cellscomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
                 commdata->sendcelldata[i].y = cellsinfo.cells[cellidx].y;
                 commdata->sendcelldata[i].z = cellsinfo.cells[cellidx].z;
                 commdata->sendcelldata[i].size = cellsinfo.cells[cellidx].size;
-                commdata->sendcelldata[i].h = cellsinfo.cells[cellidx].h;
                 commdata->sendcelldata[i].young = (double) cellsinfo.cells[cellidx].young;
                 commdata->sendcelldata[i].ctype = cellsinfo.cells[cellidx].ctype;
         }
@@ -210,7 +203,7 @@ void cellscomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
                 if (commdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
                 MPI_Isend(&(commdata->sendcelldata[commdata->sendoffset[i]]),
-                          commdata->sendcount[i] * sizeof(expdpdata_t), MPI_BYTE, i, system.rank,
+                          commdata->sendcount[i] * sizeof(expcelldata_t), MPI_BYTE, i, system.rank,
                           MPI_COMM_WORLD, &(commdata->reqsend[i]));
         }
 
@@ -219,7 +212,7 @@ void cellscomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
                 if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
                 MPI_Irecv(&(commdata->recvcelldata[commdata->recvoffset[i]]),
-                          commdata->recvcount[i] * sizeof(expdpdata_t), MPI_BYTE, i, i,
+                          commdata->recvcount[i] * sizeof(expcelldata_t), MPI_BYTE, i, i,
                           MPI_COMM_WORLD, &(commdata->reqrecv[i]));
         }
 
@@ -246,7 +239,7 @@ void cellscommwait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
         }
 
         /* wait for receive completion */
-        for (i = 0; i < MPIsize; i++) {
+        for (i = 0; i < system.size; i++) {
                 if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
                 if (MPI_Wait(&(commdata->reqrecv[i]), &status) != MPI_SUCCESS)

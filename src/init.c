@@ -72,6 +72,11 @@ void initialcelltype(int numberofcelltypes,int numberoffields,celltype_t* cellty
                 celltype[i].v=CELLTYPE_V_DEFAULT;
                 celltype[i].rd=CELLTYPE_RD_DEFAULT;
                 celltype[i].criticaldensity=CELLTYPE_CDENS_DEFAULT;
+                celltype[i].size=CELLTYPE_SIZE_DEFAULT;
+                celltype[i].h=CELLTYPE_H_DEFAULT;
+                celltype[i].h2=(celltype[i].h)*(celltype[i].h);
+                celltype[i].h3=(celltype[i].h2)*(celltype[i].h);
+                celltype[i].h4=(celltype[i].h3)*(celltype[i].h);
         }
         for(i=0; i<numberofcelltypes; i++) {
                 for(j=0; j<numberoffields; j++) {

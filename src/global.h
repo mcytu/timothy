@@ -81,7 +81,7 @@ struct cellData {
   double y;              /* y coordinate of the particle position */
   double z;              /* z coordinate of the particle position */
   double size;           /* radius of the cell */
-  double h;              /* neighbourhood of the cell */
+//  double h;              /* neighbourhood of the cell */
   double v;              /* particle potential */
   double density;        /* particle density */
   double scalarField;    /* additional scalar field which can be used for analysis of results (printed to the output VTK files) */
@@ -128,7 +128,6 @@ typedef struct celldata_t {
   double y;              /* y coordinate of the particle position */
   double z;              /* z coordinate of the particle position */
   double size;           /* radius of the cell */
-  double h;              /* neighbourhood of the cell */
   double v;              /* particle potential */
   double density;        /* particle density */
   int ctype;
@@ -203,7 +202,6 @@ typedef struct expcelldata_t { /* this structure keeps cell data needed in poten
   double x;
   double y;
   double z;
-  double h;
   double size;
   double young;
   int ctype;
@@ -287,6 +285,8 @@ typedef struct system_t {
 #define CELLTYPE_CONS_DEFAULT 0.0
 #define CELLTYPE_CL1_DEFAULT 100
 #define CELLTYPE_CL2_DEFAULT 100
+#define CELLTYPE_SIZE_DEFAULT 1.0
+#define CELLTYPE_H_DEFAULT 1.5
 #define NUMBER_OF_CELLENV_PAR 4
 
 typedef struct celltype_t {
@@ -297,6 +297,11 @@ typedef struct celltype_t {
 	float m;
 	float v;
 	float rd;
+	double size;
+	double h;			/* neighbourhood of the cell */
+	double h2;		/* h^2 */
+	double h3;		/* h^3 */
+	double h4;		/* h^4 */
 	char inputfile[128];
 	float criticaldensity;
 	float *production;
@@ -426,10 +431,10 @@ float cm;               /* mean duration of M phase - cancer cells */
 double MIC_ATTR csize;           /* cell initial size, no units */
 double csizeInUnits;    /* cell size in micrometers */
 double cellVolume;      /* cell volume */
-double MIC_ATTR h;               /* cell neighbourhood radius */
-double MIC_ATTR h2;              /* 2nd power of h */
-double MIC_ATTR h3;              /* 3rd power of h */
-double MIC_ATTR h4;              /* 4th power of h */
+//double MIC_ATTR h;               /* cell neighbourhood radius */
+//double MIC_ATTR h2;              /* 2nd power of h */
+//double MIC_ATTR h3;              /* 3rd power of h */
+//double MIC_ATTR h4;              /* 4th power of h */
 
 int cancer;
 int64_t rsum;

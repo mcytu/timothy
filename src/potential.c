@@ -39,110 +39,64 @@
  * mode=0 - computations for two local cells
  * mode=1 - computations for one local and one remote cell
  */
-MIC_ATTR double ccpot(int p1, int p2, int mode,double *mindist,cellsinfo_t *cellsinfo,commdata_t commdata)
+double potential(celldata_t* c1,celldata_t* c2,celltype_t *celltype)
 {
         double pot;
         double dist=0.0;
         double size;
-        double x, y, z, h;
+        double x, y, z, h, h2, h3;
         double xc;
         double D;
         double poisson = 0.33;
         double young;
         int ctype;
+        int dimension=3;
 
+        dist = sqrt( (c1->x-c2->x)*(c1->x-c2->x) + (c1->y-c2->y)*(c1->y-c2->y) + (c1->z-c2->z)*(c1->z-c2->z));
+        h = celltype[c1->ctype].h;
+        h2 = celltype[c1->ctype].h2;
+        h3 = celltype[c1->ctype].h3;
+        csize = celltype[c2->ctype].size;
         csize=1.0;
 
-        if (mode == 0 && p1 == p2)
-                return 0.0;
-
-        if (mode == 0) {
-                x = cellsinfo->cells[p1].x;
-                y = cellsinfo->cells[p1].y;
-                z = cellsinfo->cells[p1].z;
-                size = cellsinfo->cells[p1].size;
-                young = cellsinfo->cells[p1].young;
-                ctype = cellsinfo->cells[p1].ctype;
-                h = cellsinfo->cells[p1].h;
-        }
-        if (mode == 1) {
-                x = commdata.recvcelldata[p1].x;
-                y = commdata.recvcelldata[p1].y;
-                z = commdata.recvcelldata[p1].z;
-                size = commdata.recvcelldata[p1].size;
-                young = commdata.recvcelldata[p1].young;
-                ctype = commdata.recvcelldata[p1].ctype;
-                h = commdata.recvcelldata[p1].h;
-        }
-
-        // this should be replaced by check (static cells or moving cells)
-        if(ctype==1 && cellsinfo->cells[p2].ctype==1) return 0.0;
-
-        /* compute the distance between two cells */
-        if (cellsinfo->dimension == 2)
-                dist =
-                        sqrt((x - cellsinfo->cells[p2].x) * (x - cellsinfo->cells[p2].x) +
-                             (y - cellsinfo->cells[p2].y) * (y - cellsinfo->cells[p2].y));
-        if (cellsinfo->dimension == 3)
-                dist =
-                        sqrt((x - cellsinfo->cells[p2].x) * (x - cellsinfo->cells[p2].x) +
-                             (y - cellsinfo->cells[p2].y) * (y - cellsinfo->cells[p2].y) +
-                             (z - cellsinfo->cells[p2].z) * (z - cellsinfo->cells[p2].z));
-
-        if (mindist[0] > dist ) {
-                mindist[0] = dist;
-        }
-
         if (dist <= h) {
-//  if (dist <= size + cells[p2].size) {
 
                 double r01, r02;
                 double area;
                 double sc=1.0;
 
-                if (cellsinfo->dimension == 2)
-                        sc = h*h;
-                if (cellsinfo->dimension == 3)
-                        sc = h*h*h;
+                if (dimension == 2)
+                        sc = h2;
+                if (dimension == 3)
+                        sc = h3;
 
-                if (mode == 0) {
-                        cellsinfo->cells[p1].density +=
-                                sc * (cellsinfo->cells[p2].size / csize) * sph_kernel(dist);
-                }
-                if (mode == 1) {
-      #pragma omp atomic
-                        cellsinfo->cells[p2].density += sc * (size / csize) * sph_kernel(dist);
-                }
-
-                xc = size + cellsinfo->cells[p2].size - dist;
-
+                c1->density+=sc * (c2->size / csize) * sph_kernel_new(dimension,dist,h,h2,h3);
+                xc = c1->size + c2->size - dist;
                 if (xc <= 0.0)
                         return 0.0;
-
-                D = 0.75 * ((1.0 - poisson * poisson) / young +
-                            (1.0 - poisson * poisson / cellsinfo->cells[p2].young));
+                D = 0.75 * ((1.0 - poisson * poisson) / c1->young +
+                            (1.0 - poisson * poisson / c2->young));
 
                 /* adhesion */
                 r01 =
-                        (size * size - cellsinfo->cells[p2].size * cellsinfo->cells[p2].size +
+                        (c1->size * c1->size - c2->size * c2->size +
                          dist * dist) / (2 * dist);
                 r02 = dist - r01;
 
                 area =
                         M_PI *
-                        ((size * size * (size - r01) -
-                          (size * size * size - r01 * r01 * r01) / 3) +
-                         (cellsinfo->cells[p2].size * cellsinfo->cells[p2].size * (cellsinfo->cells[p2].size - r02) -
-                          (cellsinfo->cells[p2].size * cellsinfo->cells[p2].size * cellsinfo->cells[p2].size -
+                        ((c1->size * c1->size * (c1->size - r01) -
+                          (c1->size * c1->size * c1->size - r01 * r01 * r01) / 3) +
+                         (c2->size * c2->size * (c2->size - r02) -
+                          (c2->size * c2->size * c2->size -
                            r02 * r02 * r02) / 3));
 
                 /* compute potential */
                 pot =
-                        (2.0 * pow(xc, 5 / 2) / (5.0 * D)) * sqrt((size * cellsinfo->cells[p2].size) /
-                                                                  (size +
-                                                                   cellsinfo->cells[p2].size)) +
+                        (2.0 * pow(xc, 5 / 2) / (5.0 * D)) * sqrt((c1->size * c2->size) /
+                                                                  (c1->size +
+                                                                   c2->size)) +
                         area * 0.1;
-
                 return pot;
 
         } else
@@ -150,11 +104,14 @@ MIC_ATTR double ccpot(int p1, int p2, int mode,double *mindist,cellsinfo_t *cell
 
 }
 
+
+
+
 /*!
  * This function implements tree walk algorithm for each local cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
+void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
 {
         if(cellsinfo->localcount.n<=1) return;
   #pragma omp parallel
@@ -177,7 +134,7 @@ void computepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
                         cellsinfo->cells[p].density = 0.0;
                         cellsinfo->cells[p].v = 0.0;
 
-                        octcomputebox(p,&minLocCode,&maxLocCode,*cellsinfo);
+                        octcomputebox(p,&minLocCode,&maxLocCode,*cellsinfo,celltype);
                         octIndex=octlocateregion(minLocCode,maxLocCode,*cellsinfo);
 
                         for(s=0; s<8; s++) {
@@ -192,7 +149,9 @@ void computepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
                                 idx=octheappop(&octh);
                                 cellIdx=cellsinfo->octree[idx].data;
                                 if(cellIdx>=0) {
-                                        cellsinfo->cells[p].v += ccpot(p,cellIdx,0,&mindist,cellsinfo,commdata);
+                                        if(cellIdx!=p) {
+                                                cellsinfo->cells[p].v = potential(&(cellsinfo->cells[p]),&(cellsinfo->cells[cellIdx]),celltype);
+                                        }
                                 } else {
                                         for(s=0; s<8; s++) {
                                                 newIdx=cellsinfo->octree[idx].child[s];
@@ -213,7 +172,7 @@ void computepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
  * This function implements tree walk algorithm for each remote cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computeremotepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
+void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
 {
         int rp;
         if(commdata.numimp<=0) return;
@@ -229,15 +188,22 @@ void computeremotepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
                         double v;
                         uint3dv_t minLocCode,maxLocCode;
                         octheap_t octh;
+                        celldata_t cell;
+                        cell.x=commdata.recvcelldata[rp].x;
+                        cell.y=commdata.recvcelldata[rp].y;
+                        cell.z=commdata.recvcelldata[rp].z;
+                        cell.size=commdata.recvcelldata[rp].size;
+                        cell.young=commdata.recvcelldata[rp].young;
+                        cell.ctype=commdata.recvcelldata[rp].ctype;
                         octheapinit(&octh);
-                        octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata);
+                        octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata,celltype);
                         octheappush(&octh,0);
                         while(octh.count>0) {
                                 int idx;
                                 idx=octheappop(&octh);
                                 cellIdx=cellsinfo->octree[idx].data;
                                 if(cellIdx>=0) {
-                                        v=ccpot(rp,cellIdx,1,&mindist,cellsinfo,commdata);
+                                        v=potential(&(cellsinfo->cells[cellIdx]),&(cell),celltype);
           #pragma omp atomic
                                         cellsinfo->cells[cellIdx].v += v;
                                 } else {
@@ -260,7 +226,7 @@ void computeremotepotential(cellsinfo_t *cellsinfo,commdata_t commdata)
  * mode=0 - computations for local cells
  * mode=1 - computations for remote cells
  */
-void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commdata)
+void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,celltype_t *celltype,commdata_t commdata)
 {
         double grad[3];
         /* we assume that cells' mass is always 1.0 */
@@ -310,21 +276,21 @@ void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commda
         grad[2] = 0.0;
 
         /* compute the gradient of SPH kernel function */
-        sph_kernel_gradient(p1, p2, grad, mode, dist, *cellsinfo, commdata);
+        sph_kernel_gradient(p1, p2, grad, mode, dist, *cellsinfo, celltype, commdata);
 
-        if (density == 0.0)
+        /*if (density == 0.0)
                 sc = 0.0;
-        else {
+           else {
                 m = size / csize;
                 sc = (m / density) * v;
-        }
-
+           }*/
+        sc = 1.0;
         /* update forces */
         if (mode == 0) {
                 cellsinfo->forces[p1].x += sc * grad[0];
                 cellsinfo->forces[p1].y += sc * grad[1];
                 cellsinfo->forces[p1].z += sc * grad[2];
-                //printf("%f %f %f %f %f %f %f %f\n",sc*grad[0],sc*grad[1],sc*grad[2],sc,density,size,csize,v);
+                //printf("%f,%f,%f,%f,%f,%f,%f\n",cellsinfo->forces[p1].x,cellsinfo->forces[p1].y,cellsinfo->forces[p1].z,sc,m,density,v);
 
         } else {
  #pragma omp atomic
@@ -333,6 +299,9 @@ void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commda
                 cellsinfo->forces[p2].y -= sc * grad[1];
  #pragma omp atomic
                 cellsinfo->forces[p2].z -= sc * grad[2];
+                //printf("%f,%f,%f\n",cellsinfo->forces[p2].x,cellsinfo->forces[p2].y,cellsinfo->forces[p2].z);
+
+
         }
 }
 
@@ -340,7 +309,7 @@ void ccpotgrad(int p1, int p2, int mode,cellsinfo_t *cellsinfo,commdata_t commda
  * This function implements tree walk algorithm for each local cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
+void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
 {
         int p;
         if(cellsinfo->localcount.n<=1) return;
@@ -360,7 +329,7 @@ void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
 
                 //if(cells[p].ctype==1) continue;
 
-                octcomputebox(p,&minLocCode,&maxLocCode,*cellsinfo);
+                octcomputebox(p,&minLocCode,&maxLocCode,*cellsinfo,celltype);
                 octIndex=octlocateregion(minLocCode,maxLocCode,*cellsinfo);
 
                 for(s=0; s<8; s++) {
@@ -374,7 +343,7 @@ void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
                         idx=octheappop(&octh);
                         cellIdx=cellsinfo->octree[idx].data;
                         if(cellIdx>=0) {
-                                ccpotgrad(p,cellIdx,0,cellsinfo,commdata);
+                                ccpotgrad(p,cellIdx,0,cellsinfo,celltype,commdata);
                         } else {
                                 for(s=0; s<8; s++) {
                                         newIdx=cellsinfo->octree[idx].child[s];
@@ -392,7 +361,7 @@ void computegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
  * This function implements tree walk algorithm for each remote cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computeremotegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
+void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
 {
         int rp;
         if(commdata.numimp<=0) return;
@@ -404,14 +373,14 @@ void computeremotegradient(cellsinfo_t *cellsinfo,commdata_t commdata)
                 uint3dv_t minLocCode,maxLocCode;
                 octheap_t octh;
                 octheapinit(&octh);
-                octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata);
+                octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata,celltype);
                 octheappush(&octh,0);
                 while(octh.count>0) {
                         int idx;
                         idx=octheappop(&octh);
                         cellIdx=cellsinfo->octree[idx].data;
                         if(cellIdx>=0) {
-                                ccpotgrad(rp,cellIdx,1,cellsinfo,commdata);
+                                ccpotgrad(rp,cellIdx,1,cellsinfo,celltype,commdata);
                         } else {
                                 for(s=0; s<8; s++) {
                                         newIdx=cellsinfo->octree[idx].child[s];

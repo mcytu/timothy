@@ -37,7 +37,7 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
+int computestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata)
 {
         int p;
         double dvel,sf;
@@ -62,7 +62,7 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         /* 1. Compute potential for local cells */
 
         /* compute potential for local cells */
-        computepotential(cellsinfo,*commdata);
+        computepotential(cellsinfo,celltype,*commdata);
 
         /* 2. Solve global fields */
 
@@ -76,7 +76,7 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         cellscommwait(system,*cellsinfo,commdata);
 
         /* 3. Compute potential for remote cells */
-        computeremotepotential(cellsinfo,*commdata);
+        computeremotepotential(cellsinfo,celltype,*commdata);
 
         /* 4. Add chemotactic term to potential */
 
@@ -86,7 +86,7 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         /* initiate transfer of the density and potential data from remote cells */
         dpcomminit(system,*cellsinfo,commdata);
         /* compute gradient of the potential for local cells */
-        computegradient(cellsinfo,*commdata);
+        computegradient(cellsinfo,celltype,*commdata);
 
         /* 6. Interpolate global fields and compute gradient */
 
@@ -100,7 +100,7 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
         dpcommwait(system,*cellsinfo,commdata);
 
         /* compute gradient of the potential for remote cells */
-        computeremotegradient(cellsinfo,*commdata);
+        computeremotegradient(cellsinfo,celltype,*commdata);
 
         /* 8. Correct forces for various cell types */
 /*        for(p=0; p<lnc; p++)
@@ -116,7 +116,7 @@ int computestep(system_t system, cellsinfo_t *cellsinfo, commdata_t *commdata)
                         sqrt(cellsinfo->forces[p].x * cellsinfo->forces[p].x +
                              cellsinfo->forces[p].y * cellsinfo->forces[p].y +
                              cellsinfo->forces[p].z * cellsinfo->forces[p].z);
-                printf("dvel=%f\n",dvel);
+                //printf("dvel=%f\n",dvel);
                 if (dvel < statistics.minvel)
                         statistics.minvel = dvel;
                 if (dvel > statistics.maxvel)

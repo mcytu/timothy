@@ -72,13 +72,11 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
 
         idx=cellsinfo->localcount.n-1;
 
-        csize=1;
         if (settings.dimension == 2)
-                D = csize*pow(8.0 * nrandom, 1.0 / 2.0);
+                D = celltype[ctype].size*pow(8.0 * nrandom, 1.0 / 2.0);
         if (settings.dimension == 3)
-                D = csize*pow(8.0 * nrandom, 1.0 / 3.0);
+                D = celltype[ctype].size*pow(8.0 * nrandom, 1.0 / 3.0);
 
-        h = 2.0 * csize;
         simTime = 0;
         for (i = 0; i < nrandom; i++) {
 
@@ -106,8 +104,7 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
 
                 cellsinfo->cells[cellsinfo->localcount.n].ctype=ctype;
                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
-                cellsinfo->cells[cellsinfo->localcount.n].size=1.0;
-                cellsinfo->cells[cellsinfo->localcount.n].h=2.0;
+                cellsinfo->cells[cellsinfo->localcount.n].size=celltype[ctype].size;
                 cellsinfo->localcount.n+=1;
                 cellsinfo->localcount.g0phase+=1;
                 cellsinfo->localtypecount[ctype].n+=1;
@@ -205,11 +202,11 @@ void cellsAllocate()
 
         //h=3.0*csize;
         //printf("h=%f\n",h);
-        h=1.0;
+        //h=1.0;
         simTime=0.0;
-        h2 = h * h;
-        h3 = h2 * h;
-        h4 = h3 * h;
+        //h2 = h * h;
+        //h3 = h2 * h;
+        //h4 = h3 * h;
 
 
 }
@@ -247,155 +244,6 @@ void cellsCycleInit()
            h3 = h2 * h;
            h4 = h3 * h;
          */
-}
-
-/*!
- * This function initializes cell data.
- * Locations of cells in space are generated randomly.
- */
-int cellsRandomInit()
-{
-
-        int i;
-
-        /* uniform distribution */
-        if (!strcmp(rng, "UNB")) {
-                double D=1.0;
-
-//    if (sdim == 2)
-//      csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 2.0);
-//    if (sdim == 3)
-///      csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 3.0);
-                if (sdim == 2)
-                        D = csize * pow(8.0 * nc, 1.0 / 2.0);
-                if (sdim == 3)
-                        D = csize * pow(8.0 * nc, 1.0 / 3.0);
-
-                h = 2.0 * csize;
-                simTime = 0;
-
-                for (i = 0; i < lnc; i++) {
-                        cells[i].x = D * (sprng(stream) * 2 - 1);
-                        cells[i].y = D * (sprng(stream) * 2 - 1);
-                        if (sdim == 3)
-                                cells[i].z = D * (sprng(stream) * 2 - 1);
-                        else
-                                cells[i].z = 0.0;
-
-                        cells[i].x += nx / 2;
-                        cells[i].y += nx / 2;
-                        if (sdim == 3)
-                                cells[i].z += nx / 2;
-                        else
-                                cells[i].z = 0.0;
-
-                        cells[i].size = pow(2.0, -(1.0 / 3.0)) * csize;
-                        cells[i].gid =
-                                (unsigned long long int) MPIrank *(unsigned long long int)
-                                maxCellsPerProc + (unsigned long long int) i;
-                        cells[i].v = 0.0;
-                        cells[i].density = 0.0;
-                        cells[i].h = h;
-                        cells[i].young = 2100.0 + sprng(stream) * 100.0;
-                        cells[i].halo = 0;
-                        cells[i].phase = 0;
-                        cells[i].g1 = g1 * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].g2 = g2 * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].s = s * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].m = m * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].phasetime = 0.0;
-                        cells[i].age = 0;
-                        cells[i].death = 0;
-                        cells[i].tumor = 0;
-                        cells[i].ctype = 0;
-                        cells[i].scstage = 0;
-                        localID++;
-                }
-                nscinst[0]+=lnc;
-        }
-        /* normal distribution (Box-Muller transform) */
-        if (!strcmp(rng, "BM")) {
-                double x1, x2, x3;
-                double z1, z2, z3;
-                double r1, r2;
-                double l;
-                double D=1.0;
-//    if (sdim == 2)
-//      csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 2.0);
-//    if (sdim == 3)
-//      csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 3.0);
-                if (sdim == 2)
-                        D = csize * pow(8.0 * nc, 1.0 / 2.0);
-                if (sdim == 3)
-                        D = csize * pow(8.0 * nc, 1.0 / 3.0);
-
-                h = 2.0 * csize;
-                simTime = 0;
-                for (i = lvc+lbnc; i < lnc; i++) {
-
-                        r2 = 1.1;
-
-                        while (r2 >= 1.0) {
-                                r1 = 1.1;
-                                while (r1 == 0 || r1 >= 1.0) {
-                                        x1 = sprng(stream) * 2 - 1;
-                                        x2 = sprng(stream) * 2 - 1;
-                                        x3 = sprng(stream) * 2 - 1;
-                                        r1 = x1 * x1 + x2 * x2 + x3 * x3;
-                                }
-                                l = sqrt(-2 * log(r1) / r1);
-                                z1 = x1 * l;
-                                z2 = x2 * l;
-                                z3 = x3 * l;
-
-                                r2 = z1 * z1 + z2 * z2 + z3 * z3;
-                        }
-
-                        if(bvsim) {
-                                cells[i].x=cells[middleCellIdx].x-0.8;
-                                cells[i].y=cells[middleCellIdx].y-0.8;
-                                cells[i].z=cells[middleCellIdx].z+0.01;
-                        } else {
-                                cells[i].x = z1 * D + nx / 2;
-                                cells[i].y = z2 * D + nx / 2;
-                                if (sdim == 3)
-                                        cells[i].z = z3 * D + nx / 2;
-                                else
-                                        cells[i].z = 0.0;
-                        }
-
-                        cells[i].size = pow(2.0, -(1.0 / 3.0)) * csize;
-                        cells[i].gid =
-                                (unsigned long long int) MPIrank *(unsigned long long int)
-                                maxCellsPerProc + (unsigned long long int) i;
-                        cells[i].v = 0.0;
-                        cells[i].density = 0.0;
-                        cells[i].h = h;
-                        cells[i].young = 2100.0 + sprng(stream) * 100.0;
-                        cells[i].halo = 0;
-                        cells[i].phase = 0;
-                        cells[i].g1 = g1 * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].g2 = g2 * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].s = s * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].m = m * (1 + (sprng(stream) * 2 - 1) * v);
-                        cells[i].phasetime = 0.0;
-                        cells[i].tumor = 0;
-                        cells[i].age = 0;
-                        cells[i].death = 0;
-                        cells[i].ctype = 0;
-                        cells[i].scstage = 0;
-                        localID++;
-                }
-        }
-
-        nscinst[0]+=lnc;
-
-        /* powers of h are calculated only once here */
-        h2 = h * h;
-        h3 = h2 * h;
-        h4 = h3 * h;
-
-        return 0;
 }
 
 /*!
@@ -508,7 +356,7 @@ void mitosis(int c)
         /* 1st daughter cell parameters */
         cells[lnc].v = 0.0;
         cells[lnc].density = cells[c].density;
-        cells[lnc].h = h;
+        cells[lnc].ctype = cells[c].ctype;
         cells[lnc].young = 2100.0 + sprng(stream) * 100.0;
         cells[lnc].halo = 0;
         cells[lnc].phase = 1;

@@ -45,6 +45,7 @@ all: timothy
 
 timothy: $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) -o $@
+	cp timothy ../bin
 
 clean:
 	rm -f $(OBJ); rm -f timothy
