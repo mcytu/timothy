@@ -130,6 +130,7 @@ typedef struct celldata_t {
   double size;           /* radius of the cell */
   double v;              /* particle potential */
   double density;        /* particle density */
+	double mindist;
   int ctype;
 } celldata_t;
 
@@ -489,22 +490,19 @@ int gfIter;
 int gfIterPerStep;
 
 /* statistics */
-struct statisticsData {
+typedef struct statistics_t {
   double minsize; /* Minimum size of cells */
   double maxsize; /* Maximum size of cells */
   double mindist; /* Minimum distance between neighbourhood cells */
-  double maxvel;  /* Maximum velocity in the system */
-  double minvel;  /* Minimum velocity in the system */
+  double maxspeed;  /* Maximum speed in the system */
+  double minspeed;  /* Minimum speed in the system */
   double maxdens; /* Maximum density */
   double mindens; /* Minimum density */
   double densdev; /* Density deviation */
   double densavg; /* Average density */
-};
+} statistics_t;
 
-struct statisticsData MIC_ATTR statistics;
-
-double globalMinVel;
-double globalMaxVel;
+statistics_t statistics;
 
 /* randomization */
 #define SEED 985456376

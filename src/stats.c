@@ -25,6 +25,8 @@
 #include <mpi.h>
 #include <math.h>
 #include <inttypes.h>
+#include <float.h>
+
 
 #include "global.h"
 
@@ -32,132 +34,64 @@
  *  \brief contains functions computing and printing simulation statisctical information
  */
 
-/*!
- * This function computes and prints out density statistics.
- */
-void statisticsDensity()
+void computestatistics(cellsinfo_t cellsinfo,statistics_t* statistics)
 {
-  int c;
-  double sum = 0.0, mean;
-  double globalMaxDens;
-  double globalMinDens;
+        int p;
+        statistics->mindist=DBL_MAX;
+        statistics->minspeed=DBL_MAX;
+        statistics->maxspeed=0.0;
+        statistics->minsize=DBL_MAX;
+        statistics->maxsize=0.0;
+        statistics->mindens=DBL_MAX;
+        statistics->maxdens=0.0;
+        for (p = 0; p < cellsinfo.localcount.n; p++) {
+                double speed;
+                if(cellsinfo.cells[p].size==0) printf("ZERO?? %d\n",p);
+                speed =  sqrt(cellsinfo.forces[p].x * cellsinfo.forces[p].x +
+                              cellsinfo.forces[p].y * cellsinfo.forces[p].y +
+                              cellsinfo.forces[p].z * cellsinfo.forces[p].z);
+                statistics->minspeed = (speed < statistics->minspeed ? speed : statistics->minspeed);
+                statistics->maxspeed = (speed > statistics->maxspeed ? speed : statistics->maxspeed);
+                statistics->minsize = (cellsinfo.cells[p].size < statistics->minsize ? cellsinfo.cells[p].size : statistics->minsize);
+                statistics->maxsize = (cellsinfo.cells[p].size > statistics->maxsize ? cellsinfo.cells[p].size : statistics->maxsize);
+                statistics->mindist = (cellsinfo.cells[p].mindist < statistics->mindist ? cellsinfo.cells[p].mindist : statistics->mindist);
+                statistics->mindens = (cellsinfo.cells[p].density < statistics->mindens ? cellsinfo.cells[p].density : statistics->mindens);
+                statistics->maxdens = (cellsinfo.cells[p].density > statistics->maxdens ? cellsinfo.cells[p].density : statistics->maxdens);
+        }
 
-  statistics.maxdens = 0;
-  statistics.mindens = 1024;
-
-  for (c = 0; c < lnc; c++) {
-    sum += cells[c].density;
-    statistics.maxdens =
-      (cells[c].density >
-       statistics.maxdens ? cells[c].density : statistics.maxdens);
-    statistics.mindens =
-      (cells[c].density <
-       statistics.mindens ? cells[c].density : statistics.mindens);
-  }
-
-  MPI_Allreduce(&sum, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(&statistics.maxdens, &globalMaxDens, 1, MPI_DOUBLE,
-                MPI_MAX, MPI_COMM_WORLD);
-  MPI_Allreduce(&statistics.mindens, &globalMinDens, 1, MPI_DOUBLE,
-                MPI_MIN, MPI_COMM_WORLD);
-  statistics.maxdens = globalMaxDens;
-  statistics.mindens = globalMinDens;
-
-  mean /= nc;
-  statistics.densavg = mean;
-  sum = 0.0;
-
-  for (c = 0; c < lnc; c++)
-    sum += (cells[c].density - mean) * (cells[c].density - mean);
-
-  MPI_Allreduce(&sum, &(statistics.densdev), 1, MPI_DOUBLE, MPI_SUM,
-                MPI_COMM_WORLD);
-
-  statistics.densdev /= nc;
-  statistics.densdev = sqrt(statistics.densdev);
-
-  if (MPIrank == 0)
-    printf("%12s%10.4lf%10.4lf%10.4lf%10.4lf\n", "Density    ",
-           globalMinDens, globalMaxDens, mean, statistics.densdev);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->minspeed), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->maxspeed), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->minsize), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->maxsize), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->mindist), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        return;
 }
 
-/*!
- * This function computes and prints out distance statistics.
- */
-void statisticsDistance()
+void printstatistics(system_t system,statistics_t statistics)
 {
-  double globalMinDist;
-
-  MPI_Allreduce(&statistics.mindist, &globalMinDist, 1, MPI_DOUBLE,
-                MPI_MIN, MPI_COMM_WORLD);
-
-  statistics.mindist = globalMinDist;
-
-  if (MPIrank == 0)
-    printf("%12s%10.4lf%10s%10s%10s\n", "Distance   ", globalMinDist, "-",
-           "-", "-");
-}
-
-/*!
- * This function computes and prints out velocity statistics.
- */
-void statisticsVelocity()
-{
-  MPI_Reduce(&statistics.minvel, &globalMinVel, 1, MPI_DOUBLE, MPI_MIN, 0,
-             MPI_COMM_WORLD);
-  MPI_Reduce(&statistics.maxvel, &globalMaxVel, 1, MPI_DOUBLE, MPI_MAX, 0,
-             MPI_COMM_WORLD);
-  if (MPIrank == 0)
-    printf("%12s%10.4lf%10.4lf%10s%10s\n", "Velocity   ", globalMinVel,
-           globalMaxVel, "-", "-");
-}
-
-/*!
- * This function computes and prints out cell size statistics.
- */
-void statisticsSize()
-{
-  double globalMaxSize, globalMinSize;
-
-  MPI_Reduce(&statistics.maxsize, &globalMaxSize, 1, MPI_DOUBLE, MPI_MAX,
-             0, MPI_COMM_WORLD);
-  MPI_Reduce(&statistics.minsize, &globalMinSize, 1, MPI_DOUBLE, MPI_MIN,
-             0, MPI_COMM_WORLD);
-
-  if (MPIrank == 0)
-    printf("%12s%10.4lf%10.4lf%10s%10s\n", "Size       ", globalMinSize,
-           globalMaxSize, "-", "-");
+        if(system.rank==0) {
+                printf("%12s%10s%10s\n", "", "Min", "Max");
+                printf("%12s%10.4lf%10.4lf\n", "Size       ",statistics.minsize,statistics.maxsize);
+                printf("%12s%10.4lf%10.4lf\n", "Density    ",statistics.mindens,statistics.maxdens);
+                printf("%12s%10.4lf%10.4lf\n", "Speed      ",statistics.minspeed,statistics.maxspeed);
+                printf("%12s%10.4lf%10s\n", "Distance   ", statistics.mindist, "N/A");
+        }
+        return;
 }
 
 /*!
  * This function computes and prints out phases statistics.
  */
-void statisticsPhases()
-{
-  if (MPIrank == 0) {
-    printf("%12s%12s%12s%12s%12s%12s\n", "Cell phase ", "G0", "G1", "S",
-           "G2", "M");
-    printf("%12s%12" PRId64 "%12" PRId64 "%12" PRId64 "%12" PRId64 "%12"
-           PRId64 "\n", "N. of cells", g0nc, g1nc, snc, g2nc, mnc);
-    printf("\n%16s%12" PRId64 "\n", "Healthy cells  ", nc - cnc - nnc);
-    printf("%16s%12" PRId64 "\n", "Cancer cells   ", cnc);
-    printf("%16s%12" PRId64 "\n", "Necrotic cells ", nnc);
-    if(scsim) printf("%16s%12" PRId64 "\n", "Blood cells ", globalbc);
-  }
-}
-
-/*!
- * This is a driving function for computing and printing out statistics.
- */
-void statisticsPrint()
-{
-  if (MPIrank == 0)
-    printf("%12s%10s%10s%10s%10s\n", "", "Min", "Max", "Avg", "Dev");
-  statisticsDensity();
-  statisticsDistance();
-  /*statisticsVelocity(); */
-  statisticsSize();
-  if (MPIrank == 0)
-    printf("\n");
-  statisticsPhases();
-}
+/*void statisticsPhases()
+   {
+        if (MPIrank == 0) {
+                printf("%12s%12s%12s%12s%12s%12s\n", "Cell phase ", "G0", "G1", "S",
+                       "G2", "M");
+                printf("%12s%12" PRId64 "%12" PRId64 "%12" PRId64 "%12" PRId64 "%12"
+                       PRId64 "\n", "N. of cells", g0nc, g1nc, snc, g2nc, mnc);
+                printf("\n%16s%12" PRId64 "\n", "Healthy cells  ", nc - cnc - nnc);
+                printf("%16s%12" PRId64 "\n", "Cancer cells   ", cnc);
+                printf("%16s%12" PRId64 "\n", "Necrotic cells ", nnc);
+                if(scsim) printf("%16s%12" PRId64 "\n", "Blood cells ", globalbc);
+        }
+   }*/

@@ -26,6 +26,7 @@ int main(int argc, char **argv)
         cellsinfo_t cellsinfo;
         grid_t grid;
         commdata_t commdata;
+        statistics_t statistics;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_size(MPI_COMM_WORLD, &system.size);
@@ -46,7 +47,8 @@ int main(int argc, char **argv)
         octbuild(&cellsinfo,celltype);
         createexportlist(system,settings,cellsinfo,celltype,&commdata);
         computestep(system,&cellsinfo,celltype,&commdata);
-
+        computestatistics(cellsinfo,&statistics);
+        printstatistics(system,statistics);
         MPI_Abort(MPI_COMM_WORLD,-1);
 
         commcleanup(system,cellsinfo,&commdata);
@@ -65,8 +67,8 @@ int main(int argc, char **argv)
                 //createExportList();
                 //computeStep();
 
-                if (!(step % statOutStep))
-                        statisticsPrint();
+                //if (!(step % statOutStep))
+                //statisticsPrint();
 
                 if (simStart)
                         simTime += secondsPerStep / 3600.0; /* biological process time in hours */
@@ -80,7 +82,7 @@ int main(int argc, char **argv)
 //        ioWriteFields(step);
                 }
 
-                updateCellPositions();
+                updateCellPositions(statistics);
                 updateCellStates();
                 //commCleanup();
                 octfree();

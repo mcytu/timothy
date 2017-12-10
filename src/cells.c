@@ -541,7 +541,7 @@ void updateChemotaxis()
 /*!
  * This function updates cells' positions.
  */
-void updateCellPositions()
+void updateCellPositions(statistics_t statistics)
 {
         int c;
 #ifdef DEBUG

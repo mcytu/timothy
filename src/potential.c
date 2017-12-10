@@ -46,6 +46,8 @@ double potential(int dimension,celldata_t* c1,celldata_t* c2,celltype_t celltype
         double young;
 
         dist = sqrt( (c1->x-c2->x)*(c1->x-c2->x) + (c1->y-c2->y)*(c1->y-c2->y) + (c1->z-c2->z)*(c1->z-c2->z));
+        c1->mindist=(dist<c1->mindist ? dist : c1->mindist);
+
         h = celltype.h;
         h2 = celltype.h2;
         h3 = celltype.h3;
@@ -101,6 +103,7 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t com
 
                         cellsinfo->cells[p].density = 0.0;
                         cellsinfo->cells[p].v = 0.0;
+                        cellsinfo->cells[p].mindist = DBL_MAX;
 
                         octcomputebox(p,&minLocCode,&maxLocCode,*cellsinfo,celltype);
                         octIndex=octlocateregion(minLocCode,maxLocCode,*cellsinfo);

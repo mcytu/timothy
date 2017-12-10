@@ -73,6 +73,7 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                                 if(ncoords>2)
                                                         cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
                                                 cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->cells[cellsinfo->localcount.n].size=celltype[i].size;
                                                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
                                                 cellsinfo->localcount.n+=1;
                                                 cellsinfo->localcount.g0phase+=1;
@@ -87,6 +88,7 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                                 if(ncoords>3)
                                                         cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
                                                 cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
+                                                cellsinfo->cells[cellsinfo->localcount.n].size=celltype[i].size;
                                                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
                                                 cellsinfo->localcount.n+=1;
                                                 cellsinfo->localcount.g0phase+=1;
