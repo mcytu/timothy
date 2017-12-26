@@ -35,7 +35,7 @@ SPRNGINC=-I/opt/sprng/2.0/include
 CFLAGS += -I. $(ZOLTANINC) $(SPRNGINC) $(HYPREINC)
 LDFLAGS += -lm $(ZOLTANLIB) $(SPRNGLIB) $(GMPLIB) $(HYPRELIB)
 
-OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o comm.o stats.o random.o init.o grid.o interp.o fields.o tempf.o chemf.o compute.o
+OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o comm.o statistics.o random.o init.o grid.o interp.o fields.o tempf.o chemf.o compute.o
 DEPS = global.h io.h inline.h fields.h potential.h octree.h
 
 all: timothy
@@ -45,10 +45,12 @@ all: timothy
 
 timothy: $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) -o $@
-	cp timothy ../bin
 
 clean:
 	rm -f $(OBJ); rm -f timothy
 
 doc:
 	doxygen Doxyfile
+
+install:
+	cp timothy ../bin

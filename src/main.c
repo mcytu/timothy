@@ -46,11 +46,8 @@ int main(int argc, char **argv)
         //writevtk(system,settings,cellsinfo);
         octbuild(&cellsinfo,celltype);
         createexportlist(system,settings,cellsinfo,celltype,&commdata);
-        computestep(system,&cellsinfo,celltype,&commdata);
-        computestatistics(cellsinfo,&statistics);
-        printstatistics(system,statistics);
-        MPI_Abort(MPI_COMM_WORLD,-1);
-
+        singlestep(system,&cellsinfo,celltype,&commdata);
+        statistics(system,cellsinfo,&statistics);
         commcleanup(system,cellsinfo,&commdata);
         writevtk(system,settings,cellsinfo);
         MPI_Abort(MPI_COMM_WORLD,-1);
