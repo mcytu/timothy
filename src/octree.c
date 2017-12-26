@@ -325,10 +325,10 @@ int octlocateregion(uint3dv_t minloccode,uint3dv_t maxloccode,cellsinfo_t cellsi
 /*!
  * This function deallocates memory used by octree.
  */
-void octfree(cellsinfo_t cellsinfo)
+void octfree(cellsinfo_t *cellsinfo)
 {
-        if(cellsinfo.localcount.n==0) return;
-        free(cellsinfo.octree);
+        if(cellsinfo->localcount.n==0) return;
+        free(cellsinfo->octree);
         return;
         //  free(locCode);
 }

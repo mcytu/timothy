@@ -41,16 +41,21 @@ int main(int argc, char **argv)
         allocatefields(system,settings,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
-        updateglobalcounts(&cellsinfo);
-        lbexchange();
-        octbuild(&cellsinfo,celltype);
-        createexportlist(system,settings,cellsinfo,celltype,&commdata);
-        singlestep(system,&cellsinfo,celltype,&commdata);
-        exchangecleanup(system,cellsinfo,&commdata);
-        printstatistics(system,settings,cellsinfo,&statistics);
-        cellsupdate(settings,&cellsinfo);
-        writevtk(system,settings,cellsinfo);
+        for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
+                updateglobalcounts(&cellsinfo);
+                lbexchange();
+                octbuild(&cellsinfo,celltype);
+                createexportlist(system,settings,cellsinfo,celltype,&commdata);
+                singlestep(system,&cellsinfo,celltype,&commdata);
+                exchangecleanup(system,cellsinfo,&commdata);
+                printstatistics(system,settings,cellsinfo,&statistics);
+                cellsupdate(settings,&cellsinfo);
+                writevtk(system,settings,cellsinfo);
+                octfree(&cellsinfo);
+        }
+
         MPI_Abort(MPI_COMM_WORLD,-1);
+
 
         for (step = 0; step < nsteps; step++) {
 
