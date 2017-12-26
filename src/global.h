@@ -438,7 +438,6 @@ double cellVolume;      /* cell volume */
 //double MIC_ATTR h4;              /* 4th power of h */
 
 int cancer;
-int64_t rsum;
 
 double densityCriticalLevel1;
 double densityCriticalLevel2;

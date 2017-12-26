@@ -42,12 +42,13 @@ int main(int argc, char **argv)
         lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
         updateglobalcounts(&cellsinfo);
-        lbexecute();
+        lbexchange();
         octbuild(&cellsinfo,celltype);
         createexportlist(system,settings,cellsinfo,celltype,&commdata);
         singlestep(system,&cellsinfo,celltype,&commdata);
-        printstatistics(system,settings,cellsinfo,&statistics);
         exchangecleanup(system,cellsinfo,&commdata);
+        printstatistics(system,settings,cellsinfo,&statistics);
+        cellsupdate(settings,&cellsinfo);
         writevtk(system,settings,cellsinfo);
         MPI_Abort(MPI_COMM_WORLD,-1);
 
@@ -78,8 +79,8 @@ int main(int argc, char **argv)
 //        ioWriteFields(step);
                 }
 
-                updateCellPositions(statistics);
-                updateCellStates();
+                //updateCellPositions(statistics);
+                //updateCellStates();
                 //commCleanup();
                 octfree();
 

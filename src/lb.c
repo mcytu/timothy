@@ -223,7 +223,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *ce
  * This function calls the Zoltan's domain decomposition and migration functions.
  * It is called at the beginning of each simulation step.
  */
-void lbexecute()
+void lbexchange()
 {
         int rc;
 

@@ -36,25 +36,23 @@
  *  \brief contains functions which control current states and evolution of cells
  */
 
-unsigned char *celld;
-
 /*!
  * This function checks whether the cell p is outside the computational box.
  */
-static inline int outsideTheBox(int p)
+static inline int outsidethebox(cellsinfo_t *cellsinfo,int c)
 {
         double x, y, z, r;
 
-        x = cells[p].x;
-        y = cells[p].y;
-        z = cells[p].z;
-        r = cells[p].size;
+        x = cellsinfo->cells[c].x;
+        y = cellsinfo->cells[c].y;
+        z = cellsinfo->cells[c].z;
+        r = cellsinfo->cells[c].size;
 
-        if (x - r < 0 || x + r > (double) nx)
+        if (x - r < -BOXSIZEX/2.0 || x + r > BOXSIZEX/2.0 )
                 return 1;
-        if (y - r < 0 || y + r > (double) ny)
+        if (y - r < -BOXSIZEY/2.0 || y + r > BOXSIZEY/2.0 )
                 return 1;
-        if (sdim == 3 && (z - r < 0 || z + r > (double) nz))
+        if ( cellsinfo->dimension == 3 && (z - r < -BOXSIZEZ/2.0 || z + r > BOXSIZEZ/2.0 ) )
                 return 1;
 
         return 0;
@@ -124,25 +122,14 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
 /*!
  * This function implements mitosis of cells.
  */
-void mitosis(int c)
+void mitosis(int c, unsigned char *removecell,int64_t *removecount)
 {
 
         double sc;
         double shift[3];
 
-        //return;
-
         if (lnc + 1 > maxCellsPerProc)
                 stopRun(109, NULL, __FILE__, __LINE__);
-
-        /* stem cells counters */
-        if(cells[c].scstage==nscstages-1) {
-                if(sprng(stream)>sctprob[cells[c].scstage]) {
-                        celld[c]=1;
-                        localbc+=1;
-                }
-                return;
-        }
 
         if(cells[c].scstage<nscstages-1) {
                 if(sprng(stream)>sctprob[cells[c].scstage]) {
@@ -346,7 +333,7 @@ void cellsCleanup()
 /*!
  * This function removes a dead cell from the simulation.
  */
-void cellsDeath(int lnc_old)
+void cellsDeath(int lnc_old,unsigned char *removecell,int64_t removecount)
 {
         int c, pos;
 
@@ -358,12 +345,12 @@ void cellsDeath(int lnc_old)
                         pos++;
                         continue;
                 }
-                if (c != pos && celld[c] == 0)
+                if (c != pos && removecell[c] == 0)
                         cells[pos] = cells[c];
-                if (celld[c] == 0)
+                if (removecell[c] == 0)
                         pos++;
                 /* update cell counters */
-                if (celld[c] == 1) {
+                if (removecell[c] == 1) {
                         switch (cells[c].phase) {
                         case 0:
                                 lg0nc--;
@@ -385,7 +372,7 @@ void cellsDeath(int lnc_old)
                                 lcnc--;
                 }
         }
-        lnc -= rsum;
+        lnc -= removecount;
 }
 
 /*!
@@ -416,7 +403,7 @@ void updateChemotaxis()
 /*!
  * This function updates cells' positions.
  */
-void updatepositions(settings_t settings,cellsinfo_t *cellsinfo)
+void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *removecell, int64_t *removecount)
 {
         int c;
         double alpha=0.00001;
@@ -432,10 +419,10 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo)
                 cellsinfo->cells[c].z += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
 
                 /* mark cells outside the box for removal */
-                if( (cellsinfo->cells[c].x<-(BOXSIZEX/2.0)) || (cellsinfo->cells[c].x>(BOXSIZEX/2.0)) ||
-                    (cellsinfo->cells[c].y<-(BOXSIZEY/2.0)) || (cellsinfo->cells[c].y>(BOXSIZEY/2.0)) ||
-                    (cellsinfo->cells[c].z<-(BOXSIZEZ/2.0)) || (cellsinfo->cells[c].z>(BOXSIZEZ/2.0))  )
-                        cellsd[c]=1; rsum++;
+                if( outsidethebox(cellsinfo,c) ) {
+                        removecell[c]=1;
+                        (*removecount)=(*removecount)+1;
+                }
         }
         return;
 }
@@ -443,7 +430,7 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo)
 /*!
  * This function updates cells' cycle phases.
  */
-int updateCellCycles()
+int updateCellCycles(cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *removecount)
 {
 
         int c;
@@ -459,13 +446,13 @@ int updateCellCycles()
 
                 if(cells[c].ctype==1) continue;
 
-                if (outsideTheBox(c)) {
-                        celld[c] = 1;
-                        rsum++;
+                if ( outsidethebox(cellsinfo,c) ) {
+                        removecell[c] = 1;
+                        (*removecount)=(*removecell)+1;
                         continue;
                 }
 
-                if (celld[c])
+                if (removecell[c])
                         continue;
 
                 if (simStart) {
@@ -533,8 +520,8 @@ int updateCellCycles()
                                         if (cells[c].tumor == 0) {
                                                 death = (sprng(stream) < rd ? 1 : 0);
                                                 if (death) {
-                                                        celld[c] = 1;
-                                                        rsum++;
+                                                        removecell[c] = 1;
+                                                        (*removecount)=(*removecount)+1;
                                                 }
                                         }
                                 }
@@ -574,8 +561,8 @@ int updateCellCycles()
                                         if (cells[c].tumor == 0) {
                                                 death = (sprng(stream) < rd ? 1 : 0);
                                                 if (death) {
-                                                        celld[c] = 1;
-                                                        rsum++;
+                                                        removecell[c] = 1;
+                                                        (*removecount)=(*removecount)+1;
                                                 }
                                         }
                                         break;
@@ -590,7 +577,7 @@ int updateCellCycles()
                                         lnnc++;
 
                                 } else if (cells[c].phasetime >= cells[c].m) {
-                                        mitosis(c);
+                                        mitosis(c,removecell,removecount);
                                         cells[c].phase = 1;
                                         cells[c].phasetime = 0;
                                         lmnc--;
@@ -627,20 +614,24 @@ void additionalScalarField()
 /*!
  * This function drives the whole cell cycle update.
  */
-void updateCellStates()
+void cellsupdate(settings_t settings,cellsinfo_t *cellsinfo)
 {
         int lnc_old;
+        unsigned char *removecell;
+        int64_t removecount;
         /* number of local cells might change during the update */
         lnc_old = lnc;
-        celld = (unsigned char *) calloc(lnc_old, sizeof(unsigned char));
-        rsum = 0;
+        removecell = (unsigned char *) calloc(lnc_old, sizeof(unsigned char));
+        removecount = 0;
 
+        updatepositions(settings,cellsinfo,removecell,&removecount);
+/*
         updateCellCycles();
         if (nhs > 0 && nc > nhs && tgs == 1 && cancer == 0)
                 markMiddleCancerCell();
         if (nhs > 0 && nc > nhs)
                 cellsDeath(lnc_old);
         updateCellCounters();
-        additionalScalarField();
-        free(celld);
+        additionalScalarField();*/
+        free(removecell);
 }
