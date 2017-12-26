@@ -118,132 +118,7 @@ void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,c
                 }
 
         }
-
-/*      cells[i].size = pow(2.0, -(1.0 / 3.0)) * csize;
-      cells[i].gid =
-        (unsigned long long int) MPIrank *(unsigned long long int)
-        maxCellsPerProc + (unsigned long long int) i;
-      cells[i].v = 0.0;
-      cells[i].density = 0.0;
-      cells[i].h = h;
-      cells[i].young = 2100.0 + sprng(stream) * 100.0;
-      cells[i].halo = 0;
-      cells[i].phase = 0;
-      cells[i].g1 = g1 * (1 + (sprng(stream) * 2 - 1) * v);
-      cells[i].g2 = g2 * (1 + (sprng(stream) * 2 - 1) * v);
-      cells[i].s = s * (1 + (sprng(stream) * 2 - 1) * v);
-      cells[i].m = m * (1 + (sprng(stream) * 2 - 1) * v);
-      cells[i].phasetime = 0.0;
-      cells[i].tumor = 0;
-      cells[i].age = 0;
-      cells[i].death = 0;
-      cells[i].ctype = 0;
-      cells[i].scstage = 0;
-      localID++;*/
-
-}
-
-
-
-/*!
- * This function allocates tables responsible for carrying
- * informations about cells, their current state and evolution.
- */
-void cellsAllocate()
-{
-
-        int f;
-        int64_t cellsActualSize;
-
-        if (sdim == 2)
-                csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 2.0);
-        if (sdim == 3)
-                csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 3.0);
-
-        maxCellsPerProc = 1.5 * maxCells / MPIsize;
-
-        cellsActualSize = maxCellsPerProc * sizeof(struct cellData);
-
-        localID = 0;
-
-#ifdef __MIC__
-        if (!(cells = (struct cellData *) _mm_malloc(cellsActualSize,64)))
-                stopRun(106, "cells", __FILE__, __LINE__);
-#else
-        if (!(cells = (struct cellData *) malloc(cellsActualSize)))
-                stopRun(106, "cells", __FILE__, __LINE__);
-#endif
-
-#ifdef __MIC__
-        if (!(velocity = (struct double3dv_t *) _mm_malloc(maxCellsPerProc *
-                                                           sizeof(struct double3dv_t),64)))
-                stopRun(106, "velocity", __FILE__, __LINE__);
-#else
-        if (!(velocity = (struct double3dv_t *) malloc(maxCellsPerProc *
-                                                       sizeof(struct double3dv_t))))
-                stopRun(106, "velocity", __FILE__, __LINE__);
-#endif
-
-        cellFields = (double **) malloc((NFIELDS+NCHEM*3) * sizeof(double *));
-        for (f = 0; f < NFIELDS+NCHEM*3; f++)
-                if (!
-                    (cellFields[f] =
-                             (double *) malloc(maxCellsPerProc * sizeof(double))))
-                        stopRun(106, "cellFields", __FILE__, __LINE__);
-
-        if (!(tlnc = (int64_t *) calloc(MPIsize, sizeof(int64_t))))
-                stopRun(106, "tlnc", __FILE__, __LINE__);
-
-        /* cell size */
-        if (sdim == 2)
-                csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 2.0);
-        if (sdim == 3)
-                csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 3.0);
-
-        //h=3.0*csize;
-        //printf("h=%f\n",h);
-        //h=1.0;
-        simTime=0.0;
-        //h2 = h * h;
-        //h3 = h2 * h;
-        //h4 = h3 * h;
-
-
-}
-
-/*!
- * This function initializes counters of cells in various cell phases.
- */
-void cellsCycleInit()
-{
-        /* global numbers of cells */
-        g0nc = nc;
-        g1nc = 0;
-        snc = 0;
-        g2nc = 0;
-        mnc = 0;
-        cnc = 0;
-        /* local numbers of cells */
-        lg0nc = lnc;
-        lg1nc = 0;
-        lsnc = 0;
-        lg2nc = 0;
-        lmnc = 0;
-        lcnc = 0;
-        lnnc = 0;
-        /* number of cancer cells */
-        cancer = 0;
-        /* cell size */
-        /*  if (sdim == 2)
-            csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 2.0);
-           if (sdim == 3)
-            csize = (nx / 2) / pow(8.0 * maxCells, 1.0 / 3.0);
-           h=3.0*csize;
-           simTime=0.0;
-           h2 = h * h;
-           h3 = h2 * h;
-           h4 = h3 * h;
-         */
+        return;
 }
 
 /*!
@@ -541,41 +416,28 @@ void updateChemotaxis()
 /*!
  * This function updates cells' positions.
  */
-void updateCellPositions(statistics_t statistics)
+void updatepositions(settings_t settings,cellsinfo_t *cellsinfo)
 {
         int c;
-#ifdef DEBUG
-        if (MPIrank == 0 && !(step % statOutStep)) {
-                printf(" Cells movement...");
-                fflush(stdout);
-        }
-#endif
-        if ((statistics.mindist >= 0.95 * 2.0 * pow(2.0, -(1.0 / 3.0)) * csize
-             && simStart == 0) || (nc == 1 && simStart == 0)) {
-                simStart = 1;
-                if (MPIrank == 0)
-                        printf("\nSimulation started.\n");
-        }
+        double alpha=0.00001;
 
         /* move cells */
-        for (c = 0; c < lnc; c++) {
-                if(cells[c].ctype==1) continue;
-                cells[c].x += velocity[c].x;
-                cells[c].y += velocity[c].y;
-                cells[c].z += velocity[c].z;
+        for (c = 0; c < cellsinfo->localcount.n; c++) {
+                cellsinfo->cells[c].x += cellsinfo->forces[c].x;
+                cellsinfo->cells[c].y += cellsinfo->forces[c].y;
+                cellsinfo->cells[c].z += cellsinfo->forces[c].z;
                 /* random movement */
-                double alpha=0.000001;
-                cells[c].x += alpha*(2*sprng(stream)-1);
-                cells[c].y += alpha*(2*sprng(stream)-1);
-                cells[c].z += alpha*(2*sprng(stream)-1);
+                cellsinfo->cells[c].x += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].y += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].z += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
 
-                // Mark cells that are out of the box and need to be removed
-                //if(outside_the_box(c)) { celld[c]=1; rsum++; }
+                /* mark cells outside the box for removal */
+                if( (cellsinfo->cells[c].x<-(BOXSIZEX/2.0)) || (cellsinfo->cells[c].x>(BOXSIZEX/2.0)) ||
+                    (cellsinfo->cells[c].y<-(BOXSIZEY/2.0)) || (cellsinfo->cells[c].y>(BOXSIZEY/2.0)) ||
+                    (cellsinfo->cells[c].z<-(BOXSIZEZ/2.0)) || (cellsinfo->cells[c].z>(BOXSIZEZ/2.0))  )
+                        cellsd[c]=1; rsum++;
         }
-#ifdef DEBUG
-        if (MPIrank == 0 && !(step % statOutStep))
-                printf("done\n");
-#endif
+        return;
 }
 
 /*!

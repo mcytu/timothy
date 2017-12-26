@@ -24,19 +24,29 @@
 
 all:
 	@ if command -v gmake >/dev/null 2>&1; then \
-	echo "Using gmake to build Timothy"; \
+	echo "using gmake to build timothy"; \
 	cd src/; gmake; \
         else \
-        echo "Using make to build Timothy"; \
+        echo "using make to build timothy"; \
         cd src/; make; \
         fi
+
+install:
+	@ if command -v gmake >/dev/null 2>&1; then \
+	echo "installing timothy"; \
+	cd src/; gmake install; \
+	else \
+	echo "installing timothy"; \
+	cd src/; make install; \
+	fi
+
 clean:
 	@ if command -v gmake >/dev/null 2>&1; then \
-        echo "Using gmake to clean Timothy"; \
+        echo "using gmake to clean timothy"; \
         cd src/; gmake clean; \
 	cd ../doc; rm -fr html/ latex/; \
         else \
-        echo "Using make to clean Timothy"; \
+        echo "using make to clean timothy"; \
         cd src/; make clean; \
 	cd ../doc; rm -fr html/ latex/; \
         fi

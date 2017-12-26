@@ -43,12 +43,11 @@ int main(int argc, char **argv)
 
         updateglobalcounts(&cellsinfo);
         lbexecute();
-        //writevtk(system,settings,cellsinfo);
         octbuild(&cellsinfo,celltype);
         createexportlist(system,settings,cellsinfo,celltype,&commdata);
         singlestep(system,&cellsinfo,celltype,&commdata);
-        statistics(system,cellsinfo,&statistics);
-        commcleanup(system,cellsinfo,&commdata);
+        printstatistics(system,settings,cellsinfo,&statistics);
+        exchangecleanup(system,cellsinfo,&commdata);
         writevtk(system,settings,cellsinfo);
         MPI_Abort(MPI_COMM_WORLD,-1);
 

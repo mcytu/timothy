@@ -34,7 +34,7 @@
  *  \brief contains functions computing and printing simulation statisctical information
  */
 
-void statistics(system_t system,cellsinfo_t cellsinfo,statistics_t* statistics)
+void printstatistics(system_t system,settings_t settings,cellsinfo_t cellsinfo,statistics_t* statistics)
 {
         int p;
         statistics->mindist=DBL_MAX;
@@ -66,11 +66,12 @@ void statistics(system_t system,cellsinfo_t cellsinfo,statistics_t* statistics)
         MPI_Allreduce(MPI_IN_PLACE,&(statistics->mindist), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
         if(system.rank==0) {
-                printf("%12s%10s%10s\n", "", "Min", "Max");
-                printf("%12s%10.4lf%10.4lf\n", "Size       ",statistics->minsize,statistics->maxsize);
-                printf("%12s%10.4lf%10.4lf\n", "Density    ",statistics->mindens,statistics->maxdens);
-                printf("%12s%10.4lf%10.4lf\n", "Speed      ",statistics->minspeed,statistics->maxspeed);
-                printf("%12s%10.4lf%10s\n", "Distance   ", statistics->mindist, "N/A");
+                printf("\n+++ simulation step %12d\n",settings.step);
+                printf("%12s%10s%10s\n", "", "min", "max");
+                printf("%12s%10.4lf%10.4lf\n", "size       ",statistics->minsize,statistics->maxsize);
+                printf("%12s%10.4lf%10.4lf\n", "density    ",statistics->mindens,statistics->maxdens);
+                printf("%12s%10.4lf%10.4lf\n", "speed      ",statistics->minspeed,statistics->maxspeed);
+                printf("%12s%10.4lf%10s\n", "distance   ", statistics->mindist, "N/A");
         }
 
         return;

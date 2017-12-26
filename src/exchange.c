@@ -153,7 +153,7 @@ void createexportlist(system_t system,settings_t settings,cellsinfo_t cellsinfo,
  * This function deallocates all communication buffers and
  * auxiliary tables.
  */
-void commcleanup(system_t system,cellsinfo_t cellsinfo,commdata_t *commdata)
+void exchangecleanup(system_t system,cellsinfo_t cellsinfo,commdata_t *commdata)
 {
         if (cellsinfo.globalcount.n < system.size*MIN_CELLS_PER_PROC || system.size == 1)
                 return;
@@ -170,7 +170,7 @@ void commcleanup(system_t system,cellsinfo_t cellsinfo,commdata_t *commdata)
 /*!
  * This function initiate sending and receiving cells' data between processes.
  */
-void cellscomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
+void cellssendrecv(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 {
         int i;
 
@@ -222,7 +222,7 @@ void cellscomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 /*!
  * This function waits for cells' data exchange completion.
  */
-void cellscommwait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
+void cellswait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 {
         int i;
         MPI_Status status;
@@ -256,7 +256,7 @@ void cellscommwait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
  * This function initiate sending and receiving density
  * and potential values between processes.
  */
-void dpcomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
+void datasendrecv(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 {
         int i;
 
@@ -302,7 +302,7 @@ void dpcomminit(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 /*!
  * This function waits for density and potential data exchange completion.
  */
-void dpcommwait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
+void datawait(system_t system, cellsinfo_t cellsinfo, commdata_t *commdata)
 {
         int i;
         MPI_Status status;
