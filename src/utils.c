@@ -26,6 +26,10 @@
 #include <inttypes.h>
 #include <mpi.h>
 #include <unistd.h>
+#include <math.h>
+#include <inttypes.h>
+#include <float.h>
+#include <time.h>
 
 #if defined(__bg__) && defined(__bgq__)
 #include <spi/include/kernel/process.h>
@@ -56,9 +60,6 @@ uint64_t sphase;
 uint64_t g2phase;
 uint64_t mphase;
 uint64_t necroticphase;
-
-int checkEndiannes() {
-}
 
 /*!
  * This function swaps endiannes within a table of n elements
@@ -258,4 +259,53 @@ void getLocalRankAndSize(int rank, int size, int32_t * lrank,
 #endif
         *lrank = r;
         *lsize = s;
+}
+
+void randomstreaminit(system_t *system,settings_t *settings)
+{
+        settings->rseed=time(NULL) + system->rank;
+        return;
+}
+
+void printstatistics(system_t system,settings_t settings,cellsinfo_t cellsinfo,statistics_t* statistics)
+{
+        int p;
+        statistics->mindist=DBL_MAX;
+        statistics->minspeed=DBL_MAX;
+        statistics->maxspeed=0.0;
+        statistics->minsize=DBL_MAX;
+        statistics->maxsize=0.0;
+        statistics->mindens=DBL_MAX;
+        statistics->maxdens=0.0;
+        for (p = 0; p < cellsinfo.localcount.n; p++) {
+                double speed;
+                if(cellsinfo.cells[p].size==0) printf("ZERO?? %d\n",p);
+                speed =  sqrt(cellsinfo.forces[p].x * cellsinfo.forces[p].x +
+                              cellsinfo.forces[p].y * cellsinfo.forces[p].y +
+                              cellsinfo.forces[p].z * cellsinfo.forces[p].z);
+                statistics->minspeed = (speed < statistics->minspeed ? speed : statistics->minspeed);
+                statistics->maxspeed = (speed > statistics->maxspeed ? speed : statistics->maxspeed);
+                statistics->minsize = (cellsinfo.cells[p].size < statistics->minsize ? cellsinfo.cells[p].size : statistics->minsize);
+                statistics->maxsize = (cellsinfo.cells[p].size > statistics->maxsize ? cellsinfo.cells[p].size : statistics->maxsize);
+                statistics->mindist = (cellsinfo.cells[p].mindist < statistics->mindist ? cellsinfo.cells[p].mindist : statistics->mindist);
+                statistics->mindens = (cellsinfo.cells[p].density < statistics->mindens ? cellsinfo.cells[p].density : statistics->mindens);
+                statistics->maxdens = (cellsinfo.cells[p].density > statistics->maxdens ? cellsinfo.cells[p].density : statistics->maxdens);
+        }
+
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->minspeed), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->maxspeed), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->minsize), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->maxsize), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&(statistics->mindist), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+        if(system.rank==0) {
+                printf("\n+++ simulation step %12d\n",settings.step);
+                printf("%12s%10s%10s\n", "", "min", "max");
+                printf("%12s%10.4lf%10.4lf\n", "size       ",statistics->minsize,statistics->maxsize);
+                printf("%12s%10.4lf%10.4lf\n", "density    ",statistics->mindens,statistics->maxdens);
+                printf("%12s%10.4lf%10.4lf\n", "speed      ",statistics->minspeed,statistics->maxspeed);
+                printf("%12s%10.4lf%10s\n", "distance   ", statistics->mindist, "N/A");
+        }
+
+        return;
 }

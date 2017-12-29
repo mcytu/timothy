@@ -24,6 +24,12 @@
  *  \brief contains defines and declarations for I/O functions
  */
 
+void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo);
+void readenvfile(system_t system,settings_t* settings,environment_t* environment);
+void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype);
+void readparamfile(int argc, char **argv, system_t system, settings_t* settings);
+
+
 //#define NPAR 34
 //#define NPAR 70
 #define REAL 1
@@ -75,7 +81,7 @@ double rstH;
 double rstCsize;
 
 
-int one=1;
+//int one=1;
 
 //char params[NPAR][64];
 //char desc[NPAR][512];

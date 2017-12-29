@@ -32,10 +32,10 @@
  */
 
 
-void allocatefields(system_t system,settings_t settings,grid_t grid,environment_t *environment) {
+void allocatefields(system_t system,settings_t settings,grid_t grid,environment_t **environment) {
         int i;
         for(i=0; i<settings.numberoffields; i++)
-                if(!(environment[i].data=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
+                if(!(environment[i]->data=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
                         terminate(system,"cannot allocate environment->data", __FILE__, __LINE__);
         return;
 }

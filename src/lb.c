@@ -261,7 +261,7 @@ void lbexchange()
  * This function deactivates the Zoltan library.
  * It is called at the end of the simulation.
  */
-void lbfinalize()
+void lbdestroy()
 {
         Zoltan_Destroy(&ztn);
 }

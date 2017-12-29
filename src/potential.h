@@ -20,7 +20,7 @@
  *
  * *************************************************************************/
 
-MIC_ATTR void compPot();
-MIC_ATTR void compRPot();
-MIC_ATTR void compPotGrad();
-
+void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
+void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
+void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
+void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);

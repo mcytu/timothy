@@ -20,11 +20,13 @@
  *
  * *************************************************************************/
 
-MIC_ATTR void octheapinit(octheap_t *ttheap);
-MIC_ATTR void octcomputebox(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,cellsinfo_t cellsinfo,celltype_t* celltype);
-MIC_ATTR int octlocateregion(uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
-MIC_ATTR void octheappush(octheap_t *ttheap,int idx);
-MIC_ATTR int octheappop(octheap_t *ttheap);
-MIC_ATTR void octheapfree(octheap_t *ttheap);
-MIC_ATTR static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
-MIC_ATTR void octcomputeboxr(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,commdata_t commdata,celltype_t* celltype);
+void octbuild(system_t system,cellsinfo_t *cellsinfo,celltype_t* celltype);
+void octfree(cellsinfo_t *cellsinfo);
+void octheapinit(octheap_t *ttheap);
+void octcomputebox(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,cellsinfo_t cellsinfo,celltype_t* celltype);
+int octlocateregion(uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
+void octheappush(octheap_t *ttheap,int idx);
+int octheappop(octheap_t *ttheap);
+void octheapfree(octheap_t *ttheap);
+static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
+void octcomputeboxr(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,commdata_t commdata,celltype_t* celltype);

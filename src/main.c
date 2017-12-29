@@ -7,6 +7,13 @@
 #include <omp.h>
 
 #include "global.h"
+#include "initialisation.h"
+#include "lb.h"
+#include "grid.h"
+#include "fields.h"
+#include "utils.h"
+#include "octree.h"
+#include "exchange.h"
 
 /*! \file main.c
  *  \brief contains the main simulation loop
@@ -38,13 +45,13 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&system,&settings,&celltype,&environment);
         allocatecells(system,settings,celltype,&cellsinfo);
         allocategrid(system,settings,&grid);
-        allocatefields(system,settings,&environment);
+        allocatefields(system,settings,grid,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
                 updateglobalcounts(&cellsinfo);
                 lbexchange();
-                octbuild(&cellsinfo,celltype);
+                octbuild(system,&cellsinfo,celltype);
                 createexportlist(system,settings,cellsinfo,celltype,&commdata);
                 singlestep(system,&cellsinfo,celltype,&commdata);
                 exchangecleanup(system,cellsinfo,&commdata);
@@ -75,19 +82,19 @@ int main(int argc, char **argv)
                 if (simStart)
                         simTime += secondsPerStep / 3600.0; /* biological process time in hours */
 
-                if (!(step % vtkOutStep)) {
-                        if (vtkout)
-                                ioWriteStepVTK(step);
-                        if (povout)
-                                ioWriteStepPovRay(step, 0);
-//      if (vnfout)
-//        ioWriteFields(step);
-                }
+                /*      if (!(step % vtkOutStep)) {
+                              if (vtkout)
+                                      ioWriteStepVTK(step);
+                              if (povout)
+                                      ioWriteStepPovRay(step, 0);
+                   //      if (vnfout)
+                   //        ioWriteFields(step);
+                      }*/
 
                 //updateCellPositions(statistics);
                 //updateCellStates();
                 //commCleanup();
-                octfree();
+                //octfree();
 
                 //if (!(step % rstOutStep))
                 //        saveRstFile();
@@ -96,8 +103,8 @@ int main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 
         //decompositionFinalize();
-        randomstreamfree(&settings);
         cellsCleanup();
+        lbdestroy();
 
         if (MPIrank == 0)
                 printf("\nEnd of simulation run.\n");

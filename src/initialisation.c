@@ -27,17 +27,20 @@
 #include <sys/types.h>
 #include "global.h"
 #include "inline.h"
+#include "initialisation.h"
+#include "utils.h"
+#include "io.h"
 
 /*! \file init.c
  *  \brief contains initialization functions
  */
 
 void getsysteminfo(system_t* system) {
-        checkEndiannes();
+        checkendiannes(system);
         getLocalRankAndSize(system->rank, system->size, &(system->noderank), &(system->nodesize));
         system->memperproc = getMemoryPerProcess(system->nodesize);
         if (!POWER_OF_TWO(system->size))
-                terminate(system,"number of processes must be power of two", __FILE__, __LINE__);
+                terminate(*system,"number of processes must be power of two", __FILE__, __LINE__);
         return;
 }
 
@@ -114,17 +117,16 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                 MPI_Abort(MPI_COMM_WORLD,-1);
         }
         initialsettings(settings);
-        checkendiannes(system);
         readparamfile(argc,argv,*system,settings);
         settings->step=0;
 
         if (settings->numberofcelltypes<1)
-                terminate(system,"no cell types specified", __FILE__, __LINE__);
+                terminate(*system,"no cell types specified", __FILE__, __LINE__);
 
         if(!(*celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t))))
-                terminate(system,"cannot allocate celltype", __FILE__, __LINE__);
+                terminate(*system,"cannot allocate celltype", __FILE__, __LINE__);
         if(!(*environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t))))
-                terminate(system,"cannot allocate environment", __FILE__, __LINE__);
+                terminate(*system,"cannot allocate environment", __FILE__, __LINE__);
 
         for(i=0; i<settings->numberofcelltypes; i++) {
                 int size=settings->numberoffields*sizeof(float);
@@ -150,10 +152,10 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                         &MPI_CART_COMM);
 
         if(!(system->coords = (int **) malloc(system->size * sizeof(int *))))
-                terminate(system,"cannot allocate system->coords", __FILE__, __LINE__);
+                terminate(*system,"cannot allocate system->coords", __FILE__, __LINE__);
         for (i = 0; i < system->size; i++) {
                 if(!(system->coords[i] = (int *) malloc(3 * sizeof(int))))
-                        terminate(system,"cannot allocate system->coords[i]", __FILE__, __LINE__);
+                        terminate(*system,"cannot allocate system->coords[i]", __FILE__, __LINE__);
                 MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
         }
 

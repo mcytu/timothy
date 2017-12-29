@@ -24,7 +24,9 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
+
 #include "global.h"
+#include "utils.h"
 
 /*! \file octree.c
  *  \brief contains functions that build octree and functions
@@ -34,7 +36,7 @@
 /*!
  * This function creates an empty octree node in a given position.
  */
-void octemptynode(int64_t father,int level,unsigned int xbit,unsigned int ybit,unsigned int zbit,cellsinfo_t *cellsinfo)
+void octemptynode(int64_t father,int level,unsigned int xbit,unsigned int ybit,unsigned int zbit,system_t system, cellsinfo_t *cellsinfo)
 {
         int i;
         unsigned int bit;
@@ -78,7 +80,7 @@ void octemptynode(int64_t father,int level,unsigned int xbit,unsigned int ybit,u
 /*!
  * This function inserts a given cell c into a proper position in octree.
  */
-void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
+void octinsertcell(int64_t c,uint3dv_t *loccode,system_t system, cellsinfo_t *cellsinfo)
 {
         int64_t octIdx=0;
         int64_t father,child;
@@ -108,7 +110,7 @@ void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
                                 if(child==-1) {
                                         octree[octIdx].child[childIndex]=cellsinfo->octsize;
                                         child=cellsinfo->octsize;
-                                        octemptynode(father,level,xbit,ybit,zbit,cellsinfo);
+                                        octemptynode(father,level,xbit,ybit,zbit,system,cellsinfo);
                                 }
                                 octIdx=child;
                         } else { /* occupied leaf */
@@ -125,7 +127,7 @@ void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
                                 father=octIdx;
                                 octree[octIdx].child[childIndex]=cellsinfo->octsize;
                                 child=cellsinfo->octsize;
-                                octemptynode(father,level,xbit,ybit,zbit,cellsinfo);
+                                octemptynode(father,level,xbit,ybit,zbit,system,cellsinfo);
                                 octree[child].data=octree[father].data;
                                 octree[father].data=-2;
                                 octIdx=father;
@@ -139,7 +141,7 @@ void octinsertcell(int64_t c,uint3dv_t *loccode,cellsinfo_t *cellsinfo)
 /*!
  * This is a driving function for creating an octree.
  */
-void octbuild(cellsinfo_t *cellsinfo,celltype_t* celltype)
+void octbuild(system_t system, cellsinfo_t *cellsinfo,celltype_t* celltype)
 {
         int i,c;
         double3dv_t bMin,bMax;
@@ -192,10 +194,10 @@ void octbuild(cellsinfo_t *cellsinfo,celltype_t* celltype)
                 terminate(system,"cannot allocate cellsinfo->octree", __FILE__, __LINE__);
         root=0;
         cellsinfo->octsize=0;
-        octemptynode(-1,ROOT_LEVEL,0,0,0,cellsinfo);
+        octemptynode(-1,ROOT_LEVEL,0,0,0,system,cellsinfo);
 
         for(c=0; c<cellsinfo->localcount.n; c++) {
-                octinsertcell(c,loccode,cellsinfo);
+                octinsertcell(c,loccode,system,cellsinfo);
         }
 
         /* a security check for space available in the octree buffer should be implemented */
@@ -275,7 +277,7 @@ void octcomputebox(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,cellsin
 /*!
  * This function traverses the tree to a given level and returns node index.
  */
-MIC_ATTR int octtraversetolevel(unsigned int level,unsigned int xloc,unsigned int yloc,unsigned int zloc,unsigned int lmin,cellsinfo_t cellsinfo)
+int octtraversetolevel(unsigned int level,unsigned int xloc,unsigned int yloc,unsigned int zloc,unsigned int lmin,cellsinfo_t cellsinfo)
 {
         int cellidx=0;
         int parent=0;
@@ -336,7 +338,7 @@ void octfree(cellsinfo_t *cellsinfo)
 /*!
  * This function initializes heap for tree traversal.
  */
-void octheapinit(octheap_t *ttheap)
+void octheapinit(system_t system,octheap_t *ttheap)
 {
         ttheap->size=64;
         ttheap->count=0;
@@ -348,7 +350,7 @@ void octheapinit(octheap_t *ttheap)
 /*!
  * This function adds an element to the heap.
  */
-void octheappush(octheap_t *ttheap,int idx)
+void octheappush(system_t system, octheap_t *ttheap,int idx)
 {
         if(ttheap->count==ttheap->size) {
                 ttheap->size+=64;

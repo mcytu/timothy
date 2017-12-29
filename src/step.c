@@ -27,7 +27,8 @@
 #include "global.h"
 #include "potential.h"
 #include "fields.h"
-#include "inline.h"
+//#include "inline.h"
+#include "exchange.h"
 
 /*! \file compute.c
  *  \brief contains main computational function called in each time step of the simulation
