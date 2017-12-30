@@ -35,12 +35,12 @@
  *  \brief contains initialization functions
  */
 
-void getsysteminfo(system_t* system) {
-        checkendiannes(system);
-        getLocalRankAndSize(system->rank, system->size, &(system->noderank), &(system->nodesize));
-        system->memperproc = getMemoryPerProcess(system->nodesize);
-        if (!POWER_OF_TWO(system->size))
-                terminate(*system,"number of processes must be power of two", __FILE__, __LINE__);
+void getsysteminfo(systeminfo_t* systeminfo) {
+        checkendiannes(systeminfo);
+        getLocalRankAndSize(systeminfo->rank, systeminfo->size, &(systeminfo->noderank), &(systeminfo->nodesize));
+        systeminfo->memperproc = getMemoryPerProcess(systeminfo->nodesize);
+        if (!POWER_OF_TWO(systeminfo->size))
+                terminate(*systeminfo,"number of processes must be power of two", __FILE__, __LINE__);
         return;
 }
 
@@ -105,7 +105,7 @@ void initialfields(int numberoffields,environment_t* environment) {
         return;
 }
 
-void initialisation(int argc, char **argv, system_t *system, settings_t* settings,celltype_t** celltype,environment_t** environment) {
+void initialisation(int argc, char **argv, systeminfo_t *systeminfo, settings_t* settings,celltype_t** celltype,environment_t** environment) {
         int i;
         int periods[3];
         int reorder;
@@ -113,20 +113,20 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
         struct stat st = {0};
 
         if (argc < 2 || argc >2) {
-                if(system->rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
+                if(systeminfo->rank==0) { printf("usage: timothy <parameter file>\n"); fflush(stdout); }
                 MPI_Abort(MPI_COMM_WORLD,-1);
         }
         initialsettings(settings);
-        readparamfile(argc,argv,*system,settings);
+        readparamfile(argc,argv,*systeminfo,settings);
         settings->step=0;
 
         if (settings->numberofcelltypes<1)
-                terminate(*system,"no cell types specified", __FILE__, __LINE__);
+                terminate(*systeminfo,"no cell types specified", __FILE__, __LINE__);
 
         if(!(*celltype=(celltype_t*)malloc((settings->numberofcelltypes)*sizeof(celltype_t))))
-                terminate(*system,"cannot allocate celltype", __FILE__, __LINE__);
+                terminate(*systeminfo,"cannot allocate celltype", __FILE__, __LINE__);
         if(!(*environment=(environment_t*)malloc((settings->numberoffields)*sizeof(environment_t))))
-                terminate(*system,"cannot allocate environment", __FILE__, __LINE__);
+                terminate(*systeminfo,"cannot allocate environment", __FILE__, __LINE__);
 
         for(i=0; i<settings->numberofcelltypes; i++) {
                 int size=settings->numberoffields*sizeof(float);
@@ -136,31 +136,31 @@ void initialisation(int argc, char **argv, system_t *system, settings_t* setting
                 (*celltype)[i].criticallevel2=(float*)malloc(size);
         }
         initialcelltype(settings->numberofcelltypes,settings->numberoffields,*celltype);
-        readcellsfile(*system,settings,*celltype);
+        readcellsfile(*systeminfo,settings,*celltype);
         initialfields(settings->numberoffields,*environment);
-        readenvfile(*system,settings,*environment);
+        readenvfile(*systeminfo,settings,*environment);
 
-        randomstreaminit(system,settings);
+        randomstreaminit(systeminfo,settings);
 
         /* organizing processes in a Cartesian grid for global fields computations */
-        MPI_Dims_create(system->size, settings->dimension, system->dim);
+        MPI_Dims_create(systeminfo->size, settings->dimension, systeminfo->dim);
         periods[0] = 0;
         periods[1] = 0;
         periods[2] = 0;
         reorder = 0;
-        MPI_Cart_create(MPI_COMM_WORLD, settings->dimension, system->dim, periods, reorder,
+        MPI_Cart_create(MPI_COMM_WORLD, settings->dimension, systeminfo->dim, periods, reorder,
                         &MPI_CART_COMM);
 
-        if(!(system->coords = (int **) malloc(system->size * sizeof(int *))))
-                terminate(*system,"cannot allocate system->coords", __FILE__, __LINE__);
-        for (i = 0; i < system->size; i++) {
-                if(!(system->coords[i] = (int *) malloc(3 * sizeof(int))))
-                        terminate(*system,"cannot allocate system->coords[i]", __FILE__, __LINE__);
-                MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, system->coords[i]);
+        if(!(systeminfo->coords = (int **) malloc(systeminfo->size * sizeof(int *))))
+                terminate(*systeminfo,"cannot allocate systeminfo->coords", __FILE__, __LINE__);
+        for (i = 0; i < systeminfo->size; i++) {
+                if(!(systeminfo->coords[i] = (int *) malloc(3 * sizeof(int))))
+                        terminate(*systeminfo,"cannot allocate systeminfo->coords[i]", __FILE__, __LINE__);
+                MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, systeminfo->coords[i]);
         }
 
-        maxlocalcells=settings->maxcells / system->size;
-        if (system->rank < maxlocalcells % system->size)
+        maxlocalcells=settings->maxcells / systeminfo->size;
+        if (systeminfo->rank < maxlocalcells % systeminfo->size)
                 maxlocalcells++;
 
         settings->maxlocalcells=maxlocalcells;
@@ -202,26 +202,26 @@ void initcount(cellcount_t *cellcount) {
         return;
 }
 
-void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
+void allocatecells(systeminfo_t systeminfo,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
         int i;
         int maxlocalcells;
 
         maxlocalcells=settings.maxlocalcells;
 
         if(!(cellsinfo->cells=(celldata_t*)malloc(maxlocalcells*sizeof(celldata_t))))
-                terminate(system,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate cellsinfo->cells", __FILE__, __LINE__);
 
         if(!(cellsinfo->forces=(double3dv_t*)calloc(maxlocalcells,sizeof(double3dv_t))))
-                terminate(system,"cannot allocate cellsinfo->forces", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate cellsinfo->forces", __FILE__, __LINE__);
 
-        if(!(cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*system.size)))
-                terminate(system,"cannot allocate cellsinfo->cellsperproc", __FILE__, __LINE__);
+        if(!(cellsinfo->cellsperproc=(uint64_t*)malloc(sizeof(uint64_t)*systeminfo.size)))
+                terminate(systeminfo,"cannot allocate cellsinfo->cellsperproc", __FILE__, __LINE__);
 
         if(!(cellsinfo->localtypecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberofcelltypes)))
-                terminate(system,"cannot allocate cellsinfo->localtypecount", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate cellsinfo->localtypecount", __FILE__, __LINE__);
 
         if(!(cellsinfo->globaltypecount=(cellcount_t*)malloc(sizeof(cellcount_t)*settings.numberofcelltypes)))
-                terminate(system,"cannot allocate cellsinfo->globaltypecount", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate cellsinfo->globaltypecount", __FILE__, __LINE__);
 
         initcount(&(cellsinfo->localcount));
         initcount(&(cellsinfo->globalcount));
@@ -230,7 +230,7 @@ void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cell
                 initcount(&(cellsinfo->globaltypecount[i]));
         }
 
-        for(i=0; i<system.size; i++)
+        for(i=0; i<systeminfo.size; i++)
                 cellsinfo->cellsperproc[i]=0;
 
         cellsinfo->dimension=settings.dimension;
@@ -238,21 +238,21 @@ void allocatecells(system_t system,settings_t settings,celltype_t *celltype,cell
         if(settings.restart) {
                 // read restart file
         } else {
-                readcellpositions(system,settings,celltype,cellsinfo);
+                readcellpositions(systeminfo,settings,celltype,cellsinfo);
         }
 
         return;
 }
 
-void printinfo(system_t system) {
-        if (system.rank == 0) {
+void printinfo(systeminfo_t systeminfo) {
+        if (systeminfo.rank == 0) {
                 printf("\ntimothy, tissue modelling framework\n");
                 printf("http://timothy.icm.edu.pl\n");
                 printf("version %s\n\n", VERSION);
-                printf("number of MPI processes: %d\n",system.size);
-                printf("processes per node: %d\n",system.nodesize);
-                printf("threads per process: %d\n",system.nthreads);
-                printf("system: ");
+                printf("number of MPI processes: %d\n",systeminfo.size);
+                printf("processes per node: %d\n",systeminfo.nodesize);
+                printf("threads per process: %d\n",systeminfo.nthreads);
+                printf("systeminfo: ");
                 if (endian)
                         printf("%s, little endian\n", CPUARCH);
                 else

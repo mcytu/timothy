@@ -20,7 +20,7 @@
  *
  * *************************************************************************/
 
-void octbuild(system_t system,cellsinfo_t *cellsinfo,celltype_t* celltype);
+void octbuild(systeminfo_t systeminfo,cellsinfo_t *cellsinfo,celltype_t* celltype);
 void octfree(cellsinfo_t *cellsinfo);
 void octheapinit(octheap_t *ttheap);
 void octcomputebox(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,cellsinfo_t cellsinfo,celltype_t* celltype);

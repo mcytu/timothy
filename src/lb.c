@@ -45,7 +45,7 @@ int *exportProcs;   /* process to which I send each of the objects */
 int *exportToPart;    /* partition to which each object will belong */
 
 /*!
- * Zoltan callback function. This function returns the dimension (2D or 3D) of the system.
+ * Zoltan callback function. This function returns the dimension (2D or 3D) of the systeminfo.
  */
 int lbdimension(void *data, int *ierr) {
         cellsinfo_t *cellsinfo = (cellsinfo_t*) data;
@@ -185,7 +185,7 @@ void lbunpack(void *data, int numGIdEntries, ZOLTAN_ID_PTR globalId,
  * This function initializes the Zoltan library.
  * It is called at the beginning of the simulation.
  */
-void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *cellsinfo)
+void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,cellsinfo_t *cellsinfo)
 {
         int rc;
         float version;
@@ -194,7 +194,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *ce
         if (rc != ZOLTAN_OK)
                 stopRun(112, NULL, __FILE__, __LINE__);
 
-        if (system.rank == 0)
+        if (systeminfo.rank == 0)
                 printf("Zoltan Version %.3f. Initialized.\n", version);
 
         ztn = Zoltan_Create(MPI_COMM_WORLD);
@@ -225,7 +225,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *ce
  * This function calls the Zoltan's domain decomposition and migration functions.
  * It is called at the beginning of each simulation step.
  */
-void lbexchange(system_t system)
+void lbexchange(systeminfo_t systeminfo)
 {
         int rc;
 
@@ -248,7 +248,7 @@ void lbexchange(system_t system)
                                  &exportToPart); /* partition to which each object will belong */
 
         if (rc != ZOLTAN_OK)
-                terminate(system,"zoltan partitioning failed", __FILE__, __LINE__);
+                terminate(systeminfo,"zoltan partitioning failed", __FILE__, __LINE__);
 
         /* free the arrays allocated by Zoltan_LB_Partiotion */
         Zoltan_LB_Free_Part(&importGlobalGids, &importLocalGids, &importProcs,

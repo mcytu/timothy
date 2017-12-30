@@ -24,11 +24,11 @@
  *  \brief contains defines and declarations for I/O functions
  */
 
-void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo);
-void readenvfile(system_t system,settings_t* settings,environment_t* environment);
-void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype);
-void readparamfile(int argc, char **argv, system_t system, settings_t* settings);
-void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo);
+void readcellpositions(systeminfo_t systeminfo,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo);
+void readenvfile(systeminfo_t systeminfo,settings_t* settings,environment_t* environment);
+void readcellsfile(systeminfo_t systeminfo, settings_t* settings, celltype_t* celltype);
+void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* settings);
+void writevtk(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo);
 void switchStdOut(const char *newStream);
 void revertStdOut();
 
@@ -82,15 +82,6 @@ float rstRd;
 double rstH;
 double rstCsize;
 
-
-//int one=1;
-
-//char params[NPAR][64];
-//char desc[NPAR][512];
-//void *addr[NPAR];
-//int req[NPAR];
-//int set[NPAR];
-//int type[NPAR];
 
 int fdSave;
 int fdNew;

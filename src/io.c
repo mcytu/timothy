@@ -45,12 +45,12 @@
 
 void readRstFile(int argc, char **argv);
 
-void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
+void readcellpositions(systeminfo_t systeminfo,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
         FILE *fhandle;
         char buf[128],bufx[16],bufy[16],bufz[16],bufn[16];
         int i;
         /* cell coordinate files are read only by rank 0 */
-        if(system.rank==0) {
+        if(systeminfo.rank==0) {
                 for(i=0; i<settings.numberofcelltypes; i++) {
                         if(strlen(celltype[i].inputfile)==0) {
                                 printf("filename for %s cells coordinates not specified\n",celltype[i].name);
@@ -98,7 +98,7 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
                                                 cellsinfo->localtypecount[i].n+=1;
                                                 cellsinfo->localtypecount[i].g0phase+=1;
                                                 nrandom=atoi(bufn);
-                                                cellsrandominit(nrandom,i,system,settings,celltype,cellsinfo);
+                                                cellsrandominit(nrandom,i,systeminfo,settings,celltype,cellsinfo);
                                         }
 
                                         if(ncoords<cellsinfo->dimension || ncoords>cellsinfo->dimension+1)
@@ -116,7 +116,7 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
         return;
 }
 
-void readenvfile(system_t system,settings_t* settings,environment_t* environment) {
+void readenvfile(systeminfo_t systeminfo,settings_t* settings,environment_t* environment) {
         char envfile[FNLEN];
         char buf[400], buf1[100], buf2[100], buf3[100];
         FILE *fhandle;
@@ -126,14 +126,14 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
 
         sprintf(envfile,"environment.inp");
 
-        if (system.rank == 0) {
+        if (systeminfo.rank == 0) {
                 printf("reading environment file: %s\n", envfile);
                 fflush(stdout);
         }
 
         fhandle = fopen(envfile, "r");
         if (fhandle == NULL)
-                terminate(system, "could not open environment file", __FILE__, __LINE__);
+                terminate(systeminfo, "could not open environment file", __FILE__, __LINE__);
 
         for(i=0; i<settings->numberoffields; i++) {
 
@@ -169,7 +169,7 @@ void readenvfile(system_t system,settings_t* settings,environment_t* environment
         return;
 }
 
-void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) {
+void readcellsfile(systeminfo_t systeminfo, settings_t* settings, celltype_t* celltype) {
         char cellsfile[FNLEN];
         char buf[400], buf1[100], buf2[100], buf3[100], buf4[100],buf5[100];
         FILE *fhandle;
@@ -180,13 +180,13 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
 
         sprintf(cellsfile,"cells.inp");
 
-        if (system.rank == 0)
+        if (systeminfo.rank == 0)
                 printf("reading cells file: %s\n", cellsfile);
         fflush(stdout);
 
         fhandle = fopen(cellsfile, "r");
         if (fhandle == NULL)
-                terminate(system, "could not open cell type file", __FILE__, __LINE__);
+                terminate(systeminfo, "could not open cell type file", __FILE__, __LINE__);
 
         for(i=0; i<settings->numberofcelltypes; i++) {
 
@@ -275,7 +275,7 @@ void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype) 
 }
 
 
-void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
+void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* settings)
 {
   #define NPAR 15
         char paramfile[FNLEN];
@@ -387,18 +387,18 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
         strcpy(settings->outdir, "results");
 
         if (strlen(argv[1]) >= FNLEN)
-                terminate(system, "parameter file name too long", __FILE__, __LINE__);
+                terminate(systeminfo, "parameter file name too long", __FILE__, __LINE__);
 
         sprintf(paramfile, "%s", argv[1]);
 
-        if (system.rank == 0)
+        if (systeminfo.rank == 0)
                 printf("reading parameters file: %s\n", paramfile);
 
         fflush(stdout);
 
         fhandle = fopen(paramfile, "r");
         if (fhandle == NULL)
-                terminate(system, "could not open parameter file", __FILE__, __LINE__);
+                terminate(systeminfo, "could not open parameter file", __FILE__, __LINE__);
 
         /* look for parameters in the file */
         while (!feof(fhandle)) {
@@ -458,7 +458,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                                 case REAL:
                                         *((float *) addr[i]) = atof(buf2);
           #ifdef DEBUG
-                                        if (system.rank == 0) {
+                                        if (systeminfo.rank == 0) {
                                                 printf("debug: read %s = %f\n", params[i], *((float *) addr[i]));
                                                 fflush(stdout);
                                         }
@@ -467,7 +467,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                                 case DOUBLE:
                                         *((double *) addr[i]) = atof(buf2);
           #ifdef DEBUG
-                                        if (system.rank == 0) {
+                                        if (systeminfo.rank == 0) {
                                                 printf("debug: read %s = %f\n", params[i], *((double *) addr[i]));
                                                 fflush(stdout);
                                         }
@@ -476,7 +476,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                                 case STRING:
                                         strcpy((char *) addr[i], buf2);
           #ifdef DEBUG
-                                        if (system.rank == 0) {
+                                        if (systeminfo.rank == 0) {
                                                 printf("debug: read %s = %s\n", params[i], buf2);
                                                 fflush(stdout);
                                         }
@@ -485,7 +485,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                                 case INT:
                                         *((int *) addr[i]) = atoi(buf2);
           #ifdef DEBUG
-                                        if (system.rank == 0) {
+                                        if (systeminfo.rank == 0) {
                                                 printf("debug: read %s = %d\n", params[i], *((int *) addr[i]));
                                                 fflush(stdout);
                                         }
@@ -494,7 +494,7 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                                 case LONG:
                                         *((int64_t *) addr[i]) = atol(buf2);
           #ifdef DEBUG
-                                        if (system.rank == 0) {
+                                        if (systeminfo.rank == 0) {
                                                 printf("debug: read %s = %" PRId64 "\n", params[i], *((int64_t *) addr[i]));
                                                 fflush(stdout);
                                         }
@@ -511,13 +511,13 @@ void readparamfile(int argc, char **argv, system_t system, settings_t* settings)
                 if (req[i] == 1 && set[i] == 0) {
                         char errmsg[128];
                         sprintf(errmsg,"missing parameter %s",params[i]);
-                        terminate(system,errmsg, __FILE__, __LINE__);
+                        terminate(systeminfo,errmsg, __FILE__, __LINE__);
                 }
 
         if (settings->maxspeed <= 0.0 || settings->maxspeed >= 4.0)
-                terminate(system,"maxspeed out of range", __FILE__, __LINE__);
+                terminate(systeminfo,"maxspeed out of range", __FILE__, __LINE__);
 
-        if (system.rank == 0) {
+        if (systeminfo.rank == 0) {
                 struct stat s;
                 int err;
                 printf("output directory: %s/\n", settings->outdir);
@@ -676,7 +676,7 @@ void ioDefineOutputFields()
 }
 
 
-void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
+void writevtk(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo) {
         int i,j;
         MPI_File fhandle;
         float *floatvectorfield;
@@ -701,18 +701,18 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
 
         /* write vtk header */
         sprintf(buffer,"# vtk DataFile Version 2.0\nTimothy output\nBINARY\nDATASET UNSTRUCTURED_GRID");
-        if (system.rank == 0)
+        if (systeminfo.rank == 0)
                 MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
 
-        for (i = 0; i < system.rank; i++)
+        for (i = 0; i < systeminfo.rank; i++)
                 nprev += cellsinfo.cellsperproc[i];
 
         /* write cell positions */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nPOINTS %" PRId64 " float\n",cellsinfo.globalcount.n);
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         offset = nprev * sizeof(float) * 3;
@@ -722,7 +722,7 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
                 floatvectorfield[3 * i + 1] = (float) (cellsinfo.cells[i].y);
                 floatvectorfield[3 * i + 2] = (float) (cellsinfo.cells[i].z);
         }
-        if (system.endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
+        if (systeminfo.endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
         MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(float) * 3;
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
@@ -730,14 +730,14 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         /* write cell types */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nCELL_TYPES %" PRId64 "\n", cellsinfo.globalcount.n);
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         offset = nprev * sizeof(int);
         MPI_File_seek(fhandle, goffset+offset, MPI_SEEK_SET);
         for (i = 0; i < cellsinfo.localcount.n; i++)
                 intscalarfield[i] = 1;
-        if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+        if (systeminfo.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
         MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(int);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
@@ -745,21 +745,21 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         /* write point data */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nPOINT_DATA %" PRId64, cellsinfo.globalcount.n);
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
 
         /* write ranks */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nSCALARS rank integer 1\nLOOKUP_TABLE default\n");
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         for (i = 0; i < cellsinfo.localcount.n; i++)
-                intscalarfield[i] = system.rank;
+                intscalarfield[i] = systeminfo.rank;
         offset = nprev * sizeof(int);
         MPI_File_seek(fhandle, goffset+offset, MPI_SEEK_SET);
-        if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+        if (systeminfo.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
         MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(int);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
@@ -767,14 +767,14 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         /* write cell type */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nSCALARS type integer 1\nLOOKUP_TABLE default\n");
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         for (i = 0; i < cellsinfo.localcount.n; i++)
                 intscalarfield[i] = cellsinfo.cells[i].ctype;
         offset = nprev * sizeof(int);
         MPI_File_seek(fhandle, goffset+offset, MPI_SEEK_SET);
-        if (system.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
+        if (systeminfo.endian) swapnbyte((char *) intscalarfield, cellsinfo.localcount.n, sizeof(int));
         MPI_File_write(fhandle, intscalarfield, cellsinfo.localcount.n, MPI_INT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(int);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
@@ -782,21 +782,21 @@ void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo) {
         /* write density */
         memset(buffer, 0, 256);
         sprintf(buffer, "\nSCALARS density float 1\nLOOKUP_TABLE default\n");
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         for (i = 0; i < cellsinfo.localcount.n; i++)
                 floatscalarfield[i] = 1.0; //cellsinfo.cells[i].density;
         offset = nprev * sizeof(float);
         MPI_File_seek(fhandle, goffset+offset, MPI_SEEK_SET);
-        if (system.endian) swapnbyte((char *) floatscalarfield, cellsinfo.localcount.n, sizeof(float));
+        if (systeminfo.endian) swapnbyte((char *) floatscalarfield, cellsinfo.localcount.n, sizeof(float));
         MPI_File_write(fhandle, floatscalarfield, cellsinfo.localcount.n, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.globalcount.n * sizeof(float);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
 
         /* write forces */
         sprintf(buffer, "\nVECTORS force float\n");
-        if (system.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+        if (systeminfo.rank == 0) MPI_File_write(fhandle, &buffer, strlen(buffer), MPI_BYTE, MPI_STATUS_IGNORE);
         goffset += strlen(buffer);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);
         for (i = 0; i < cellsinfo.localcount.n; i++) {

@@ -61,7 +61,7 @@ static inline int outsidethebox(cellsinfo_t *cellsinfo,int c)
 }
 
 /* normal distribution (Box-Muller transform) */
-void cellsrandominit(int nrandom,int ctype,system_t system,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
+void cellsrandominit(int nrandom,int ctype,systeminfo_t systeminfo,settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo) {
         int i;
         double x1, x2, x3;
         double z1, z2, z3;
@@ -250,7 +250,7 @@ void mitosis(int c, unsigned char *removecell,int64_t *removecount)
 }
 
 /*!
- * This function finds locates cell closest to the center of mass of the system
+ * This function finds locates cell closest to the center of mass of the systeminfo
  * and marks this cell as a cancer cell.
  */
 void markMiddleCancerCell()
@@ -306,7 +306,7 @@ void markMiddleCancerCell()
                 lcnc++;
         }
 
-        /* indicate that there is a cancer cell in the system */
+        /* indicate that there is a cancer cell in the systeminfo */
         cancer = 1;
 }
 

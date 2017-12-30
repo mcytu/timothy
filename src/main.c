@@ -30,7 +30,7 @@
 
 int main(int argc, char **argv)
 {
-        system_t system;
+        systeminfo_t systeminfo;
         settings_t settings;
         celltype_t *celltype;
         environment_t *environment;
@@ -40,28 +40,28 @@ int main(int argc, char **argv)
         statistics_t statistics;
 
         MPI_Init(&argc, &argv);
-        MPI_Comm_size(MPI_COMM_WORLD, &system.size);
-        MPI_Comm_rank(MPI_COMM_WORLD, &system.rank);
-        system.nthreads = omp_get_max_threads();
+        MPI_Comm_size(MPI_COMM_WORLD, &systeminfo.size);
+        MPI_Comm_rank(MPI_COMM_WORLD, &systeminfo.rank);
+        systeminfo.nthreads = omp_get_max_threads();
 
-        getsysteminfo(&system);
-        printinfo(system);
-        initialisation(argc,argv,&system,&settings,&celltype,&environment);
-        allocatecells(system,settings,celltype,&cellsinfo);
-        allocategrid(system,settings,&grid);
-        allocatefields(system,settings,grid,&environment);
-        lbinit(argc,argv,MPI_COMM_WORLD,system,&cellsinfo);
+        getsysteminfo(&systeminfo);
+        printinfo(systeminfo);
+        initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
+        allocatecells(systeminfo,settings,celltype,&cellsinfo);
+        allocategrid(systeminfo,settings,&grid);
+        allocatefields(systeminfo,settings,grid,&environment);
+        lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
                 updateglobalcounts(&cellsinfo);
-                lbexchange(system);
-                octbuild(system,&cellsinfo,celltype);
-                createexportlist(system,settings,cellsinfo,celltype,&commdata);
-                singlestep(system,&cellsinfo,celltype,&commdata);
-                exchangecleanup(system,cellsinfo,&commdata);
-                printstatistics(system,settings,cellsinfo,&statistics);
+                lbexchange(systeminfo);
+                octbuild(systeminfo,&cellsinfo,celltype);
+                createexportlist(systeminfo,settings,cellsinfo,celltype,&commdata);
+                singlestep(systeminfo,&cellsinfo,celltype,&commdata);
+                exchangecleanup(systeminfo,cellsinfo,&commdata);
+                printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(settings,&cellsinfo);
-                writevtk(system,settings,cellsinfo);
+                writevtk(systeminfo,settings,cellsinfo);
                 octfree(&cellsinfo);
         }
 

@@ -37,7 +37,7 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata)
+int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata)
 {
         int p;
         double sf;
@@ -47,7 +47,7 @@ int singlestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,com
         //initCellsToGridExchange();
 
         /* initiate asynchronous data transfers between processors */
-        cellssendrecv(system,*cellsinfo,commdata);
+        cellssendrecv(systeminfo,*cellsinfo,commdata);
 
         /* 1. Compute potential for local cells */
 
@@ -63,7 +63,7 @@ int singlestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,com
 
 
         /* wait for data transfers to finish */
-        cellswait(system,*cellsinfo,commdata);
+        cellswait(systeminfo,*cellsinfo,commdata);
 
         /* 3. Compute potential for remote cells */
         computeremotepotential(cellsinfo,celltype,*commdata);
@@ -74,7 +74,7 @@ int singlestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,com
 
         /* 5. Compute gradient of the potential for local cells */
         /* initiate transfer of the density and potential data from remote cells */
-        datasendrecv(system,*cellsinfo,commdata);
+        datasendrecv(systeminfo,*cellsinfo,commdata);
         /* compute gradient of the potential for local cells */
         computegradient(cellsinfo,celltype,*commdata);
 
@@ -87,7 +87,7 @@ int singlestep(system_t system, cellsinfo_t *cellsinfo, celltype_t* celltype,com
 
         /* 7. Compute gradient of the potential for remote cells */
         /* wait for density and potential data from remote cells */
-        datawait(system,*cellsinfo,commdata);
+        datawait(systeminfo,*cellsinfo,commdata);
 
         /* compute gradient of the potential for remote cells */
         computeremotegradient(cellsinfo,celltype,*commdata);

@@ -43,13 +43,13 @@
  */
 
 /*!
- * This function checks the endiannes of the system
+ * This function checks the endiannes of the systeminfo
  */
-int checkendiannes(system_t *system)
+int checkendiannes(systeminfo_t *systeminfo)
 {
         volatile uint32_t i = 0x01234567;
         /* return 0 for big endian, 1 for little endian. */
-        system->endian = (*((uint8_t *) (&i))) == 0x67;
+        systeminfo->endian = (*((uint8_t *) (&i))) == 0x67;
         return 0;
 }
 
@@ -100,8 +100,8 @@ void updateglobalcounts(cellsinfo_t* cellsinfo){
         return;
 }
 
-void terminate(system_t system, char *msg, char *file, int line) {
-        if(system.rank==0) {
+void terminate(systeminfo_t systeminfo, char *msg, char *file, int line) {
+        if(systeminfo.rank==0) {
                 fprintf(stderr,"error: %s (%s, line %d)\n",msg,file,line);
                 fflush(stderr);
         }
@@ -203,7 +203,7 @@ void stopRun(int ierr, char *name, char *file, int line)
 /*!
  * This function detects the amount of addressable memory available for each process.
  * Assumptions: each process allocates similar amount of data.
- * This functions is system dependent. Supported platforms: linux, AIX, Blue Gene/Q.
+ * This functions is systeminfo dependent. Supported platforms: linux, AIX, Blue Gene/Q.
  */
 size_t getMemoryPerProcess(int32_t lsize)
 {
@@ -228,7 +228,7 @@ size_t getMemoryPerProcess(int32_t lsize)
  * This function detects number of processes on each node and assignes
  * local node ranks for each process.
  * Assumptions: number of processes per node is equal accross nodes.
- * This functions is system dependent. Supported platforms: linux, AIX, Blue Gene/Q.
+ * This functions is systeminfo dependent. Supported platforms: linux, AIX, Blue Gene/Q.
  */
 void getLocalRankAndSize(int rank, int size, int32_t * lrank,
                          int32_t * lsize)
@@ -258,13 +258,13 @@ void getLocalRankAndSize(int rank, int size, int32_t * lrank,
         *lsize = s;
 }
 
-void randomstreaminit(system_t *system,settings_t *settings)
+void randomstreaminit(systeminfo_t *systeminfo,settings_t *settings)
 {
-        settings->rseed=time(NULL) + system->rank;
+        settings->rseed=time(NULL) + systeminfo->rank;
         return;
 }
 
-void printstatistics(system_t system,settings_t settings,cellsinfo_t cellsinfo,statistics_t* statistics)
+void printstatistics(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,statistics_t* statistics)
 {
         int p;
         statistics->mindist=DBL_MAX;
@@ -295,7 +295,7 @@ void printstatistics(system_t system,settings_t settings,cellsinfo_t cellsinfo,s
         MPI_Allreduce(MPI_IN_PLACE,&(statistics->maxsize), 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE,&(statistics->mindist), 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
-        if(system.rank==0) {
+        if(systeminfo.rank==0) {
                 printf("\n+++ simulation step %12d\n",settings.step);
                 printf("%12s%10s%10s\n", "", "min", "max");
                 printf("%12s%10.4lf%10.4lf\n", "size       ",statistics->minsize,statistics->maxsize);

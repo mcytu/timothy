@@ -34,7 +34,7 @@
 /*!
  * This function computes the sizes of the grid.
  */
-void computegridsize(system_t system,settings_t settings,grid_t *grid)
+void computegridsize(systeminfo_t systeminfo,settings_t settings,grid_t *grid)
 {
         float3dv_t globalgridsize;
         grid->resolution=settings.gfh;
@@ -59,16 +59,16 @@ void computegridsize(system_t system,settings_t settings,grid_t *grid)
         if(settings.dimension==3) grid->globalsize.z = (int64_t)((globalgridsize.z+1)/grid->resolution);
         else grid->globalsize.z = 0.0;
 
-        grid->globalsize.x = grid->globalsize.x + (system.dim[0] - grid->globalsize.x % system.dim[0]);
-        grid->globalsize.y = grid->globalsize.y + (system.dim[1] - grid->globalsize.y % system.dim[1]);
-        if(settings.dimension==3) grid->globalsize.z = grid->globalsize.z + (system.dim[2] - grid->globalsize.z % system.dim[2]);
+        grid->globalsize.x = grid->globalsize.x + (systeminfo.dim[0] - grid->globalsize.x % systeminfo.dim[0]);
+        grid->globalsize.y = grid->globalsize.y + (systeminfo.dim[1] - grid->globalsize.y % systeminfo.dim[1]);
+        if(settings.dimension==3) grid->globalsize.z = grid->globalsize.z + (systeminfo.dim[2] - grid->globalsize.z % systeminfo.dim[2]);
 
-        grid->localsize.x = grid->globalsize.x / system.dim[0];
-        grid->localsize.y = grid->globalsize.y / system.dim[1];
-        if(settings.dimension==3) grid->localsize.z = grid->globalsize.z / system.dim[2];
+        grid->localsize.x = grid->globalsize.x / systeminfo.dim[0];
+        grid->localsize.y = grid->globalsize.y / systeminfo.dim[1];
+        if(settings.dimension==3) grid->localsize.z = grid->globalsize.z / systeminfo.dim[2];
         else grid->localsize.z = 1;
 
-        if(system.rank==0) {
+        if(systeminfo.rank==0) {
                 printf("environment grid size = %" PRId64 "x%" PRId64 "x%" PRId64 "\n", grid->globalsize.x, grid->globalsize.y,grid->globalsize.z);
                 fflush(stdout);
         }
@@ -77,21 +77,21 @@ void computegridsize(system_t system,settings_t settings,grid_t *grid)
 }
 
 
-void allocategrid(system_t system,settings_t settings,grid_t *grid) {
+void allocategrid(systeminfo_t systeminfo,settings_t settings,grid_t *grid) {
         int i,j,k;
    #define gridnode(i,j,k) (grid->data[grid->localsize.y*grid->localsize.z*i+grid->localsize.z*j+k])
 
-        computegridsize(system,settings,grid);
+        computegridsize(systeminfo,settings,grid);
 
-        if(!(grid->loweridx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
-                terminate(system,"cannot allocate grid->loweridx", __FILE__, __LINE__);
-        if(!(grid->upperidx=(int643dv_t*)malloc(system.size*sizeof(int643dv_t))))
-                terminate(system,"cannot allocate grid->upperidx", __FILE__, __LINE__);
+        if(!(grid->loweridx=(int643dv_t*)malloc(systeminfo.size*sizeof(int643dv_t))))
+                terminate(systeminfo,"cannot allocate grid->loweridx", __FILE__, __LINE__);
+        if(!(grid->upperidx=(int643dv_t*)malloc(systeminfo.size*sizeof(int643dv_t))))
+                terminate(systeminfo,"cannot allocate grid->upperidx", __FILE__, __LINE__);
 
-        for(i=0; i<system.size; i++) {
-                grid->loweridx[i].x = grid->localsize.x * system.coords[i][0];
-                grid->loweridx[i].y = grid->localsize.y * system.coords[i][1];
-                if(settings.dimension==3) grid->loweridx[i].z = grid->localsize.z * system.coords[i][2];
+        for(i=0; i<systeminfo.size; i++) {
+                grid->loweridx[i].x = grid->localsize.x * systeminfo.coords[i][0];
+                grid->loweridx[i].y = grid->localsize.y * systeminfo.coords[i][1];
+                if(settings.dimension==3) grid->loweridx[i].z = grid->localsize.z * systeminfo.coords[i][2];
                 else grid->loweridx[i].z = 0;
                 grid->upperidx[i].x = grid->loweridx[i].x + grid->localsize.x - 1;
                 grid->upperidx[i].y = grid->loweridx[i].y + grid->localsize.y - 1;
@@ -99,14 +99,14 @@ void allocategrid(system_t system,settings_t settings,grid_t *grid) {
                 else grid->upperidx[i].z = 0;
         }
         if(!(grid->data=(double3dv_t*)calloc(grid->localsize.x*grid->localsize.y*grid->localsize.z,sizeof(double3dv_t))))
-                terminate(system,"cannot allocate grid->data", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate grid->data", __FILE__, __LINE__);
 
         for(i=0; i<grid->localsize.x; i++)
                 for(j=0; j<grid->localsize.y; j++)
                         for(k=0; k<grid->localsize.z; k++) {
-                                gridnode(i,j,k).x = grid->lowercorner.x + grid->resolution * (grid->loweridx[system.rank].x + i);
-                                gridnode(i,j,k).y = grid->lowercorner.y + grid->resolution * (grid->loweridx[system.rank].y + j);
-                                gridnode(i,j,k).z = grid->lowercorner.z + grid->resolution * (grid->loweridx[system.rank].z + k);
+                                gridnode(i,j,k).x = grid->lowercorner.x + grid->resolution * (grid->loweridx[systeminfo.rank].x + i);
+                                gridnode(i,j,k).y = grid->lowercorner.y + grid->resolution * (grid->loweridx[systeminfo.rank].y + j);
+                                gridnode(i,j,k).z = grid->lowercorner.z + grid->resolution * (grid->loweridx[systeminfo.rank].z + k);
                         }
 
    #undef grid_node

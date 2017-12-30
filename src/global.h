@@ -261,7 +261,7 @@ typedef struct settings_t {
 		int step;
 } settings_t;
 
-typedef struct system_t {
+typedef struct systeminfo_t {
     int rank;                    /* MPI rank */
     int size;                    /* MPI size */
     int nthreads;
@@ -273,7 +273,7 @@ typedef struct system_t {
     int **coords;
 		int endian;
     //int restart;
-} system_t;
+} systeminfo_t;
 
 #define CELLTYPE_G1_DEFAULT 11.0
 #define CELLTYPE_S_DEFAULT 8.0
@@ -388,11 +388,11 @@ int **MPIcoords;
 
 struct Zoltan_Struct *ztn;
 
-/* system */
+/* systeminfo */
 int endian;		/* =0 - big endian, =1 - little endian */
 
 /* model setup */
-int MIC_ATTR sdim; 		/* dimensionality of the system */
+int MIC_ATTR sdim; 		/* dimensionality of the systeminfo */
 int mitrand; 		/* mitosis random direction */
 int MIC_ATTR nx; 		/* box x size */
 int ny; 		/* box y size */
@@ -493,8 +493,8 @@ typedef struct statistics_t {
   double minsize; /* Minimum size of cells */
   double maxsize; /* Maximum size of cells */
   double mindist; /* Minimum distance between neighbourhood cells */
-  double maxspeed;  /* Maximum speed in the system */
-  double minspeed;  /* Minimum speed in the system */
+  double maxspeed;  /* Maximum speed in the systeminfo */
+  double minspeed;  /* Minimum speed in the systeminfo */
   double maxdens; /* Maximum density */
   double mindens; /* Minimum density */
   double densdev; /* Density deviation */
