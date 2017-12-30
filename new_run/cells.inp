@@ -6,6 +6,8 @@ M 1.0
 V 0.5
 RD 0.1
 NC 1
+SIZE 5.0
+H 10.0
 NHS 195000000
 TGS 1
 INPUT healthy.dat
@@ -23,6 +25,8 @@ M 1.0
 V 0.5
 RD 0.1
 NC 0
+SIZE 1.0
+H 2.0
 NHS 195000000
 TGS 1
 INPUT cancer.dat

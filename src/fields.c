@@ -35,11 +35,10 @@
  *  \brief contains driving functions for the global fields
  */
 
-
-void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
+void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t *environment) {
         int i;
         for(i=0; i<settings.numberoffields; i++)
-                if(!(environment[i]->data=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
+                if(!(environment[i].data=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
                         terminate(systeminfo,"cannot allocate environment->data", __FILE__, __LINE__);
         return;
 }

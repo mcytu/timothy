@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
         allocatecells(systeminfo,settings,celltype,&cellsinfo);
         allocategrid(systeminfo,settings,&grid);
-        allocatefields(systeminfo,settings,grid,&environment);
+        allocatefields(systeminfo,settings,grid,environment);
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {

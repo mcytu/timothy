@@ -216,6 +216,8 @@ void readcellsfile(systeminfo_t systeminfo, settings_t* settings, celltype_t* ce
                         if (strcmp(buf1,"M") == 0) { celltype[i].m=atof(buf2); continue; }
                         if (strcmp(buf1,"V") == 0) { celltype[i].v=atof(buf2); continue; }
                         if (strcmp(buf1,"RD") == 0) { celltype[i].rd=atof(buf2); continue; }
+                        if (strcmp(buf1,"SIZE") == 0 ) { celltype[i].size=atof(buf2); continue;}
+                        if (strcmp(buf1,"H") == 0 ) { celltype[i].h=atof(buf2); continue; }
                         if (strcmp(buf1,"INPUT") == 0) { strcpy(celltype[i].inputfile, buf2); continue; }
                         if (strcmp(buf1,"CDENS") == 0) { celltype[i].criticaldensity=atof(buf2); continue; }
                         if (strcmp(buf1,"ENVCONS") == 0) {
@@ -277,112 +279,11 @@ void readcellsfile(systeminfo_t systeminfo, settings_t* settings, celltype_t* ce
 
 void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* settings)
 {
-  #define NPAR 15
+        #define NPAR 15
         char paramfile[FNLEN];
         char buf[400], buf1[100], buf2[100], buf3[100];
         FILE *fhandle;
-        char params[NPAR][64];
-        void *addr[NPAR];
-        int req[NPAR];
-        int set[NPAR];
-        int type[NPAR];
         int i;
-        int nr;
-
-        for(i=0; i<NPAR; i++)
-                set[i]=0;
-
-        nr = 0;
-
-        strcpy(params[nr], "GFDT");
-        req[nr] = 1;
-        addr[nr] = &(settings->gfdt);
-        type[nr] = REAL;
-        nr++;
-
-        strcpy(params[nr], "GFH");
-        req[nr] = 1;
-        addr[nr] = &(settings->gfh);
-        type[nr] = REAL;
-        nr++;
-
-        strcpy(params[nr], "MAXCELLS");
-        req[nr] = 1;
-        addr[nr] = &(settings->maxcells);
-        type[nr] = LONG;
-        nr++;
-
-        strcpy(params[nr], "NSTEPS");
-        req[nr] = 1;
-        addr[nr] = &(settings->numberofsteps);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "SECPERSTEP");
-        req[nr] = 1;
-        addr[nr] = &(settings->secondsperstep);
-        type[nr] = REAL;
-        nr++;
-
-        strcpy(params[nr], "NCELLTYPES");
-        req[nr] = 1;
-        addr[nr] = &(settings->numberofcelltypes);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "NFIELDS");
-        req[nr] = 1;
-        addr[nr] = &(settings->numberoffields);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "DIMENSIONS");
-        req[nr] = 1;
-        addr[nr] = &(settings->dimension);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "RESTART");
-        req[nr] = 1;
-        addr[nr] = &(settings->restart);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "RSTFILE");
-        req[nr] = 0;
-        addr[nr] = &(settings->rstfilename);
-        type[nr] = STRING;
-        nr++;
-
-        strcpy(params[nr], "OUTDIR");
-        req[nr] = 0;
-        addr[nr] = &(settings->outdir);
-        type[nr] = STRING;
-        nr++;
-
-        strcpy(params[nr], "VISOUTSTEP");
-        req[nr] = 1;
-        addr[nr] = &(settings->visoutstep);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "STATOUTSTEP");
-        req[nr] = 1;
-        addr[nr] = &(settings->statoutstep);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "RSTOUTSTEP");
-        req[nr] = 1;
-        addr[nr] = &(settings->rstoutstep);
-        type[nr] = INT;
-        nr++;
-
-        strcpy(params[nr], "MAXSPEED");
-        req[nr] = 1;
-        addr[nr] = &(settings->maxspeed);
-        type[nr] = REAL;
-        nr++;
 
         strcpy(settings->outdir, "results");
 
@@ -415,18 +316,9 @@ void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* s
                 if (buf1[0] == '#')
                         continue;
 
-                for (i = 0; i < NPAR; i++) {
-                        if (strcmp(buf1, params[i]) == 0
-                            && strcmp(params[i], "RSTFILE") == 0) {
-                                strcpy((char *) addr[i], buf2);
-                                set[i] = 1;
-                                rst = 1;
-                        }
-                        if (strcmp(buf1, params[i]) == 0
-                            && strcmp(params[i], "MAXCELLS") == 0) {
-                                *((int64_t *) addr[i]) = atol(buf2);
-                        }
-                }
+                if (strcmp(buf1,"RESTART") == 0) { settings->restart=atoi(buf2); continue; }
+                if (strcmp(buf1,"MAXCELLS") == 0) { settings->maxcells=atol(buf2); continue; }
+
         }
 
         /* read restart file if given */
@@ -451,232 +343,31 @@ void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* s
                 if (buf1[0] == '#')
                         continue;
 
-                for (i = 0; i < NPAR; i++) {
+                if (strcmp(buf1,"GFDT") == 0) { settings->gfdt=atof(buf2); continue; }
+                if (strcmp(buf1,"GFH") == 0) { settings->gfh=atof(buf2); continue; }
+                if (strcmp(buf1,"MAXCELLS") == 0) { settings->maxcells=atol(buf2); continue; }
+                if (strcmp(buf1,"NSTEPS") == 0) { settings->numberofsteps=atoi(buf2); continue; }
+                if (strcmp(buf1,"SECPERSTEPS") == 0) { settings->secondsperstep=atof(buf2); continue; }
+                if (strcmp(buf1,"NCELLTYPES") == 0) { settings->numberofcelltypes=atoi(buf2); continue; }
+                if (strcmp(buf1,"NFIELDS") == 0 ) { settings->numberoffields=atoi(buf2); continue; }
+                if (strcmp(buf1,"DIMENSIONS") == 0 ) { settings->dimension=atoi(buf2); continue; }
+                if (strcmp(buf1,"RESTART") == 0) { settings->restart=atoi(buf2); continue; }
+                if (strcmp(buf1,"RSTFILE") == 0) { strcpy(settings->rstfilename,buf2); continue; }
+                if (strcmp(buf1,"OUTDIR") == 0) { strcpy(settings->outdir,buf2); continue; }
+                if (strcmp(buf1,"VISOUTSTEP") == 0 ) { settings->visoutstep=atoi(buf2); continue; }
+                if (strcmp(buf1,"STATOUTSTEP") == 0 ) { settings->statoutstep=atoi(buf2); continue; }
+                if (strcmp(buf1,"RSTOUTSTEP") == 0 ) { settings->rstoutstep=atoi(buf2); continue; }
+                if (strcmp(buf1,"MAXSPEED") == 0) { settings->maxspeed=atof(buf2); continue; }
 
-                        if (strcmp(buf1, params[i]) == 0) {
-                                switch (type[i]) {
-                                case REAL:
-                                        *((float *) addr[i]) = atof(buf2);
-          #ifdef DEBUG
-                                        if (systeminfo.rank == 0) {
-                                                printf("debug: read %s = %f\n", params[i], *((float *) addr[i]));
-                                                fflush(stdout);
-                                        }
-          #endif
-                                        break;
-                                case DOUBLE:
-                                        *((double *) addr[i]) = atof(buf2);
-          #ifdef DEBUG
-                                        if (systeminfo.rank == 0) {
-                                                printf("debug: read %s = %f\n", params[i], *((double *) addr[i]));
-                                                fflush(stdout);
-                                        }
-          #endif
-                                        break;
-                                case STRING:
-                                        strcpy((char *) addr[i], buf2);
-          #ifdef DEBUG
-                                        if (systeminfo.rank == 0) {
-                                                printf("debug: read %s = %s\n", params[i], buf2);
-                                                fflush(stdout);
-                                        }
-          #endif
-                                        break;
-                                case INT:
-                                        *((int *) addr[i]) = atoi(buf2);
-          #ifdef DEBUG
-                                        if (systeminfo.rank == 0) {
-                                                printf("debug: read %s = %d\n", params[i], *((int *) addr[i]));
-                                                fflush(stdout);
-                                        }
-          #endif
-                                        break;
-                                case LONG:
-                                        *((int64_t *) addr[i]) = atol(buf2);
-          #ifdef DEBUG
-                                        if (systeminfo.rank == 0) {
-                                                printf("debug: read %s = %" PRId64 "\n", params[i], *((int64_t *) addr[i]));
-                                                fflush(stdout);
-                                        }
-          #endif
-                                        break;
-                                }
-                                set[i] = 1;
-                                break;
-                        }
-                }
         }
 
-        for (i = 0; i < NPAR; i++)
-                if (req[i] == 1 && set[i] == 0) {
-                        char errmsg[128];
-                        sprintf(errmsg,"missing parameter %s",params[i]);
-                        terminate(systeminfo,errmsg, __FILE__, __LINE__);
-                }
-
-        if (settings->maxspeed <= 0.0 || settings->maxspeed >= 4.0)
-                terminate(systeminfo,"maxspeed out of range", __FILE__, __LINE__);
-
-        if (systeminfo.rank == 0) {
-                struct stat s;
-                int err;
-                printf("output directory: %s/\n", settings->outdir);
-
-                err = stat(settings->outdir, &s);
-                if (err == -1) {
-                        printf("creating output directory.\n");
-                        mkdir(settings->outdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-                }
-        }
         fclose(fhandle);
         return;
 }
 
-/*!
- * This function defines output fields.
- * Edit this part in order to introduce new output fields.
- */
-void ioDefineOutputFields()
-{
-
-        nfOut = 0;
-
-        if (lnc > 0) {
-
-                strcpy(nameOut[nfOut], "density");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = REAL;
-                addrOut[nfOut] = &cells[0].density;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].density - (int64_t) &cells[0].density;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "size");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = REAL;
-                addrOut[nfOut] = &cells[0].size;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].size - (int64_t) &cells[0].size;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "rank");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &MPIrank;
-                jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "phase");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].phase;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].phase - (int64_t) &cells[0].phase;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "tumor");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].tumor;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].tumor - (int64_t) &cells[0].tumor;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "halo");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].halo;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].halo - (int64_t) &cells[0].halo;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "velocity");
-                dimOut[nfOut] = VECTOR;
-                typeOut[nfOut] = REAL;
-                addrOut[nfOut] = &velocity[0];
-                if (lnc > 1)
-                        jumpOut[nfOut] = (int64_t) &velocity[1] - (int64_t) &velocity[0];
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "age");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].age;
-                if (lnc > 1)
-                        jumpOut[nfOut] = (int64_t) &cells[1].age - (int64_t) &cells[0].age;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "scalarField");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = REAL;
-                addrOut[nfOut] = &cells[0].scalarField;
-                if (lnc > 1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].scalarField -
-                                (int64_t) &cells[0].scalarField;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "ctype");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].ctype;
-                if(lnc>1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].ctype -
-                                (int64_t) &cells[0].ctype;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-                strcpy(nameOut[nfOut], "scstage");
-                dimOut[nfOut] = SCALAR;
-                typeOut[nfOut] = INT;
-                addrOut[nfOut] = &cells[0].scstage;
-                if(lnc>1)
-                        jumpOut[nfOut] =
-                                (int64_t) &cells[1].scstage -
-                                (int64_t) &cells[0].scstage;
-                else
-                        jumpOut[nfOut] = 0;
-
-                nfOut++;
-
-        }
-}
-
 
 void writevtk(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo) {
+
         int i,j;
         MPI_File fhandle;
         float *floatvectorfield;
@@ -824,218 +515,6 @@ void writevtk(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo)
 
 
 
-/*!
- * This function writes a VTK file with all cells for a given step.
- */
-void ioWriteStepVTK(int step)
-{
-
-        int i, j;
-        MPI_File fh;
-        float *floatVectorField;
-        float *floatScalarField;
-        int *integerScalarField;
-        int64_t nprev = 0;
-        char fstname[256];
-        char header[256];
-        MPI_Offset offset, goffset;
-
-        ioDefineOutputFields();
-
-        floatVectorField = (float *) calloc(lnc * 3, sizeof(float));
-        floatScalarField = (float *) calloc(lnc, sizeof(float));
-        integerScalarField = (int *) calloc(lnc, sizeof(int));
-
-        sprintf(fstname, "%s/step%08d.vtk", outdir, step);
-
-        goffset = 0;
-        MPI_File_open(MPI_COMM_WORLD, fstname, MPI_MODE_WRONLY | MPI_MODE_CREATE,
-                      MPI_INFO_NULL, &fh);
-        /* truncate the file */
-        MPI_File_set_size(fh, 0);
-
-        sprintf(header,
-                "# vtk DataFile Version 2.0\nTimothy output\nBINARY\nDATASET UNSTRUCTURED_GRID\n");
-
-        /* gather number of cells from each process */
-        MPI_Allgather(&lnc, 1, MPI_LONG_LONG, tlnc, 1, MPI_LONG_LONG,
-                      MPI_COMM_WORLD);
-        for (i = 0; i < MPIrank; i++)
-                nprev += tlnc[i];
-
-
-        /* write the VTK header */
-        if (MPIrank == 0)
-                MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                               MPI_STATUS_IGNORE);
-        goffset += strlen(header);
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-
-        /* adding positions */
-        memset(header, 0, 256);
-        sprintf(header, "\nPOINTS %" PRId64 " float\n", nc);
-        if (MPIrank == 0)
-                MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                               MPI_STATUS_IGNORE);
-        goffset += strlen(header);
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-
-        offset = nprev * sizeof(float) * 3;
-        MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-        for (j = 0; j < lnc; j++) {
-                floatVectorField[3 * j] = (float) (cells[j].x);
-                floatVectorField[3 * j + 1] = (float) (cells[j].y);
-                floatVectorField[3 * j + 2] = (float) (cells[j].z);
-        }
-        if (endian)
-                swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
-        MPI_File_write(fh, floatVectorField, 3 * lnc, MPI_FLOAT,
-                       MPI_STATUS_IGNORE);
-        goffset += nc * sizeof(float) * 3;
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-
-        /* adding cell types */
-        memset(header, 0, 256);
-        sprintf(header, "\nCELL_TYPES %" PRId64 "\n", nc);
-        if (MPIrank == 0)
-                MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                               MPI_STATUS_IGNORE);
-        goffset += strlen(header);
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-        offset = nprev * sizeof(int);
-        MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-        for (j = 0; j < lnc; j++)
-                integerScalarField[j] = 1;
-        if (endian)
-                swapnbyte((char *) integerScalarField, lnc, sizeof(int));
-        MPI_File_write(fh, integerScalarField, lnc, MPI_INT, MPI_STATUS_IGNORE);
-        goffset += nc * sizeof(int);
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-
-        /* point data */
-        memset(header, 0, 256);
-        sprintf(header, "\nPOINT_DATA %" PRId64, nc);
-        if (MPIrank == 0)
-                MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                               MPI_STATUS_IGNORE);
-        goffset += strlen(header);
-        MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-
-        /* adding fields */
-        for (i = 0; i < nfOut; i++) {
-                memset(header, 0, 256);
-                if (dimOut[i] == SCALAR) {
-                        switch (typeOut[i]) {
-                        case REAL:
-                                sprintf(header, "\nSCALARS %s float 1\nLOOKUP_TABLE default\n",
-                                        nameOut[i]);
-                                if (MPIrank == 0)
-                                        MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                                                       MPI_STATUS_IGNORE);
-                                goffset += strlen(header);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                for (j = 0; j < lnc; j++)
-                                        floatScalarField[j] =
-                                                (float) (*((double *) (addrOut[i] + j * jumpOut[i])));
-                                offset = nprev * sizeof(float);
-                                MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-                                if (endian)
-                                        swapnbyte((char *) floatScalarField, lnc, sizeof(float));
-                                MPI_File_write(fh, floatScalarField, lnc, MPI_FLOAT,
-                                               MPI_STATUS_IGNORE);
-                                goffset += nc * sizeof(float);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                break;
-                        case INT:
-                                sprintf(header, "\nSCALARS %s integer 1\nLOOKUP_TABLE default\n",
-                                        nameOut[i]);
-                                if (MPIrank == 0)
-                                        MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                                                       MPI_STATUS_IGNORE);
-                                goffset += strlen(header);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                for (j = 0; j < lnc; j++)
-                                        integerScalarField[j] = *((int *) (addrOut[i] + j * jumpOut[i]));
-                                offset = nprev * sizeof(int);
-                                MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-                                if (endian)
-                                        swapnbyte((char *) integerScalarField, lnc, sizeof(int));
-                                MPI_File_write(fh, integerScalarField, lnc, MPI_INT,
-                                               MPI_STATUS_IGNORE);
-                                goffset += nc * sizeof(int);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                break;
-                        }
-                }
-                if (dimOut[i] == VECTOR) {
-                        switch (typeOut[i]) {
-                        case REAL:
-                                sprintf(header, "\nVECTORS %s float\n", nameOut[i]);
-                                if (MPIrank == 0)
-                                        MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                                                       MPI_STATUS_IGNORE);
-                                goffset += strlen(header);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                for (j = 0; j < lnc; j++) {
-                                        floatVectorField[3 * j] =
-                                                (float) (*((double *) (addrOut[i] + j * jumpOut[i])));
-                                        floatVectorField[3 * j + 1] =
-                                                (float) (*
-                                                         ((double *) (addrOut[i] + 1 * sizeof(double) +
-                                                                      j * jumpOut[i])));
-                                        floatVectorField[3 * j + 2] =
-                                                (float) (*
-                                                         ((double *) (addrOut[i] + 2 * sizeof(double) +
-                                                                      j * jumpOut[i])));
-                                }
-                                offset = nprev * sizeof(float) * 3;
-                                MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-                                if (endian)
-                                        swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
-                                MPI_File_write(fh, floatVectorField, lnc * 3, MPI_FLOAT,
-                                               MPI_STATUS_IGNORE);
-                                goffset += nc * 3 * sizeof(float);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                break;
-                        case INT:
-                                /* note: INTs are converted to FLOATs */
-                                printf(header, "\nVECTORS %s float\n", nameOut[i]);
-                                if (MPIrank == 0)
-                                        MPI_File_write(fh, &header, strlen(header), MPI_BYTE,
-                                                       MPI_STATUS_IGNORE);
-                                goffset += strlen(header);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                for (j = 0; j < lnc; j++) {
-                                        floatVectorField[3 * j] =
-                                                (*((float *) (addrOut[i] + j * jumpOut[i])));
-                                        floatVectorField[3 * j + 1] =
-                                                (*
-                                                 ((float *) (addrOut[i] + 1 * sizeof(int) +
-                                                             j * jumpOut[i])));
-                                        floatVectorField[3 * j + 2] =
-                                                (*
-                                                 ((float *) (addrOut[i] + 2 * sizeof(int) +
-                                                             j * jumpOut[i])));
-                                }
-                                offset = nprev * sizeof(float) * 3;
-                                MPI_File_seek(fh, offset, MPI_SEEK_CUR);
-                                if (endian)
-                                        swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
-                                MPI_File_write(fh, floatVectorField, lnc * 3, MPI_FLOAT,
-                                               MPI_STATUS_IGNORE);
-                                goffset += nc * 3 * sizeof(float);
-                                MPI_File_seek(fh, goffset, MPI_SEEK_SET);
-                                break;
-                        }
-                }
-        }
-
-        free(floatVectorField);
-        free(floatScalarField);
-        free(integerScalarField);
-
-        MPI_File_close(&fh);
-}
 
 /*!
  * This function defines output for global fields.
