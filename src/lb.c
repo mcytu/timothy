@@ -23,6 +23,8 @@
 
 #include "global.h"
 
+#include "utils.h"
+
 /*! \file domdec.c
  *  \brief contains domain decomposition functions
  */
@@ -223,7 +225,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,system_t system,cellsinfo_t *ce
  * This function calls the Zoltan's domain decomposition and migration functions.
  * It is called at the beginning of each simulation step.
  */
-void lbexchange()
+void lbexchange(system_t system)
 {
         int rc;
 

@@ -28,7 +28,9 @@ void readcellpositions(system_t system,settings_t settings,celltype_t *celltype,
 void readenvfile(system_t system,settings_t* settings,environment_t* environment);
 void readcellsfile(system_t system, settings_t* settings, celltype_t* celltype);
 void readparamfile(int argc, char **argv, system_t system, settings_t* settings);
-
+void writevtk(system_t system,settings_t settings,cellsinfo_t cellsinfo);
+void switchStdOut(const char *newStream);
+void revertStdOut();
 
 //#define NPAR 34
 //#define NPAR 70

@@ -100,9 +100,6 @@ void updateglobalcounts(cellsinfo_t* cellsinfo){
         return;
 }
 
-void swap_Nbyte(char *data, int n, int m) {
-}
-
 void terminate(system_t system, char *msg, char *file, int line) {
         if(system.rank==0) {
                 fprintf(stderr,"error: %s (%s, line %d)\n",msg,file,line);

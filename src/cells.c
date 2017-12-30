@@ -29,6 +29,8 @@
 #include <float.h>
 
 #include "global.h"
+
+#include "utils.h"
 #include "inline.h"
 #include "fields.h"
 
@@ -311,7 +313,7 @@ void markMiddleCancerCell()
 /*!
  * This function dealocates all tables allocated during initialization of cell data
  */
-void cellsCleanup()
+void cellsdestroy()
 {
         int f;
         free(tlnc);

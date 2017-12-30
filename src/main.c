@@ -7,13 +7,17 @@
 #include <omp.h>
 
 #include "global.h"
-#include "initialisation.h"
+
 #include "lb.h"
+#include "io.h"
+#include "cells.h"
 #include "grid.h"
+#include "step.h"
 #include "fields.h"
 #include "utils.h"
 #include "octree.h"
 #include "exchange.h"
+#include "initialisation.h"
 
 /*! \file main.c
  *  \brief contains the main simulation loop
@@ -50,7 +54,7 @@ int main(int argc, char **argv)
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
                 updateglobalcounts(&cellsinfo);
-                lbexchange();
+                lbexchange(system);
                 octbuild(system,&cellsinfo,celltype);
                 createexportlist(system,settings,cellsinfo,celltype,&commdata);
                 singlestep(system,&cellsinfo,celltype,&commdata);
@@ -68,8 +72,8 @@ int main(int argc, char **argv)
 
 //    ioWriteStepVTK(step);
 
-                if (!(step % statOutStep))
-                        printStepNum();
+                //  if (!(step % statOutStep))
+                //          printStepNum();
 
                 //decompositionExecute();
                 //octBuild();
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 
         //decompositionFinalize();
-        cellsCleanup();
+        cellsdestroy();
         lbdestroy();
 
         if (MPIrank == 0)

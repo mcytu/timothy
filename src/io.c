@@ -31,8 +31,11 @@
 #include <sys/stat.h>
 
 #include "global.h"
+
 #include "io.h"
 #include "fields.h"
+#include "utils.h"
+#include "cells.h"
 
 /*! \file io.c
  *  \brief contains I/O functions
@@ -885,7 +888,7 @@ void ioWriteStepVTK(int step)
                 floatVectorField[3 * j + 2] = (float) (cells[j].z);
         }
         if (endian)
-                swap_Nbyte((char *) floatVectorField, lnc * 3, sizeof(float));
+                swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
         MPI_File_write(fh, floatVectorField, 3 * lnc, MPI_FLOAT,
                        MPI_STATUS_IGNORE);
         goffset += nc * sizeof(float) * 3;
@@ -904,7 +907,7 @@ void ioWriteStepVTK(int step)
         for (j = 0; j < lnc; j++)
                 integerScalarField[j] = 1;
         if (endian)
-                swap_Nbyte((char *) integerScalarField, lnc, sizeof(int));
+                swapnbyte((char *) integerScalarField, lnc, sizeof(int));
         MPI_File_write(fh, integerScalarField, lnc, MPI_INT, MPI_STATUS_IGNORE);
         goffset += nc * sizeof(int);
         MPI_File_seek(fh, goffset, MPI_SEEK_SET);
@@ -937,7 +940,7 @@ void ioWriteStepVTK(int step)
                                 offset = nprev * sizeof(float);
                                 MPI_File_seek(fh, offset, MPI_SEEK_CUR);
                                 if (endian)
-                                        swap_Nbyte((char *) floatScalarField, lnc, sizeof(float));
+                                        swapnbyte((char *) floatScalarField, lnc, sizeof(float));
                                 MPI_File_write(fh, floatScalarField, lnc, MPI_FLOAT,
                                                MPI_STATUS_IGNORE);
                                 goffset += nc * sizeof(float);
@@ -956,7 +959,7 @@ void ioWriteStepVTK(int step)
                                 offset = nprev * sizeof(int);
                                 MPI_File_seek(fh, offset, MPI_SEEK_CUR);
                                 if (endian)
-                                        swap_Nbyte((char *) integerScalarField, lnc, sizeof(int));
+                                        swapnbyte((char *) integerScalarField, lnc, sizeof(int));
                                 MPI_File_write(fh, integerScalarField, lnc, MPI_INT,
                                                MPI_STATUS_IGNORE);
                                 goffset += nc * sizeof(int);
@@ -988,7 +991,7 @@ void ioWriteStepVTK(int step)
                                 offset = nprev * sizeof(float) * 3;
                                 MPI_File_seek(fh, offset, MPI_SEEK_CUR);
                                 if (endian)
-                                        swap_Nbyte((char *) floatVectorField, lnc * 3, sizeof(float));
+                                        swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
                                 MPI_File_write(fh, floatVectorField, lnc * 3, MPI_FLOAT,
                                                MPI_STATUS_IGNORE);
                                 goffset += nc * 3 * sizeof(float);
@@ -1017,7 +1020,7 @@ void ioWriteStepVTK(int step)
                                 offset = nprev * sizeof(float) * 3;
                                 MPI_File_seek(fh, offset, MPI_SEEK_CUR);
                                 if (endian)
-                                        swap_Nbyte((char *) floatVectorField, lnc * 3, sizeof(float));
+                                        swapnbyte((char *) floatVectorField, lnc * 3, sizeof(float));
                                 MPI_File_write(fh, floatVectorField, lnc * 3, MPI_FLOAT,
                                                MPI_STATUS_IGNORE);
                                 goffset += nc * 3 * sizeof(float);
@@ -1033,25 +1036,6 @@ void ioWriteStepVTK(int step)
 
         MPI_File_close(&fh);
 }
-
-/*!
- * This function prints the actual step number and
- * total number of cells in the system.
- */
-void printStepNum()
-{
-        if (MPIrank == 0) {
-                printf
-                        ("\n-------------------------------------------------------------------------\n");
-                printf(" Step %8d,%15s%8.4f%20s%14" PRId64 " ", step, "Time step = ",
-                       secondsPerStep, "Number of cells = ", nc);
-                fflush(stdout);
-                printf
-                        ("\n-------------------------------------------------------------------------\n\n");
-                printf(" Time: %8.4f\n\n", simTime);
-        }
-}
-
 
 /*!
  * This function defines output for global fields.
@@ -1196,7 +1180,7 @@ void ioWriteFields(int step)
                         floatVectorField[j].z = (float) (gridBuffer[j].z);
                 }
                 if (!endian)
-                        swap_Nbyte((char *) floatVectorField, size * 3, sizeof(float));
+                        swapnbyte((char *) floatVectorField, size * 3, sizeof(float));
                 MPI_File_write(fh1, floatVectorField, 3 * size, MPI_FLOAT,
                                MPI_STATUS_IGNORE);
                 MPI_File_close(&fh1);
@@ -1217,7 +1201,7 @@ void ioWriteFields(int step)
                         for (j = 0; j < size; j++)
                                 floatScalarField[j] = fieldAddr[f][j];
                         if (!endian)
-                                swap_Nbyte((char *) floatScalarField, size, sizeof(float));
+                                swapnbyte((char *) floatScalarField, size, sizeof(float));
                         MPI_File_write(fh2, floatScalarField, size, MPI_FLOAT,
                                        MPI_STATUS_IGNORE);
                 } else {
@@ -1230,7 +1214,7 @@ void ioWriteFields(int step)
                                 //if(floatVectorField[j].z!=0.0) printf("J:%d\n",j);
                         }
                         if (!endian)
-                                swap_Nbyte((char *) floatVectorField, size*3, sizeof(float));
+                                swapnbyte((char *) floatVectorField, size*3, sizeof(float));
                         MPI_File_write(fh2, floatVectorField, size*3, MPI_FLOAT,
                                        MPI_STATUS_IGNORE);
                 }

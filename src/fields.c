@@ -25,7 +25,11 @@
 #include <math.h>
 
 #include "global.h"
+
 #include "fields.h"
+#include "utils.h"
+#include "chemf.h"
+#include "cells.h"
 
 /*! \file
  *  \brief contains driving functions for the global fields
@@ -83,7 +87,7 @@ void fieldsInit()
         }
         nf++;
 
-        if(temperature) {
+        /*if(temperature) {
                 strcpy(fieldName[nf], "temp");
                 fieldType[nf] = SCALAR_FIELD;
                 fieldAddr[nf] =
@@ -96,8 +100,8 @@ void fieldsInit()
                 fieldBC[nf] = 42.0;
                 fieldICMean[nf] = 36.0;
                 fieldICVar[nf] = 0;
-        }
-        nf++;
+           }
+           nf++;*/
 
         /* set default values for chemical parameters */
         for (chf = 0; chf < NCHEM; chf++) {
@@ -146,11 +150,11 @@ void fieldsInit()
         }
 
         /* initialize temperature field */
-        if (temperature) {
+        /*if (temperature) {
                 tempEnvInitSystem();
                 tempEnvInitBC();
                 tempEnvInitSolver();
-        }
+           }*/
 
         /* initialize chemical fields */
         for (i = 0; i < NCHEM; i++) {
@@ -180,8 +184,8 @@ void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo)
                 if (gfIter > 0)
                         cellsupdate(settings,cellsinfo);
                 /* solve temperature field */
-                if (temperature)
-                        tempEnvSolve();
+                /*if (temperature)
+                        tempEnvSolve();*/
                 /* solve chemical fields */
                 for (i = 0; i < NCHEM; i++) {
                         if (i == 0 && !oxygen)
