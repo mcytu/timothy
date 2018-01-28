@@ -497,7 +497,7 @@ void writevtk(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo)
         }
         offset = nprev * sizeof(float) * 3;
         MPI_File_seek(fhandle, goffset+offset, MPI_SEEK_SET);
-        if (endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
+        if (systeminfo.endian) swapnbyte((char *) floatvectorfield, cellsinfo.localcount.n * 3, sizeof(float));
         MPI_File_write(fhandle, floatvectorfield, cellsinfo.localcount.n * 3, MPI_FLOAT, MPI_STATUS_IGNORE);
         goffset += cellsinfo.localcount.n * 3 * sizeof(float);
         MPI_File_seek(fhandle, goffset, MPI_SEEK_SET);

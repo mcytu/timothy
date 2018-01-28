@@ -253,7 +253,7 @@ void printinfo(systeminfo_t systeminfo) {
                 printf("processes per node: %d\n",systeminfo.nodesize);
                 printf("threads per process: %d\n",systeminfo.nthreads);
                 printf("systeminfo: ");
-                if (endian)
+                if (systeminfo.endian)
                         printf("%s, little endian\n", CPUARCH);
                 else
                         printf("%s, big endian\n", CPUARCH);

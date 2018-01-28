@@ -192,7 +192,7 @@ void octbuild(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* cellty
         cellsinfo->octmaxsize=cellsinfo->localcount.n*64;
         if(!(cellsinfo->octree=(octnode_t*) malloc(sizeof(octnode_t)*cellsinfo->octmaxsize)))
                 terminate(systeminfo,"cannot allocate cellsinfo->octree", __FILE__, __LINE__);
-        root=0;
+
         cellsinfo->octsize=0;
         octemptynode(-1,ROOT_LEVEL,0,0,0,systeminfo,cellsinfo);
 

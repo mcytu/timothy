@@ -67,43 +67,6 @@ int main(int argc, char **argv)
 
         MPI_Abort(MPI_COMM_WORLD,-1);
 
-
-        for (step = 0; step < nsteps; step++) {
-
-//    ioWriteStepVTK(step);
-
-                //  if (!(step % statOutStep))
-                //          printStepNum();
-
-                //decompositionExecute();
-                //octBuild();
-                //createExportList();
-                //computeStep();
-
-                //if (!(step % statOutStep))
-                //statisticsPrint();
-
-                if (simStart)
-                        simTime += secondsPerStep / 3600.0; /* biological process time in hours */
-
-                /*      if (!(step % vtkOutStep)) {
-                              if (vtkout)
-                                      ioWriteStepVTK(step);
-                              if (povout)
-                                      ioWriteStepPovRay(step, 0);
-                   //      if (vnfout)
-                   //        ioWriteFields(step);
-                      }*/
-
-                //updateCellPositions(statistics);
-                //updateCellStates();
-                //commCleanup();
-                //octfree();
-
-                //if (!(step % rstOutStep))
-                //        saveRstFile();
-        }
-
         MPI_Barrier(MPI_COMM_WORLD);
 
         //decompositionFinalize();

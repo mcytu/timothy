@@ -77,7 +77,6 @@ void cellsrandominit(int nrandom,int ctype,systeminfo_t systeminfo,settings_t se
         if (settings.dimension == 3)
                 D = celltype[ctype].size*pow(8.0 * nrandom, 1.0 / 3.0);
 
-        simTime = 0;
         for (i = 0; i < nrandom; i++) {
 
                 r2 = 1.1;

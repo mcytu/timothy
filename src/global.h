@@ -81,7 +81,6 @@ struct cellData {
   double y;              /* y coordinate of the particle position */
   double z;              /* z coordinate of the particle position */
   double size;           /* radius of the cell */
-//  double h;              /* neighbourhood of the cell */
   double v;              /* particle potential */
   double density;        /* particle density */
   double scalarField;    /* additional scalar field which can be used for analysis of results (printed to the output VTK files) */
@@ -327,12 +326,6 @@ typedef struct environment_t {
 	double *data;
 } environment_t;
 
-
-//#define CELLENVINTER_PROD_DEFAULT 0.0
-//#define CELLENFINTER_CONS_DEFAULT 0.0
-//#define CELLENVINTER_CL1_DEFAULT 100
-//#define CELLENVINTER_CL2_DEFAULT 100
-
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]
 #define g1nc totalCellCount[2]
@@ -407,14 +400,6 @@ int nsteps; 		/* number of simulation steps */
 int simStart;  	        /* start simulation flag */
 int step; 		/* step number */
 float tstep; 		/* time step size */
-float simTime;          /* time of the simulation */
-float maxSpeed;         /* maximal displacement of cells in a single time step given by fraction of cell size */
-float maxSpeedInUnits;  /* maximal displacement in cm/s */
-char cOutType[3];
-char fOutType[3];
-int vtkout;
-int povout;
-int vnfout;
 
 /* cell cycle */
 float g1;               /* mean duration of G1 phase - healthy tissue */
@@ -432,10 +417,6 @@ float cm;               /* mean duration of M phase - cancer cells */
 double MIC_ATTR csize;           /* cell initial size, no units */
 double csizeInUnits;    /* cell size in micrometers */
 double cellVolume;      /* cell volume */
-//double MIC_ATTR h;               /* cell neighbourhood radius */
-//double MIC_ATTR h2;              /* 2nd power of h */
-//double MIC_ATTR h3;              /* 3rd power of h */
-//double MIC_ATTR h4;              /* 4th power of h */
 
 int cancer;
 
@@ -504,9 +485,7 @@ typedef struct statistics_t {
 statistics_t statistics;
 
 /* randomization */
-#define SEED 985456376
 int *stream;
-
 
 #define N_LEVELS 30
 #define ROOT_LEVEL N_LEVELS-1
@@ -515,12 +494,9 @@ int *stream;
 /* properties of the affine transformation */
 double3dv_t MIC_ATTR affShift;
 double MIC_ATTR affScale;
-int64_t root;
 
 typedef struct octheap_t {
   int size;
   int count;
   int *data;
 } octheap_t;
-
-int ni;
