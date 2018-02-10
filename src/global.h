@@ -19,6 +19,10 @@
  * *************************************************************************/
 
 #include <zoltan.h>
+#include "_hypre_utilities.h"
+#include "HYPRE_sstruct_ls.h"
+#include "HYPRE_parcsr_ls.h"
+#include "HYPRE_krylov.h"
 #include <stdbool.h>
 
 /*! \file global.h
@@ -325,6 +329,14 @@ typedef struct environment_t {
 	double lambdadelay;
 	double *data;
 } environment_t;
+
+#ifdef HYPRE
+typedef struct solverdata_t {
+	double *z;
+  HYPRE_SStructVariable *vartypes;
+	HYPRE_SStructStencil *stencil;
+} solverdata_t;
+#endif
 
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]

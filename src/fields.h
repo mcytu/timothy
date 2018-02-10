@@ -31,7 +31,8 @@
 #define SCALAR_FIELD 1
 #define VECTOR_FIELD 2
 
-void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t *environment);
+void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata);
+void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment);
 void fieldsInit();
 void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo);
 void allocateFieldGradient();

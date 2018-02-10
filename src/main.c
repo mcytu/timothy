@@ -38,6 +38,7 @@ int main(int argc, char **argv)
         grid_t grid;
         commdata_t commdata;
         statistics_t statistics;
+        solverdata_t solverdata;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_size(MPI_COMM_WORLD, &systeminfo.size);
@@ -49,7 +50,8 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
         allocatecells(systeminfo,settings,celltype,&cellsinfo);
         allocategrid(systeminfo,settings,&grid);
-        allocatefields(systeminfo,settings,grid,environment);
+        allocatefields(systeminfo,settings,grid,&environment,&solverdata);
+        initfields(systeminfo,settings,grid,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {

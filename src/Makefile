@@ -20,7 +20,7 @@
 CC=mpicc
 CFLAGS=-O2 -g -fopenmp  -ffast-math -ftree-vectorize -finline-functions -Winline
 LDFLAGS = -fopenmp
-DEFS=#-DDEBUG
+DEFS=-DHYPRE #-DDEBUG
 
 ZOLTANLIB=-L/opt/zoltan/lib -lzoltan
 ZOLTANINC=-I/opt/zoltan/include
