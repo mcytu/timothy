@@ -198,7 +198,8 @@ typedef struct grid_t{
   int643dv_t localsize;
   float resolution;
   int643dv_t *loweridx,*upperidx;
-  double3dv_t *data;
+	double3dv_t *lowleftnear,*uprightfar;
+  //double3dv_t *data;
 } grid_t;
 /* NEW */
 
