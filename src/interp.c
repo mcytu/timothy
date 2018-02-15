@@ -49,6 +49,36 @@ struct int64Vector3d *patchSize;
 //struct int64Vector3d *patchSizeR;
 #define patch(p,f,i,j,k) (cicPatch[p][patchSize[p].x*patchSize[p].y*patchSize[p].z*f+patchSize[p].y*patchSize[p].z*i+patchSize[p].z*j+k])
 
+
+void createinterpdata(systeminfo_t systeminfo,settings_t settings,grid_t grid,cellsinfo_t cellsinfo) {
+        int i,j;
+        int nexport[systeminfo.size];
+        for(i=0; i<systeminfo.size; i++)
+                nexport[i]=0;
+
+        for(i=0; i<cellsinfo.localcount.n; i++) {
+                double x,y,z;
+                x=cellsinfo.cells[i].x;
+                y=cellsinfo.cells[i].y;
+                z=cellsinfo.cells[i].z;
+                for(j=0; j<systeminfo.size; j++) {
+                        if(x>=grid.lowleftnear[j].x && x<grid.uprightfar[j].x &&
+                           y>=grid.lowleftnear[j].y && y<grid.uprightfar[j].y &&
+                           z>=grid.lowleftnear[j].z && z<grid.uprightfar[j].z ) {
+                                nexport[j]++;
+                                break;
+                        }
+                }
+        }
+        printf("%d n=%d \n",systeminfo.rank,cellsinfo.localcount.n);
+        for(i=0; i<systeminfo.size; i++)
+                printf("%d %d:%d \n",systeminfo.rank,i,nexport[i]);
+
+
+}
+
+
+
 /*!
  * For each local cell we check its position in the grid.
  * If cell is located in the grid partition of other process

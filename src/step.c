@@ -37,7 +37,7 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata)
+int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata,interpdata_t *interpdata)
 {
         int p;
         double sf;

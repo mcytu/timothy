@@ -201,6 +201,25 @@ typedef struct grid_t{
 	double3dv_t *lowleftnear,*uprightfar;
   //double3dv_t *data;
 } grid_t;
+
+typedef struct expinterpdata_t {
+	double x;
+	double y;
+	double z;
+	int ctype;
+} expinterpdata_t;
+
+typedef struct interpdata_t {
+	MPI_Request *reqsend;
+	MPI_Request *reqrecv;
+	int *recvcount;
+	int *sendcount;
+	expinterpdata_t *sendinterpdata;
+	expinterpdata_t *recvinterpdata;
+	int numexp;
+	int numimp;
+} interpdata_t;
+
 /* NEW */
 
 typedef struct expcelldata_t { /* this structure keeps cell data needed in potential computations */

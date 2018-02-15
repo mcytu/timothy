@@ -37,6 +37,7 @@ int main(int argc, char **argv)
         cellsinfo_t cellsinfo;
         grid_t grid;
         commdata_t commdata;
+        interpdata_t interpdata;
         statistics_t statistics;
         solverdata_t solverdata;
 
@@ -58,8 +59,9 @@ int main(int argc, char **argv)
                 updateglobalcounts(&cellsinfo);
                 lbexchange(systeminfo);
                 octbuild(systeminfo,&cellsinfo,celltype);
+                createinterpdata(systeminfo,settings,grid,cellsinfo);
                 createexportlist(systeminfo,settings,cellsinfo,celltype,&commdata);
-                singlestep(systeminfo,&cellsinfo,celltype,&commdata);
+                singlestep(systeminfo,&cellsinfo,celltype,&commdata,&interpdata);
                 exchangecleanup(systeminfo,cellsinfo,&commdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(settings,&cellsinfo);
