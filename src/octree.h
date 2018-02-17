@@ -29,4 +29,4 @@ void octheappush(octheap_t *ttheap,int idx);
 int octheappop(octheap_t *ttheap);
 void octheapfree(octheap_t *ttheap);
 static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
-void octcomputeboxr(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,commdata_t commdata,celltype_t* celltype);
+void octcomputeboxr(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,cellcommdata_t cellcommdata,celltype_t* celltype);

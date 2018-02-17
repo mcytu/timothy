@@ -25,28 +25,6 @@
 #include "global.h"
 #include "utils.h"
 
-/*! \file comm.c
- *  \brief contains communication functions
- */
-
-/* data type for IDs of exported cells */
-struct expData {
-        int cell;
-        int proc;
-};
-
-MPI_Request *reqSend;
-MPI_Request *reqRecv;
-
-int64_t *sendOffset;
-int64_t *recvOffset;
-
-struct expData *expList;
-
-int *recvCount;
-int *sendCount;
-
-#define MAX_EXPORTED_PER_PROC 2*maxCellsPerProc
 
 /*!
  * This function is a comparison function used
@@ -62,31 +40,31 @@ int explistcompare(const void *a, const void *b)
  * to find possible intersections of cells' neighbourhoods
  * and other processes' geometries.
  */
-void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,celltype_t* celltype,commdata_t *commdata)
+void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,celltype_t* celltype,cellcommdata_t *cellcommdata)
 {
 
         int i, p;
         int procs[systeminfo.size];
         int numprocs;
 
-        commdata->numexp = 0;
-        commdata->numimp = 0;
+        cellcommdata->numexp = 0;
+        cellcommdata->numimp = 0;
 
-        commdata->explistmaxsize=settings.maxlocalcells;
+        cellcommdata->explistmaxsize=settings.maxlocalcells;
 
         if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC || systeminfo.size == 1)
                 return;
 
-        if(!(commdata->explist = (explist_t*) malloc(sizeof(explist_t) * commdata->explistmaxsize)))
-                terminate(systeminfo,"cannot allocate commdata->explist", __FILE__, __LINE__);
-        if(!(commdata->recvcount = (int *) calloc(systeminfo.size, sizeof(int))))
-                terminate(systeminfo,"cannot allocate commdata->recvcount", __FILE__, __LINE__);
-        if(!(commdata->sendcount = (int *) calloc(systeminfo.size, sizeof(int))))
-                terminate(systeminfo,"cannot allocate commdata->sendcount", __FILE__, __LINE__);
-        if(!(commdata->sendoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
-                terminate(systeminfo,"cannot allocate commdata->sendoffset", __FILE__, __LINE__);
-        if(!(commdata->recvoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
-                terminate(systeminfo,"cannot allocate commdata->recvoffset", __FILE__, __LINE__);
+        if(!(cellcommdata->explist = (explist_t*) malloc(sizeof(explist_t) * cellcommdata->explistmaxsize)))
+                terminate(systeminfo,"cannot allocate cellcommdata->explist", __FILE__, __LINE__);
+        if(!(cellcommdata->recvcount = (int *) calloc(systeminfo.size, sizeof(int))))
+                terminate(systeminfo,"cannot allocate cellcommdata->recvcount", __FILE__, __LINE__);
+        if(!(cellcommdata->sendcount = (int *) calloc(systeminfo.size, sizeof(int))))
+                terminate(systeminfo,"cannot allocate cellcommdata->sendcount", __FILE__, __LINE__);
+        if(!(cellcommdata->sendoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
+                terminate(systeminfo,"cannot allocate cellcommdata->sendoffset", __FILE__, __LINE__);
+        if(!(cellcommdata->recvoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
+                terminate(systeminfo,"cannot allocate cellcommdata->recvoffset", __FILE__, __LINE__);
 
         /* loop over local cells */
         /*#pragma omp parallel for private(procs) */
@@ -116,37 +94,37 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
                 for (i = 0; i < numprocs; i++) {
                         if (procs[i] == systeminfo.rank || cellsinfo.cellsperproc[procs[i]] == 0)
                                 continue;
-                        commdata->explist[commdata->numexp].cell = p;
-                        commdata->explist[commdata->numexp].proc = procs[i];
-                        commdata->sendcount[procs[i]]++;
-                        commdata->numexp++;
+                        cellcommdata->explist[cellcommdata->numexp].cell = p;
+                        cellcommdata->explist[cellcommdata->numexp].proc = procs[i];
+                        cellcommdata->sendcount[procs[i]]++;
+                        cellcommdata->numexp++;
                         /* too many refugees  - reallocate */
-                        if (commdata->numexp >= commdata->explistmaxsize) {
-                                commdata->explistmaxsize+=64;
-                                if(!(commdata->explist=(explist_t*)realloc(commdata->explist,sizeof(explist_t)*commdata->explistmaxsize))) {
-                                        terminate(systeminfo,"cannot reallocate commdata->explist", __FILE__, __LINE__);
+                        if (cellcommdata->numexp >= cellcommdata->explistmaxsize) {
+                                cellcommdata->explistmaxsize+=64;
+                                if(!(cellcommdata->explist=(explist_t*)realloc(cellcommdata->explist,sizeof(explist_t)*cellcommdata->explistmaxsize))) {
+                                        terminate(systeminfo,"cannot reallocate cellcommdata->explist", __FILE__, __LINE__);
                                 }
                         }
                 }
         }
 
         /* sort export list with respect to process number */
-        qsort(commdata->explist, commdata->numexp, sizeof(explist_t), explistcompare);
+        qsort(cellcommdata->explist, cellcommdata->numexp, sizeof(explist_t), explistcompare);
         /* distribute the information on transfer sizes between each process */
-        MPI_Alltoall(commdata->sendcount, 1, MPI_INT, commdata->recvcount, 1, MPI_INT, MPI_COMM_WORLD);
+        MPI_Alltoall(cellcommdata->sendcount, 1, MPI_INT, cellcommdata->recvcount, 1, MPI_INT, MPI_COMM_WORLD);
         /* compute send offsets */
-        commdata->sendoffset[0] = 0;
+        cellcommdata->sendoffset[0] = 0;
         for (i = 1; i < systeminfo.size; i++)
-                commdata->sendoffset[i] = commdata->sendoffset[i - 1] + commdata->sendcount[i - 1];
+                cellcommdata->sendoffset[i] = cellcommdata->sendoffset[i - 1] + cellcommdata->sendcount[i - 1];
 
         /* compute receive offsets */
-        commdata->recvoffset[0] = 0;
+        cellcommdata->recvoffset[0] = 0;
         for (i = 1; i < systeminfo.size; i++)
-                commdata->recvoffset[i] = commdata->recvoffset[i - 1] + commdata->recvcount[i - 1];
+                cellcommdata->recvoffset[i] = cellcommdata->recvoffset[i - 1] + cellcommdata->recvcount[i - 1];
 
         /* count cells to be imported */
         for (i = 0; i < systeminfo.size; i++)
-                commdata->numimp += commdata->recvcount[i];
+                cellcommdata->numimp += cellcommdata->recvcount[i];
         return;
 }
 
@@ -154,67 +132,67 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
  * This function deallocates all communication buffers and
  * auxiliary tables.
  */
-void exchangecleanup(systeminfo_t systeminfo,cellsinfo_t cellsinfo,commdata_t *commdata)
+void exchangecleanup(systeminfo_t systeminfo,cellsinfo_t cellsinfo,cellcommdata_t *cellcommdata)
 {
         if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC || systeminfo.size == 1)
                 return;
-        free(commdata->recvcelldata);
-        free(commdata->recvdpdata);
-        free(commdata->explist);
-        free(commdata->recvcount);
-        free(commdata->sendcount);
-        free(commdata->sendoffset);
-        free(commdata->recvoffset);
+        free(cellcommdata->recvcellindata);
+        free(cellcommdata->recvcelloutdata);
+        free(cellcommdata->explist);
+        free(cellcommdata->recvcount);
+        free(cellcommdata->sendcount);
+        free(cellcommdata->sendoffset);
+        free(cellcommdata->recvoffset);
         return;
 }
 
 /*!
  * This function initiate sending and receiving cells' data between processes.
  */
-void cellssendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commdata)
+void cellssendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, cellcommdata_t *cellcommdata)
 {
         int i;
 
         if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC || systeminfo.size == 1)
                 return;
 
-        expcelldata_t *sendcelldata;
-        expcelldata_t *recvcelldata;
-        expdpdata_t *senddpdata;
-        expdpdata_t *recvdpdata;
+        cellindata_t *sendcellindata;
+        cellindata_t *recvcellindata;
+        celloutdata_t *sendcelloutdata;
+        celloutdata_t *recvcelloutdata;
         /* allocate communication buffers */
-        commdata->sendcelldata = (expcelldata_t *) malloc(commdata->numexp * sizeof(expcelldata_t));
-        commdata->recvcelldata = (expcelldata_t *) malloc(commdata->numimp * sizeof(expcelldata_t));
-        commdata->reqsend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
-        commdata->reqrecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cellcommdata->sendcellindata = (cellindata_t *) malloc(cellcommdata->numexp * sizeof(cellindata_t));
+        cellcommdata->recvcellindata = (cellindata_t *) malloc(cellcommdata->numimp * sizeof(cellindata_t));
+        cellcommdata->reqsend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cellcommdata->reqrecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
 
         /* create reduced particle data buffer for exporting */
-        for (i = 0; i < commdata->numexp; i++) {
-                int64_t cellidx=commdata->explist[i].cell;
-                commdata->sendcelldata[i].x = cellsinfo.cells[cellidx].x;
-                commdata->sendcelldata[i].y = cellsinfo.cells[cellidx].y;
-                commdata->sendcelldata[i].z = cellsinfo.cells[cellidx].z;
-                commdata->sendcelldata[i].size = cellsinfo.cells[cellidx].size;
-                commdata->sendcelldata[i].young = (double) cellsinfo.cells[cellidx].young;
-                commdata->sendcelldata[i].ctype = cellsinfo.cells[cellidx].ctype;
+        for (i = 0; i < cellcommdata->numexp; i++) {
+                int64_t cellidx=cellcommdata->explist[i].cell;
+                cellcommdata->sendcellindata[i].x = cellsinfo.cells[cellidx].x;
+                cellcommdata->sendcellindata[i].y = cellsinfo.cells[cellidx].y;
+                cellcommdata->sendcellindata[i].z = cellsinfo.cells[cellidx].z;
+                cellcommdata->sendcellindata[i].size = cellsinfo.cells[cellidx].size;
+                cellcommdata->sendcellindata[i].young = (double) cellsinfo.cells[cellidx].young;
+                cellcommdata->sendcellindata[i].ctype = cellsinfo.cells[cellidx].ctype;
         }
 
         /* send cells - asynchronous MPI call */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                MPI_Isend(&(commdata->sendcelldata[commdata->sendoffset[i]]),
-                          commdata->sendcount[i] * sizeof(expcelldata_t), MPI_BYTE, i, systeminfo.rank,
-                          MPI_COMM_WORLD, &(commdata->reqsend[i]));
+                MPI_Isend(&(cellcommdata->sendcellindata[cellcommdata->sendoffset[i]]),
+                          cellcommdata->sendcount[i] * sizeof(cellindata_t), MPI_BYTE, i, systeminfo.rank,
+                          MPI_COMM_WORLD, &(cellcommdata->reqsend[i]));
         }
 
         /* receive cells - asynchronous MPI call */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                MPI_Irecv(&(commdata->recvcelldata[commdata->recvoffset[i]]),
-                          commdata->recvcount[i] * sizeof(expcelldata_t), MPI_BYTE, i, i,
-                          MPI_COMM_WORLD, &(commdata->reqrecv[i]));
+                MPI_Irecv(&(cellcommdata->recvcellindata[cellcommdata->recvoffset[i]]),
+                          cellcommdata->recvcount[i] * sizeof(cellindata_t), MPI_BYTE, i, i,
+                          MPI_COMM_WORLD, &(cellcommdata->reqrecv[i]));
         }
 
         return;
@@ -223,7 +201,7 @@ void cellssendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *c
 /*!
  * This function waits for cells' data exchange completion.
  */
-void cellswait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commdata)
+void cellswait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, cellcommdata_t *cellcommdata)
 {
         int i;
         MPI_Status status;
@@ -233,31 +211,31 @@ void cellswait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commd
 
         /* wait for send completion */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                if (MPI_Wait(&(commdata->reqsend[i]), &status) != MPI_SUCCESS)
+                if (MPI_Wait(&(cellcommdata->reqsend[i]), &status) != MPI_SUCCESS)
                         terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
 
         /* wait for receive completion */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                if (MPI_Wait(&(commdata->reqrecv[i]), &status) != MPI_SUCCESS)
+                if (MPI_Wait(&(cellcommdata->reqrecv[i]), &status) != MPI_SUCCESS)
                         terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
 
         /* some of the buffers can be deallocated here */
-        free(commdata->sendcelldata);
-        free(commdata->reqsend);
-        free(commdata->reqrecv);
+        free(cellcommdata->sendcellindata);
+        free(cellcommdata->reqsend);
+        free(cellcommdata->reqrecv);
 }
 
 /*!
  * This function initiate sending and receiving density
  * and potential values between processes.
  */
-void datasendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commdata)
+void datasendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, cellcommdata_t *cellcommdata)
 {
         int i;
 
@@ -265,36 +243,36 @@ void datasendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *co
                 return;
 
         /* allocate communication buffers */
-        commdata->senddpdata =
-                (expdpdata_t *) malloc(commdata->numexp * sizeof(expdpdata_t));
-        commdata->recvdpdata =
-                (expdpdata_t *) malloc(commdata->numimp * sizeof(expdpdata_t));
-        commdata->reqsend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
-        commdata->reqrecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cellcommdata->sendcelloutdata =
+                (celloutdata_t *) malloc(cellcommdata->numexp * sizeof(celloutdata_t));
+        cellcommdata->recvcelloutdata =
+                (celloutdata_t *) malloc(cellcommdata->numimp * sizeof(celloutdata_t));
+        cellcommdata->reqsend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cellcommdata->reqrecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
 
         /* create density and potential buffer for exporting */
-        for (i = 0; i < commdata->numexp; i++) {
-                int64_t cellidx=commdata->explist[i].cell;
-                commdata->senddpdata[i].v = cellsinfo.cells[cellidx].v;
-                commdata->senddpdata[i].density = cellsinfo.cells[cellidx].density;
+        for (i = 0; i < cellcommdata->numexp; i++) {
+                int64_t cellidx=cellcommdata->explist[i].cell;
+                cellcommdata->sendcelloutdata[i].v = cellsinfo.cells[cellidx].v;
+                cellcommdata->sendcelloutdata[i].density = cellsinfo.cells[cellidx].density;
         }
 
         /* send data - asynchronous MPI call */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                MPI_Isend(&(commdata->senddpdata[commdata->sendoffset[i]]),
-                          commdata->sendcount[i] * sizeof(expdpdata_t), MPI_BYTE, i,
-                          systeminfo.rank, MPI_COMM_WORLD, &(commdata->reqsend[i]));
+                MPI_Isend(&(cellcommdata->sendcelloutdata[cellcommdata->sendoffset[i]]),
+                          cellcommdata->sendcount[i] * sizeof(celloutdata_t), MPI_BYTE, i,
+                          systeminfo.rank, MPI_COMM_WORLD, &(cellcommdata->reqsend[i]));
         }
 
         /* receive data - asynchronous MPI call */
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                MPI_Irecv(&(commdata->recvdpdata[commdata->recvoffset[i]]),
-                          commdata->recvcount[i] * sizeof(expdpdata_t), MPI_BYTE, i, i,
-                          MPI_COMM_WORLD, &(commdata->reqrecv[i]));
+                MPI_Irecv(&(cellcommdata->recvcelloutdata[cellcommdata->recvoffset[i]]),
+                          cellcommdata->recvcount[i] * sizeof(celloutdata_t), MPI_BYTE, i, i,
+                          MPI_COMM_WORLD, &(cellcommdata->reqrecv[i]));
         }
 
         return;
@@ -303,7 +281,7 @@ void datasendrecv(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *co
 /*!
  * This function waits for density and potential data exchange completion.
  */
-void datawait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commdata)
+void datawait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, cellcommdata_t *cellcommdata)
 {
         int i;
         MPI_Status status;
@@ -313,22 +291,22 @@ void datawait(systeminfo_t systeminfo, cellsinfo_t cellsinfo, commdata_t *commda
 
         // Wait for send completion
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->sendcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                if (MPI_Wait(&(commdata->reqsend[i]), &status) != MPI_SUCCESS)
+                if (MPI_Wait(&(cellcommdata->reqsend[i]), &status) != MPI_SUCCESS)
                         terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
 
         // Wait for receive completion
         for (i = 0; i < systeminfo.size; i++) {
-                if (commdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
+                if (cellcommdata->recvcount[i] == 0 || cellsinfo.cellsperproc[i] == 0 || cellsinfo.localcount.n == 0)
                         continue;
-                if (MPI_Wait(&(commdata->reqrecv[i]), &status) != MPI_SUCCESS)
+                if (MPI_Wait(&(cellcommdata->reqrecv[i]), &status) != MPI_SUCCESS)
                         terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
         /* some of the buffers can be deallocated */
-        free(commdata->senddpdata);
-        free(commdata->reqsend);
-        free(commdata->reqrecv);
+        free(cellcommdata->sendcelloutdata);
+        free(cellcommdata->reqsend);
+        free(cellcommdata->reqrecv);
         return;
 }

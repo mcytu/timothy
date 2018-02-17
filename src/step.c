@@ -37,7 +37,7 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,commdata_t *commdata,interpdata_t *interpdata)
+int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,cellcommdata_t *cellcommdata,interpdata_t *interpdata)
 {
         int p;
         double sf;
@@ -47,12 +47,12 @@ int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* cell
         //initCellsToGridExchange();
 
         /* initiate asynchronous data transfers between processors */
-        cellssendrecv(systeminfo,*cellsinfo,commdata);
+        cellssendrecv(systeminfo,*cellsinfo,cellcommdata);
 
         /* 1. Compute potential for local cells */
 
         /* compute potential for local cells */
-        computepotential(cellsinfo,celltype,*commdata);
+        computepotential(cellsinfo,celltype,*cellcommdata);
 
         /* 2. Solve global fields */
 
@@ -63,10 +63,10 @@ int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* cell
 
 
         /* wait for data transfers to finish */
-        cellswait(systeminfo,*cellsinfo,commdata);
+        cellswait(systeminfo,*cellsinfo,cellcommdata);
 
         /* 3. Compute potential for remote cells */
-        computeremotepotential(cellsinfo,celltype,*commdata);
+        computeremotepotential(cellsinfo,celltype,*cellcommdata);
 
         /* 4. Add chemotactic term to potential */
 
@@ -74,9 +74,9 @@ int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* cell
 
         /* 5. Compute gradient of the potential for local cells */
         /* initiate transfer of the density and potential data from remote cells */
-        datasendrecv(systeminfo,*cellsinfo,commdata);
+        datasendrecv(systeminfo,*cellsinfo,cellcommdata);
         /* compute gradient of the potential for local cells */
-        computegradient(cellsinfo,celltype,*commdata);
+        computegradient(cellsinfo,celltype,*cellcommdata);
 
         /* 6. Interpolate global fields and compute gradient */
 
@@ -87,10 +87,10 @@ int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* cell
 
         /* 7. Compute gradient of the potential for remote cells */
         /* wait for density and potential data from remote cells */
-        datawait(systeminfo,*cellsinfo,commdata);
+        datawait(systeminfo,*cellsinfo,cellcommdata);
 
         /* compute gradient of the potential for remote cells */
-        computeremotegradient(cellsinfo,celltype,*commdata);
+        computeremotegradient(cellsinfo,celltype,*cellcommdata);
 
         return 0;
 }

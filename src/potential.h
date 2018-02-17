@@ -20,7 +20,7 @@
  *
  * *************************************************************************/
 
-void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
-void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
-void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
-void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata);
+void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata);
+void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata);
+void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata);
+void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata);

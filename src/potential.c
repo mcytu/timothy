@@ -84,7 +84,7 @@ double potential(int dimension,celldata_t* c1,celldata_t* c2,celltype_t celltype
  * This function implements tree walk algorithm for each local cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
+void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         if(cellsinfo->localcount.n<=1) return;
         #pragma omp parallel
@@ -141,14 +141,14 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t com
  * This function implements tree walk algorithm for each remote cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
+void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
-        if(commdata.numimp<=0) return;
+        if(cellcommdata.numimp<=0) return;
         #pragma omp parallel
         {
                 int rp;
                 #pragma omp for schedule(dynamic,64)
-                for (rp = 0; rp < commdata.numimp; rp++) {
+                for (rp = 0; rp < cellcommdata.numimp; rp++) {
                         int64_t cellIdx;
                         int newIdx;
                         int s;
@@ -156,14 +156,14 @@ void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata
                         uint3dv_t minLocCode,maxLocCode;
                         octheap_t octh;
                         celldata_t cell;
-                        cell.x=commdata.recvcelldata[rp].x;
-                        cell.y=commdata.recvcelldata[rp].y;
-                        cell.z=commdata.recvcelldata[rp].z;
-                        cell.size=commdata.recvcelldata[rp].size;
-                        cell.young=commdata.recvcelldata[rp].young;
-                        cell.ctype=commdata.recvcelldata[rp].ctype;
+                        cell.x=cellcommdata.recvcellindata[rp].x;
+                        cell.y=cellcommdata.recvcellindata[rp].y;
+                        cell.z=cellcommdata.recvcellindata[rp].z;
+                        cell.size=cellcommdata.recvcellindata[rp].size;
+                        cell.young=cellcommdata.recvcellindata[rp].young;
+                        cell.ctype=cellcommdata.recvcellindata[rp].ctype;
                         octheapinit(&octh);
-                        octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata,celltype);
+                        octcomputeboxr(rp,&minLocCode,&maxLocCode,cellcommdata,celltype);
                         octheappush(&octh,0);
                         while(octh.count>0) {
                                 int idx;
@@ -206,7 +206,7 @@ void pgradient(int dimension,celldata_t c1,celldata_t c2,double3dv_t* f,celltype
  * This function implements tree walk algorithm for each local cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
+void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         int p;
         if(cellsinfo->localcount.n<=1) return;
@@ -262,26 +262,26 @@ void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t comm
  * This function implements tree walk algorithm for each remote cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,commdata_t commdata)
+void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         int rp;
-        if(commdata.numimp<=0) return;
+        if(cellcommdata.numimp<=0) return;
         #pragma omp parallel for schedule(dynamic,64)
-        for (rp = 0; rp < commdata.numimp; rp++) {
+        for (rp = 0; rp < cellcommdata.numimp; rp++) {
                 int64_t cellIdx;
                 int newIdx;
                 int s;
                 uint3dv_t minLocCode,maxLocCode;
                 octheap_t octh;
                 celldata_t cell;
-                cell.x=commdata.recvcelldata[rp].x;
-                cell.y=commdata.recvcelldata[rp].y;
-                cell.z=commdata.recvcelldata[rp].z;
-                cell.size=commdata.recvcelldata[rp].size;
-                cell.young=commdata.recvcelldata[rp].young;
-                cell.ctype=commdata.recvcelldata[rp].ctype;
+                cell.x=cellcommdata.recvcellindata[rp].x;
+                cell.y=cellcommdata.recvcellindata[rp].y;
+                cell.z=cellcommdata.recvcellindata[rp].z;
+                cell.size=cellcommdata.recvcellindata[rp].size;
+                cell.young=cellcommdata.recvcellindata[rp].young;
+                cell.ctype=cellcommdata.recvcellindata[rp].ctype;
                 octheapinit(&octh);
-                octcomputeboxr(rp,&minLocCode,&maxLocCode,commdata,celltype);
+                octcomputeboxr(rp,&minLocCode,&maxLocCode,cellcommdata,celltype);
                 octheappush(&octh,0);
                 while(octh.count>0) {
                         int idx;

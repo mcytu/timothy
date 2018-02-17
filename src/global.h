@@ -222,26 +222,52 @@ typedef struct interpdata_t {
 
 /* NEW */
 
-typedef struct expcelldata_t { /* this structure keeps cell data needed in potential computations */
+typedef struct explist_t {
+        int64_t cell;
+        int proc;
+} explist_t;
+
+typedef struct fieldindata_t {
+	double x;
+	double y;
+	double z;
+	int ctype;
+} fieldindata_t;
+
+typedef struct fieldoutdata_t {
+	double *fdata;
+} fieldoutdata_t;
+
+typedef struct fieldcommdata_t {
+	MPI_Request *reqsend;
+	MPI_Request *reqrecv;
+	int *recvcount;
+	int *sendcount;
+	fieldindata_t *sendfieldindata;
+	fieldindata_t *recvfieldindata;
+	fieldoutdata_t *sendfieldoutdata;
+	fieldoutdata_t *recvfieldoutdata;
+	int numexp;
+	int numimp;
+} fieldcommdata_t;
+
+
+
+typedef struct cellindata_t { /* this structure keeps cell data needed in potential computations */
   double x;
   double y;
   double z;
   double size;
   double young;
   int ctype;
-} expcelldata_t;
+} cellindata_t;
 
-typedef struct expdpdata_t { /* this structure keeps additional cell data (potential & density) */
+typedef struct celloutdata_t { /* this structure keeps additional cell data (potential & density) */
   double v;
   double density;
-} expdpdata_t;
+} celloutdata_t;
 
-typedef struct explist_t {
-        int64_t cell;
-        int proc;
-} explist_t;
-
-typedef struct commdata_t {
+typedef struct cellcommdata_t {
 	explist_t *explist;
 	int explistmaxsize;
 	MPI_Request *reqsend;
@@ -250,13 +276,13 @@ typedef struct commdata_t {
 	int64_t *recvoffset;
 	int *recvcount;
 	int *sendcount;
-	expcelldata_t *sendcelldata;
-	expcelldata_t *recvcelldata;
-	expdpdata_t *senddpdata;
-	expdpdata_t *recvdpdata;
+	cellindata_t *sendcellindata;
+	cellindata_t *recvcellindata;
+	celloutdata_t *sendcelloutdata;
+	celloutdata_t *recvcelloutdata;
 	int numexp;
 	int numimp;
-} commdata_t;
+} cellcommdata_t;
 
 
 

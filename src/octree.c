@@ -220,17 +220,17 @@ void octcomputecode(int64_t c,uint3dv_t *code)
  * Difference between remote and local versions is the box croping which is applied
  * to some remote cells.
  */
-void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,commdata_t commdata,celltype_t* celltype)
+void octcomputeboxr(int64_t c,uint3dv_t *minloccode,uint3dv_t *maxloccode,cellcommdata_t cellcommdata,celltype_t* celltype)
 {
         double3dv_t mincor,maxcor;
-        double h=celltype[commdata.recvcelldata[c].ctype].h;
+        double h=celltype[cellcommdata.recvcellindata[c].ctype].h;
         /* compute corners */
-        mincor.x=(commdata.recvcelldata[c].x-h-affShift.x)/affScale;
-        mincor.y=(commdata.recvcelldata[c].y-h-affShift.y)/affScale;
-        mincor.z=(commdata.recvcelldata[c].z-h-affShift.z)/affScale;
-        maxcor.x=(commdata.recvcelldata[c].x+h-affShift.x)/affScale;
-        maxcor.y=(commdata.recvcelldata[c].y+h-affShift.y)/affScale;
-        maxcor.z=(commdata.recvcelldata[c].z+h-affShift.z)/affScale;
+        mincor.x=(cellcommdata.recvcellindata[c].x-h-affShift.x)/affScale;
+        mincor.y=(cellcommdata.recvcellindata[c].y-h-affShift.y)/affScale;
+        mincor.z=(cellcommdata.recvcellindata[c].z-h-affShift.z)/affScale;
+        maxcor.x=(cellcommdata.recvcellindata[c].x+h-affShift.x)/affScale;
+        maxcor.y=(cellcommdata.recvcellindata[c].y+h-affShift.y)/affScale;
+        maxcor.z=(cellcommdata.recvcellindata[c].z+h-affShift.z)/affScale;
         /* for remote cells - box crop */
         mincor.x=(mincor.x<0.0 ? 0.0 : mincor.x);
         mincor.y=(mincor.y<0.0 ? 0.0 : mincor.y);
