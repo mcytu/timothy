@@ -1,3 +1,6 @@
+---
+vid: 121722431
+---
 
 # Timothy - Tissue Modelling Framework
 
@@ -9,7 +12,7 @@ High parallel scalability achieved allows simulation of up to 10^9 individual ce
 
 # Examples
 
-{% include vimeoPlayer.html id=121722431 %}
+{% include vimeoPlayer.html id=page.vid %}
 
 <iframe src="https://player.vimeo.com/video/121722431" width="480" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="https://vimeo.com/121722431">Timothy</a> from <a href="https://vimeo.com/user7149826">ICM HPC</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 
