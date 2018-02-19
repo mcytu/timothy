@@ -1,6 +1,3 @@
----
-vimeoId1: 121722431
----
 
 # Timothy - Tissue Modelling Framework
 
@@ -12,7 +9,7 @@ High parallel scalability achieved allows simulation of up to 10^9 individual ce
 
 # Examples
 
-{% include vimeoPlayer.html id=page.vimeoId1 %}
+{% include vimeoPlayer.html id=121722431 %}
 
 
 { vimeo 121722431 }
