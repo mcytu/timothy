@@ -1,7 +1,3 @@
----
-vid: 121722431
----
-
 # Timothy - Tissue Modelling Framework
 
 Timothy is a novel large scale parallel computational model allowing 3-D simulations of cell colonies growing and interacting with variable environment in previously unavailable tissue scale.
