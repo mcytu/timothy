@@ -1,4 +1,4 @@
-# About timothy
+# Timothy - Tissue Modelling Framework
 
 Timothy is a novel large scale parallel computational model allowing 3-D simulations of cell colonies growing and interacting with variable environment in previously unavailable tissue scale.
 
@@ -7,6 +7,8 @@ The cells are modelled as individuals located in the lattice-free 3-D space. The
 High parallel scalability achieved allows simulation of up to 10^9 individual cells. This large scale computational approach allows for simulations to be carried out over realistic spatial scales up to 1cm in size i.e. the tissue scale.
 
 # Examples
+
+{% vimeo 121722431 %}
 
 <iframe src="https://player.vimeo.com/video/121722431" width="480" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="https://vimeo.com/121722431">Timothy</a> from <a href="https://vimeo.com/user7149826">ICM HPC</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 
