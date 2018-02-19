@@ -49,8 +49,8 @@ struct int64Vector3d *patchSize;
 //struct int64Vector3d *patchSizeR;
 #define patch(p,f,i,j,k) (cicPatch[p][patchSize[p].x*patchSize[p].y*patchSize[p].z*f+patchSize[p].y*patchSize[p].z*i+patchSize[p].z*j+k])
 
-
-void createinterpdata(systeminfo_t systeminfo,settings_t settings,grid_t grid,cellsinfo_t cellsinfo) {
+/*
+   void createinterpdata(systeminfo_t systeminfo,settings_t settings,grid_t grid,cellsinfo_t cellsinfo) {
         int i,j;
         int nexport[systeminfo.size];
         for(i=0; i<systeminfo.size; i++)
@@ -75,11 +75,11 @@ void createinterpdata(systeminfo_t systeminfo,settings_t settings,grid_t grid,ce
                 printf("%d %d:%d \n",systeminfo.rank,i,nexport[i]);
 
 
-}
+   }/*
 
 
 
-/*!
+   /*!
  * For each local cell we check its position in the grid.
  * If cell is located in the grid partition of other process
  * then the information about this cell should be send to

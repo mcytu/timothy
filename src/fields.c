@@ -63,6 +63,13 @@ void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environm
 }
 
 
+//void find
+
+
+
+
+/* uuuuuuuuuuuuuuuuuuuuuuuu */
+
 
 /* Global fields' IDs:
  * 0 - density field

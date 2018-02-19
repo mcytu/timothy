@@ -239,8 +239,12 @@ typedef struct fieldoutdata_t {
 } fieldoutdata_t;
 
 typedef struct fieldcommdata_t {
+	explist_t *explist;
+	int explistmaxsize;
 	MPI_Request *reqsend;
 	MPI_Request *reqrecv;
+	int64_t *sendoffset;
+	int64_t *recvoffset;
 	int *recvcount;
 	int *sendcount;
 	fieldindata_t *sendfieldindata;

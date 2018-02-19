@@ -40,21 +40,22 @@ int explistcompare(const void *a, const void *b)
  * to find possible intersections of cells' neighbourhoods
  * and other processes' geometries.
  */
-void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,celltype_t* celltype,cellcommdata_t *cellcommdata)
+void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,grid_t grid,celltype_t* celltype,cellcommdata_t *cellcommdata,fieldcommdata_t *fieldcommdata)
 {
 
         int i, p;
         int procs[systeminfo.size];
         int numprocs;
 
-        cellcommdata->numexp = 0;
-        cellcommdata->numimp = 0;
-
-        cellcommdata->explistmaxsize=settings.maxlocalcells;
-
         if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC || systeminfo.size == 1)
                 return;
 
+        /* 1. create export list for cellular dynamics computations */
+        /* reset counters */
+        cellcommdata->numexp = 0;
+        cellcommdata->numimp = 0;
+        cellcommdata->explistmaxsize=settings.maxlocalcells;
+        /* allocate tables */
         if(!(cellcommdata->explist = (explist_t*) malloc(sizeof(explist_t) * cellcommdata->explistmaxsize)))
                 terminate(systeminfo,"cannot allocate cellcommdata->explist", __FILE__, __LINE__);
         if(!(cellcommdata->recvcount = (int *) calloc(systeminfo.size, sizeof(int))))
@@ -65,16 +66,13 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
                 terminate(systeminfo,"cannot allocate cellcommdata->sendoffset", __FILE__, __LINE__);
         if(!(cellcommdata->recvoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
                 terminate(systeminfo,"cannot allocate cellcommdata->recvoffset", __FILE__, __LINE__);
-
         /* loop over local cells */
         /*#pragma omp parallel for private(procs) */
         for (p = 0; p < cellsinfo.localcount.n; p++) {
                 double xmin, xmax, ymin, ymax, zmin, zmax;
                 double r;
-
                 if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC)
                         continue;
-
                 r = celltype[cellsinfo.cells[p].ctype].h * 1.5;
                 /* compute neighbourhood box */
                 xmin = cellsinfo.cells[p].x - r;
@@ -107,7 +105,6 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
                         }
                 }
         }
-
         /* sort export list with respect to process number */
         qsort(cellcommdata->explist, cellcommdata->numexp, sizeof(explist_t), explistcompare);
         /* distribute the information on transfer sizes between each process */
@@ -116,15 +113,66 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
         cellcommdata->sendoffset[0] = 0;
         for (i = 1; i < systeminfo.size; i++)
                 cellcommdata->sendoffset[i] = cellcommdata->sendoffset[i - 1] + cellcommdata->sendcount[i - 1];
-
         /* compute receive offsets */
         cellcommdata->recvoffset[0] = 0;
         for (i = 1; i < systeminfo.size; i++)
                 cellcommdata->recvoffset[i] = cellcommdata->recvoffset[i - 1] + cellcommdata->recvcount[i - 1];
-
         /* count cells to be imported */
         for (i = 0; i < systeminfo.size; i++)
                 cellcommdata->numimp += cellcommdata->recvcount[i];
+
+        /* 2. create export list for environment computations */
+        /* reset counters */
+        fieldcommdata->numexp = 0;
+        fieldcommdata->numimp = 0;
+        fieldcommdata->explistmaxsize=settings.maxlocalcells;
+        /* allocate tables */
+        if(!(fieldcommdata->explist = (explist_t*) malloc(sizeof(explist_t) * fieldcommdata->explistmaxsize)))
+                terminate(systeminfo,"cannot allocate cellcommdata->explist", __FILE__, __LINE__);
+        if(!(fieldcommdata->recvcount = (int *) calloc(systeminfo.size, sizeof(int))))
+                terminate(systeminfo,"cannot allocate cellcommdata->recvcount", __FILE__, __LINE__);
+        if(!(fieldcommdata->sendcount = (int *) calloc(systeminfo.size, sizeof(int))))
+                terminate(systeminfo,"cannot allocate cellcommdata->sendcount", __FILE__, __LINE__);
+        if(!(fieldcommdata->sendoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
+                terminate(systeminfo,"cannot allocate cellcommdata->sendoffset", __FILE__, __LINE__);
+        if(!(fieldcommdata->recvoffset = (int64_t *) calloc(systeminfo.size, sizeof(int64_t))))
+                terminate(systeminfo,"cannot allocate cellcommdata->recvoffset", __FILE__, __LINE__);
+        /* loop over local cells */
+        /*#pragma omp parallel for private(procs) */
+        for (p = 0; p < cellsinfo.localcount.n; p++) {
+                double x,y,z;
+                x=cellsinfo.cells[p].x;
+                y=cellsinfo.cells[p].y;
+                z=cellsinfo.cells[p].z;
+                for(i=0; i<systeminfo.size; i++) {
+                        if(i==systeminfo.rank) continue;
+                        if(x>=grid.lowleftnear[i].x && x<grid.uprightfar[i].x &&
+                           y>=grid.lowleftnear[i].y && y<grid.uprightfar[i].y &&
+                           z>=grid.lowleftnear[i].z && z<grid.uprightfar[i].z ) {
+                                fieldcommdata->explist[fieldcommdata->numexp].cell = p;
+                                fieldcommdata->explist[fieldcommdata->numexp].proc = i;
+                                fieldcommdata->sendcount[i]++;
+                                fieldcommdata->numexp++;
+                                break;
+                        }
+                }
+        }
+        /* sort export list with respect to process number */
+        qsort(fieldcommdata->explist, fieldcommdata->numexp, sizeof(explist_t), explistcompare);
+        /* distribute the information on transfer sizes between each process */
+        MPI_Alltoall(fieldcommdata->sendcount, 1, MPI_INT, fieldcommdata->recvcount, 1, MPI_INT, MPI_COMM_WORLD);
+        /* compute send offsets */
+        fieldcommdata->sendoffset[0] = 0;
+        for (i = 1; i < systeminfo.size; i++)
+                fieldcommdata->sendoffset[i] = fieldcommdata->sendoffset[i - 1] + fieldcommdata->sendcount[i - 1];
+        /* compute receive offsets */
+        fieldcommdata->recvoffset[0] = 0;
+        for (i = 1; i < systeminfo.size; i++)
+                fieldcommdata->recvoffset[i] = fieldcommdata->recvoffset[i - 1] + fieldcommdata->recvcount[i - 1];
+        /* count cells to be imported */
+        for (i = 0; i < systeminfo.size; i++)
+                fieldcommdata->numimp += fieldcommdata->recvcount[i];
+
         return;
 }
 
@@ -132,10 +180,11 @@ void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t ce
  * This function deallocates all communication buffers and
  * auxiliary tables.
  */
-void exchangecleanup(systeminfo_t systeminfo,cellsinfo_t cellsinfo,cellcommdata_t *cellcommdata)
+void exchangecleanup(systeminfo_t systeminfo,cellsinfo_t cellsinfo,cellcommdata_t *cellcommdata,fieldcommdata_t *fieldcommdata)
 {
         if (cellsinfo.globalcount.n < systeminfo.size*MIN_CELLS_PER_PROC || systeminfo.size == 1)
                 return;
+        /* deallocate cell dynamics exchange arrays */
         free(cellcommdata->recvcellindata);
         free(cellcommdata->recvcelloutdata);
         free(cellcommdata->explist);
@@ -143,6 +192,14 @@ void exchangecleanup(systeminfo_t systeminfo,cellsinfo_t cellsinfo,cellcommdata_
         free(cellcommdata->sendcount);
         free(cellcommdata->sendoffset);
         free(cellcommdata->recvoffset);
+        /* deallocate environment exchange arrays */
+        //free(fieldcommdata->recvfieldindata);
+        //free(fieldcommdata->recvfieldoutdata);
+        free(fieldcommdata->explist);
+        free(fieldcommdata->recvcount);
+        free(fieldcommdata->sendcount);
+        free(fieldcommdata->sendoffset);
+        free(fieldcommdata->recvoffset);
         return;
 }
 
