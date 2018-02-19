@@ -2,7 +2,6 @@
 ---
 
 @import "{{ site.theme }}";
-
 .embed-container {
   position: relative;
   padding-bottom: 56.25%;
@@ -10,7 +9,6 @@
   overflow: hidden;
   max-width: 100%;
 }
-
 .embed-container iframe, .embed-container object, .embed-container embed {
   position: absolute;
   top: 0;
