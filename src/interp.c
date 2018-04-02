@@ -362,7 +362,7 @@ int waitcells2envcomm(systeminfo_t systeminfo)
  * Update local tissueField part with information from remote processes
  * received in patches. Receiveing patches are deallocated here.
  */
-int applypatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid,environment_t **environment)
+int applypatches(systeminfo_t systeminfo, settings_t settings, grid_t *grid,environment_t **environment)
 {
 
         int i,p,f;
@@ -392,8 +392,8 @@ int applypatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cell
                                                 g.x = i - grid->loweridx[systeminfo.rank].x;
                                                 g.y = j - grid->loweridx[systeminfo.rank].y;
                                                 g.z = k - grid->loweridx[systeminfo.rank].z;
-                                                index=grid->localsize.x * grid->localsize.y * g.x + grid->localsize.z * g.y + g.z;
-                                                for(f=0; f<settings.numberoffields; i++)
+                                                index=grid->localsize.z * grid->localsize.y * g.x + grid->localsize.z * g.y + g.z;
+                                                for(f=0; f<settings.numberoffields; f++)
                                                         (*environment)[f].production[index] +=
                                                                 cicRecvPatch[p][f*(size.x*size.y*size.z)+size.z * size.y * c.x + size.z * c.y + c.z];
                                         }
@@ -422,7 +422,7 @@ int applypatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cell
  * Receiving field patches are also allocated here.
  * MPI_Request tables are allocated here.
  */
-void initFieldsPatchesExchange()
+void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
 
         int f; /* fields index */
@@ -430,8 +430,8 @@ void initFieldsPatchesExchange()
         int643dv_t idx, g;
         int643dv_t size;
 
-        fieldsPatchesCommBuff = (double **) calloc(MPIsize, sizeof(double *));
-        for (p = 0; p < MPIsize; p++) {
+        fieldsPatchesCommBuff = (double **) calloc(systeminfo.size, sizeof(double *));
+        for (p = 0; p < systeminfo.size; p++) {
                 int fieldPatchSize;
                 if (!cicSender[p])
                         continue; /* continue to next process if current process do not overlap domain */
@@ -440,14 +440,9 @@ void initFieldsPatchesExchange()
                 size.z = upperPatchCornerR[p].z - lowerPatchCornerR[p].z + 1;
                 fieldPatchSize = size.x * size.y * size.z;
                 fieldsPatchesCommBuff[p] =
-                        (double *) calloc((NFIELDS+NCHEM*3) * fieldPatchSize, sizeof(double));
+                        (double *) calloc((settings.numberoffields*4) * fieldPatchSize, sizeof(double));
                 /* fields */
-                for (f = 0; f < NFIELDS; f++) {
-                        if(f==BVES && !bvsim) continue;
-                        if(f==TEMP && !temperature) continue;
-                        if(f==OXYG && !oxygen) continue;
-                        if(f==GLUC && !glucose) continue;
-                        if(f==HYDR && !hydrogenIon) continue;
+                for (f = 0; f < settings.numberoffields; f++) {
                         int64_t i, j, k;
                         for (i = lowerPatchCornerR[p].x; i <= upperPatchCornerR[p].x; i++)
                                 for (j = lowerPatchCornerR[p].y; j <= upperPatchCornerR[p].y; j++)
@@ -456,21 +451,18 @@ void initFieldsPatchesExchange()
                                                 idx.x = i - lowerPatchCornerR[p].x;
                                                 idx.y = j - lowerPatchCornerR[p].y;
                                                 idx.z = k - lowerPatchCornerR[p].z;
-                                                g.x = i - gridStartIdx[MPIrank].x;
-                                                g.y = j - gridStartIdx[MPIrank].y;
-                                                g.z = k - gridStartIdx[MPIrank].z;
+                                                g.x = i - grid->loweridx[systeminfo.rank].x;
+                                                g.y = j - grid->loweridx[systeminfo.rank].y;
+                                                g.z = k - grid->loweridx[systeminfo.rank].z;
                                                 fieldsPatchesCommBuff[p][f * fieldPatchSize +
                                                                          size.z * size.y * idx.x +
                                                                          size.z * idx.y + idx.z] =
-                                                        ((double *) fieldAddr[f])[gridSize.z * gridSize.y * g.x +
-                                                                                  gridSize.z * g.y + g.z];
+                                                        ((double *) fieldAddr[f])[grid->localsize.z * grid->localsize.y * g.x +
+                                                                                  grid->localsize.z * g.y + g.z];
                                         }
                 }
                 /* field gradients */
-                for (f = 0; f < NCHEM; f++) {
-                        if(f==OXYG-NGLOB && !oxygen) continue;
-                        if(f==GLUC-NGLOB && !glucose) continue;
-                        if(f==HYDR-NGLOB && !hydrogenIon) continue;
+                for (f = 0; f < settings.numberoffields*3; f++) {
                         int64_t i, j, k;
                         for (i = lowerPatchCornerR[p].x; i <= upperPatchCornerR[p].x; i++)
                                 for (j = lowerPatchCornerR[p].y; j <= upperPatchCornerR[p].y; j++)
@@ -479,20 +471,20 @@ void initFieldsPatchesExchange()
                                                 idx.x = i - lowerPatchCornerR[p].x;
                                                 idx.y = j - lowerPatchCornerR[p].y;
                                                 idx.z = k - lowerPatchCornerR[p].z;
-                                                g.x = i - gridStartIdx[MPIrank].x;
-                                                g.y = j - gridStartIdx[MPIrank].y;
-                                                g.z = k - gridStartIdx[MPIrank].z;
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*NFIELDS + f * 3 * fieldPatchSize +
+                                                g.x = i - grid->loweridx[systeminfo.rank].x;
+                                                g.y = j - grid->loweridx[systeminfo.rank].y;
+                                                g.z = k - grid->loweridx[systeminfo.rank].z;
+                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
                                                                          3* size.z * size.y * idx.x +
                                                                          3* size.z * idx.y + 3*idx.z] =
                                                         ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
                                                                                  3*gridSize.z * g.y + 3*g.z];
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*NFIELDS + f * 3 * fieldPatchSize +
+                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
                                                                          3* size.z * size.y * idx.x +
                                                                          3* size.z * idx.y + 3*idx.z + 1] =
                                                         ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
                                                                                  3*gridSize.z * g.y + 3*g.z + 1];
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*NFIELDS + f * 3 * fieldPatchSize +
+                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
                                                                          3* size.z * size.y * idx.x +
                                                                          3* size.z * idx.y + 3* idx.z + 2] =
                                                         ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
@@ -501,6 +493,11 @@ void initFieldsPatchesExchange()
                 }
 
         }
+}
+
+void initenv2cellscomm(){
+
+        int p; /* process index */
 
         if (!(fieldsPatches = (double **) calloc(MPIsize, sizeof(double *))))
                 stopRun(106, "fieldsPatches", __FILE__, __LINE__);
@@ -665,11 +662,12 @@ void applyFieldsPatches()
  */
 void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
-        if (!gfields)
+        if (settings.numberoffields==0)
                 return;
         findpatches(systeminfo,settings,cellsinfo,grid);
         cells2envinfo(systeminfo,settings,cellsinfo,grid);
         initcells2envcomm(systeminfo,settings);
+        return;
 }
 
 /*!
@@ -678,12 +676,13 @@ void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
  * This function enables overlapping communication and
  * computations.
  */
-void waitcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid, environment_t **environment)
+void waitcells2env(systeminfo_t systeminfo, settings_t settings, grid_t *grid, environment_t **environment)
 {
-        if (!gfields)
+        if (settings.numberoffields==0)
                 return;
         waitcells2envcomm(systeminfo);
-        applypatches(systeminfo,settings,cellsinfo,grid,environment);
+        applypatches(systeminfo,settings,grid,environment);
+        return;
 }
 
 /*!
@@ -692,12 +691,13 @@ void waitcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
  * implemented here.
  * This function deallocates all important arrays used in interpolation.
  */
-void interpolateFieldsToCells()
+void interpolateFieldsToCells(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid, environment_t **environment)
 {
-        if (!gfields)
+        if (settings.numberoffields==0)
                 return;
 
-        initFieldsPatchesExchange();
+        env2cellsinfo(systeminfo,settings,cellsinfo,grid);
+        initenv2cellscomm();
         waitFieldsPatchesExchange();
         applyFieldsPatches();
 
