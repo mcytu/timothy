@@ -61,7 +61,7 @@ int main(int argc, char **argv)
                 lbexchange(systeminfo);
                 octbuild(systeminfo,&cellsinfo,celltype);
                 createexportlist(systeminfo,settings,cellsinfo,grid,celltype,&cellcommdata,&fieldcommdata);
-                singlestep(systeminfo,&cellsinfo,celltype,&cellcommdata,&interpdata);
+                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&cellcommdata,&interpdata);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(settings,&cellsinfo);

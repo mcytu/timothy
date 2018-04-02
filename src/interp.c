@@ -43,10 +43,10 @@ MPI_Request *cicReqSend, *cicReqRecv;
 
 int *recvP;
 
-struct int64Vector3d *lowerPatchCorner, *upperPatchCorner;
-struct int64Vector3d *lowerPatchCornerR, *upperPatchCornerR;
-struct int64Vector3d *patchSize;
-//struct int64Vector3d *patchSizeR;
+int643dv_t *lowerPatchCorner, *upperPatchCorner;
+int643dv_t *lowerPatchCornerR, *upperPatchCornerR;
+int643dv_t *patchSize;
+//int643dv_t *patchSizeR;
 #define patch(p,f,i,j,k) (cicPatch[p][patchSize[p].x*patchSize[p].y*patchSize[p].z*f+patchSize[p].y*patchSize[p].z*i+patchSize[p].z*j+k])
 
 /*
@@ -88,72 +88,60 @@ struct int64Vector3d *patchSize;
  * rather than sendind it one by one.
  * This function identifies patches and allocate memory buffers for patches.
  */
-void findPatches()
+void findpatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
 
         int c,p;
-        struct int64Vector3d cellIdx;
+        int643dv_t cellIdx;
 
-        cicPatch = (double **) calloc(MPIsize, sizeof(double *));
-        cicIntersect = (int *) calloc(MPIsize, sizeof(int));
-        lowerPatchCorner =
-                (struct int64Vector3d *) calloc(MPIsize,
-                                                sizeof(struct int64Vector3d));
-        upperPatchCorner =
-                (struct int64Vector3d *) calloc(MPIsize,
-                                                sizeof(struct int64Vector3d));
-        lowerPatchCornerR =
-                (struct int64Vector3d *) calloc(MPIsize,
-                                                sizeof(struct int64Vector3d));
-        upperPatchCornerR =
-                (struct int64Vector3d *) calloc(MPIsize,
-                                                sizeof(struct int64Vector3d));
-        patchSize =
-                (struct int64Vector3d *) calloc(MPIsize,
-                                                sizeof(struct int64Vector3d));
-        //patchSizeR =
-        //    (struct int64Vector3d *) calloc(MPIsize,
-//				      sizeof(struct int64Vector3d));
+        cicPatch = (double **) calloc(systeminfo.size, sizeof(double *));
+        cicIntersect = (int *) calloc(systeminfo.size, sizeof(int));
+        lowerPatchCorner = (int643dv_t *) calloc(systeminfo.size, sizeof(int643dv_t));
+        upperPatchCorner = (int643dv_t *) calloc(systeminfo.size, sizeof(int643dv_t));
+        lowerPatchCornerR = (int643dv_t *) calloc(systeminfo.size, sizeof(int643dv_t));
+        upperPatchCornerR = (int643dv_t *) calloc(systeminfo.size, sizeof(int643dv_t));
+        patchSize = (int643dv_t *) calloc(systeminfo.size, sizeof(int643dv_t));
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 cicIntersect[p] = 0;
                 patchSize[p].x = 0;
                 patchSize[p].y = 0;
                 patchSize[p].z = 0;
                 lowerPatchCorner[p].x = INT_MAX;
                 lowerPatchCorner[p].y = INT_MAX;
-                if (sdim == 3)
+                if (cellsinfo->dimension == 3)
                         lowerPatchCorner[p].z = INT_MAX;
                 else
                         lowerPatchCorner[p].z = 0;
-                upperPatchCorner[p].x = INT_MIN, upperPatchCorner[p].y = INT_MIN;
-                if (sdim == 3)
+                upperPatchCorner[p].x = INT_MIN;
+                upperPatchCorner[p].y = INT_MIN;
+                if (cellsinfo->dimension == 3)
                         upperPatchCorner[p].z = INT_MIN;
                 else
                         upperPatchCorner[p].z = 0;
         }
 
         //#pragma omp parallel for default(none) private(p,c,cellIdx) shared(cells,gridResolution,lnc,MPIsize,gridStartIdx,gridEndIdx,lowerPatchCorner,upperPatchCorner,cicIntersect,sdim,lowerGridCorner)
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
 
-                for (c = 0; c < lnc; c++) {
+                for (c = 0; c < cellsinfo->localcount.n; c++) {
 
                         int ax, ay, az;
 
-                        cellIdx.x = ((cells[c].x - lowerGridCorner.x) / gridResolution);
-                        cellIdx.y = ((cells[c].y - lowerGridCorner.y) / gridResolution);
-                        cellIdx.z = ((cells[c].z - lowerGridCorner.z) / gridResolution);
+                        cellIdx.x = ((cellsinfo->cells[c].x - grid->lowercorner.x) / grid->resolution);
+                        cellIdx.y = ((cellsinfo->cells[c].y - grid->lowercorner.y) / grid->resolution);
+                        cellIdx.z = ((cellsinfo->cells[c].z - grid->lowercorner.z) / grid->resolution);
 
                         for (ax = 0; ax < 2; ax++)
                                 for (ay = 0; ay < 2; ay++)
                                         for (az = 0; az < 2; az++) {
 
-                                                if (cellIdx.x + ax >= gridStartIdx[p].x
-                                                    && cellIdx.y + ay >= gridStartIdx[p].y
-                                                    && cellIdx.z + az >= gridStartIdx[p].z
-                                                    && cellIdx.x + ax <= gridEndIdx[p].x
-                                                    && cellIdx.y + ay <= gridEndIdx[p].y
-                                                    && cellIdx.z + az <= gridEndIdx[p].z) {
+                                                if (cellIdx.x + ax >= grid->loweridx[p].x
+                                                    && cellIdx.y + ay >= grid->loweridx[p].y
+                                                    && cellIdx.z + az >= grid->loweridx[p].z
+                                                    && cellIdx.x + ax <= grid->upperidx[p].x
+                                                    && cellIdx.y + ay <= grid->upperidx[p].y
+                                                    && cellIdx.z + az <= grid->upperidx[p].z) {
                                                         lowerPatchCorner[p].x =
                                                                 (lowerPatchCorner[p].x >
                                                                  cellIdx.x + ax ? cellIdx.x +
@@ -162,7 +150,7 @@ void findPatches()
                                                                 (lowerPatchCorner[p].y >
                                                                  cellIdx.y + ay ? cellIdx.y +
                                                                  ay : lowerPatchCorner[p].y);
-                                                        if (sdim == 3)
+                                                        if (cellsinfo->dimension == 3)
                                                                 lowerPatchCorner[p].z =
                                                                         (lowerPatchCorner[p].z >
                                                                          cellIdx.z + az ? cellIdx.z +
@@ -175,7 +163,7 @@ void findPatches()
                                                                 (upperPatchCorner[p].y <
                                                                  cellIdx.y + ay ? cellIdx.y +
                                                                  ay : upperPatchCorner[p].y);
-                                                        if (sdim == 3)
+                                                        if (cellsinfo->dimension == 3)
                                                                 upperPatchCorner[p].z =
                                                                         (upperPatchCorner[p].z <
                                                                          cellIdx.z + az ? cellIdx.z +
@@ -187,17 +175,17 @@ void findPatches()
                 }
         }
 
-        for (p = 0; p < MPIsize; p++)
+        for (p = 0; p < systeminfo.size; p++)
                 if (cicIntersect[p]) {
                         patchSize[p].x = upperPatchCorner[p].x - lowerPatchCorner[p].x + 1;
                         patchSize[p].y = upperPatchCorner[p].y - lowerPatchCorner[p].y + 1;
-                        if (sdim == 3)
+                        if (cellsinfo->dimension == 3)
                                 patchSize[p].z = upperPatchCorner[p].z - lowerPatchCorner[p].z + 1;
                         else
                                 patchSize[p].z = 1;
                         cicPatch[p] =
                                 (double *) calloc(patchSize[p].x * patchSize[p].y *
-                                                  patchSize[p].z * NIF, sizeof(double));
+                                                  patchSize[p].z * settings.numberoffields, sizeof(double));
                 }
 
         return;
@@ -209,64 +197,65 @@ void findPatches()
  * Computed values are stored in patches instead in field buffers.
  * No additional memory allocations are made here.
  */
-void doInterpolation()
+void cells2envinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
 
         int c, i, p, j, k, f;
-        struct int64Vector3d idx;
+        int643dv_t idx;
         double3dv_t d, t;
-        struct int64Vector3d cellIdx;
+        int643dv_t cellIdx;
         double3dv_t cicCoord;
 
-        for (p = 0; p < MPIsize; p++)
-                for(f = 0; f < NIF; f++)
+        for (p = 0; p < systeminfo.size; p++)
+                for(f = 0; f < settings.numberoffields; f++)
                         for (i = 0; i < patchSize[p].x; i++)
                                 for (j = 0; j < patchSize[p].y; j++)
                                         for (k = 0; k < patchSize[p].z; k++)
                                                 patch(p, f, i, j, k) = 0.0;
 
-        for (c = 0; c < lnc; c++) {
+        for (c = 0; c < cellsinfo->localcount.n; c++) {
 
-                cellIdx.x = ((cells[c].x - lowerGridCorner.x) / gridResolution);
-                cellIdx.y = ((cells[c].y - lowerGridCorner.y) / gridResolution);
-                cellIdx.z = ((cells[c].z - lowerGridCorner.z) / gridResolution);
+                cellIdx.x = ((cellsinfo->cells[c].x - grid->lowercorner.x) / grid->resolution);
+                cellIdx.y = ((cellsinfo->cells[c].y - grid->lowercorner.y) / grid->resolution);
+                cellIdx.z = ((cellsinfo->cells[c].z - grid->lowercorner.z) / grid->resolution);
 
-                for (p = 0; p < MPIsize; p++) {
+                for (p = 0; p < systeminfo.size; p++) {
                         int ax, ay, az;
                         for (ax = 0; ax < 2; ax++)
                                 for (ay = 0; ay < 2; ay++)
                                         for (az = 0; az < 2; az++) {
-                                                if (cellIdx.x + ax >= gridStartIdx[p].x
-                                                    && cellIdx.y + ay >= gridStartIdx[p].y
-                                                    && cellIdx.z + az >= gridStartIdx[p].z
-                                                    && cellIdx.x + ax <= gridEndIdx[p].x
-                                                    && cellIdx.y + ay <= gridEndIdx[p].y
-                                                    && cellIdx.z + az <= gridEndIdx[p].z) {
+                                                if (cellIdx.x + ax >= grid->loweridx[p].x
+                                                    && cellIdx.y + ay >= grid->loweridx[p].y
+                                                    && cellIdx.z + az >= grid->loweridx[p].z
+                                                    && cellIdx.x + ax <= grid->upperidx[p].x
+                                                    && cellIdx.y + ay <= grid->upperidx[p].y
+                                                    && cellIdx.z + az <= grid->upperidx[p].z) {
 
                                                         idx.x = (cellIdx.x + ax) - lowerPatchCorner[p].x;
                                                         idx.y = (cellIdx.y + ay) - lowerPatchCorner[p].y;
                                                         idx.z = (cellIdx.z + az) - lowerPatchCorner[p].z;
 
-                                                        cicCoord.x = lowerGridCorner.x + cellIdx.x * gridResolution;
-                                                        cicCoord.y = lowerGridCorner.y + cellIdx.y * gridResolution;
-                                                        cicCoord.z = lowerGridCorner.z + cellIdx.z * gridResolution;
+                                                        cicCoord.x = grid->lowercorner.x + cellIdx.x * grid->resolution;
+                                                        cicCoord.y = grid->lowercorner.y + cellIdx.y * grid->resolution;
+                                                        cicCoord.z = grid->lowercorner.z + cellIdx.z * grid->resolution;
 
-                                                        d.x = (cells[c].x - cicCoord.x) / gridResolution;
-                                                        d.y = (cells[c].y - cicCoord.y) / gridResolution;
-                                                        d.z = (cells[c].z - cicCoord.z) / gridResolution;
+                                                        d.x = (cellsinfo->cells[c].x - cicCoord.x) / grid->resolution;
+                                                        d.y = (cellsinfo->cells[c].y - cicCoord.y) / grid->resolution;
+                                                        d.z = (cellsinfo->cells[c].z - cicCoord.z) / grid->resolution;
 
                                                         t.x = 1.0 - d.x;
                                                         t.y = 1.0 - d.y;
                                                         t.z = 1.0 - d.z;
 
-                                                        if(cells[c].ctype==1) { /* endothelial cell - production */
+                                                        /*if(cells[c].ctype==1) { endothelial cell - production
                                                                 patch(p,1,idx.x,idx.y,idx.z) +=
                                                                         1.0 * (ax * d.x + (1 - ax) * t.x) * (ay * d.y +
                                                                                                              (1 -
                                                                                                               ay) * t.y) *
                                                                         (az * d.z + (1 - az) * t.z);
-                                                        } else if (cells[c].phase != 5) { /* if not in necrotic phase */
-                                                                if (cells[c].phase == 0) { /* if in G0 phase - lower consumption */
+                                                           } else */
+                                                        if (cellsinfo->cells[c].phase != 5) { /* if not in necrotic phase */
+                                                                if (cellsinfo->cells[c].phase == 0) { /* if in G0 phase - lower consumption */
                                                                         patch(p,0, idx.x, idx.y, idx.z) +=
                                                                                 0.75 * (ax * d.x + (1 - ax) * t.x) * (ay * d.y +
                                                                                                                       (1 -
@@ -294,34 +283,34 @@ void doInterpolation()
  * Receiving patches are allocated here.
  * MPI_Request tables are allocated here.
  */
-void initPatchExchange()
+void initcells2envcomm(systeminfo_t systeminfo, settings_t settings)
 {
         int p;
 
-        cicReceiver = (int *) calloc(MPIsize, sizeof(int));
-        cicSender = (int *) calloc(MPIsize, sizeof(int));
+        cicReceiver = (int *) calloc(systeminfo.size, sizeof(int));
+        cicSender = (int *) calloc(systeminfo.size, sizeof(int));
 
-        for (p = 0; p < MPIsize; p++)
+        for (p = 0; p < systeminfo.size; p++)
                 cicReceiver[p] = cicIntersect[p];
 
         MPI_Alltoall(cicReceiver, 1, MPI_INT, cicSender, 1, MPI_INT,
                      MPI_COMM_WORLD);
 
-        MPI_Alltoall(lowerPatchCorner, sizeof(struct int64Vector3d), MPI_BYTE,
-                     lowerPatchCornerR, sizeof(struct int64Vector3d), MPI_BYTE,
+        MPI_Alltoall(lowerPatchCorner, sizeof(int643dv_t), MPI_BYTE,
+                     lowerPatchCornerR, sizeof(int643dv_t), MPI_BYTE,
                      MPI_COMM_WORLD);
-        MPI_Alltoall(upperPatchCorner, sizeof(struct int64Vector3d), MPI_BYTE,
-                     upperPatchCornerR, sizeof(struct int64Vector3d), MPI_BYTE,
+        MPI_Alltoall(upperPatchCorner, sizeof(int643dv_t), MPI_BYTE,
+                     upperPatchCornerR, sizeof(int643dv_t), MPI_BYTE,
                      MPI_COMM_WORLD);
 
-        cicRecvPatch = (double **) calloc(MPIsize, sizeof(double *));
-        cicReqSend = (MPI_Request *) malloc(sizeof(MPI_Request) * MPIsize);
-        cicReqRecv = (MPI_Request *) malloc(sizeof(MPI_Request) * MPIsize);
+        cicRecvPatch = (double **) calloc(systeminfo.size, sizeof(double *));
+        cicReqSend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cicReqRecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (cicReceiver[p]) {
                         MPI_Isend(&(cicPatch[p][0]),
-                                  patchSize[p].x * patchSize[p].y * patchSize[p].z * NIF,
+                                  patchSize[p].x * patchSize[p].y * patchSize[p].z * settings.numberoffields,
                                   MPI_DOUBLE, p, MPIrank, MPI_COMM_WORLD, &cicReqSend[p]);
                 }
                 if (cicSender[p]) {
@@ -331,9 +320,9 @@ void initPatchExchange()
                                  1) * (upperPatchCornerR[p].y - lowerPatchCornerR[p].y +
                                        1) * (upperPatchCornerR[p].z - lowerPatchCornerR[p].z +
                                              1);
-                        if (!(cicRecvPatch[p] = (double *) calloc(recvSize*NIF, sizeof(double))))
+                        if (!(cicRecvPatch[p] = (double *) calloc(recvSize*settings.numberoffields, sizeof(double))))
                                 exit(0);
-                        MPI_Irecv(&(cicRecvPatch[p][0]), recvSize * NIF, MPI_DOUBLE, p, p,
+                        MPI_Irecv(&(cicRecvPatch[p][0]), recvSize * settings.numberoffields, MPI_DOUBLE, p, p,
                                   MPI_COMM_WORLD, &cicReqRecv[p]);
                 }
         }
@@ -344,19 +333,19 @@ void initPatchExchange()
  * Wait for communication to finish.
  * MPI_Request tables are deallocated here.
  */
-int waitPatchExchange()
+int waitcells2envcomm(systeminfo_t systeminfo)
 {
         int p;
         MPI_Status status;
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (!cicReceiver[p])
                         continue;
                 if (MPI_Wait(&cicReqSend[p], &status) != MPI_SUCCESS)
                         stopRun(103, "sending", __FILE__, __LINE__);
         }
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (!cicSender[p])
                         continue;
                 if (MPI_Wait(&cicReqRecv[p], &status) != MPI_SUCCESS)
@@ -391,7 +380,7 @@ int applyPatches()
                 for (i = lowerPatchCornerR[p].x; i <= upperPatchCornerR[p].x; i++)
                         for (j = lowerPatchCornerR[p].y; j <= upperPatchCornerR[p].y; j++)
                                 for (k = lowerPatchCornerR[p].z; k <= upperPatchCornerR[p].z; k++) {
-                                        struct int64Vector3d c, g, size;
+                                        int643dv_t c, g, size;
                                         size.x = upperPatchCornerR[p].x - lowerPatchCornerR[p].x + 1;
                                         size.y = upperPatchCornerR[p].y - lowerPatchCornerR[p].y + 1;
                                         size.z = upperPatchCornerR[p].z - lowerPatchCornerR[p].z + 1;
@@ -444,8 +433,8 @@ void initFieldsPatchesExchange()
 
         int f; /* fields index */
         int p; /* process index */
-        struct int64Vector3d idx, g;
-        struct int64Vector3d size;
+        int643dv_t idx, g;
+        int643dv_t size;
 
         fieldsPatchesCommBuff = (double **) calloc(MPIsize, sizeof(double *));
         for (p = 0; p < MPIsize; p++) {
@@ -593,9 +582,9 @@ void applyFieldsPatches()
 {
 
         int p,c,f;
-        struct int64Vector3d idx;
+        int643dv_t idx;
         double3dv_t d, t;
-        struct int64Vector3d cellIdx;
+        int643dv_t cellIdx;
         double3dv_t cicCoord;
 
         /* reset fields */
@@ -665,14 +654,14 @@ void applyFieldsPatches()
  * This function does not enable overlapping communication
  * and computations.
  */
-void interpolateCellsToGrid()
-{
+/*void interpolateCellsToGrid()
+   {
         findPatches();
         doInterpolation();
         initPatchExchange();
         waitPatchExchange();
         applyPatches();
-}
+   }*/
 
 /*!
  * This function initializes data exchange between
@@ -680,13 +669,13 @@ void interpolateCellsToGrid()
  * This function enables overlapping communication and
  * computations.
  */
-void initCellsToGridExchange()
+void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
         if (!gfields)
                 return;
-        findPatches();
-        doInterpolation();
-        initPatchExchange();
+        findpatches(systeminfo,settings,cellsinfo,grid);
+        cells2envinfo(systeminfo,settings,cellsinfo,grid);
+        initcells2envcomm(systeminfo,settings);
 }
 
 /*!
@@ -695,12 +684,12 @@ void initCellsToGridExchange()
  * This function enables overlapping communication and
  * computations.
  */
-void waitCellsToGridExchange()
+void waitcells2env(systeminfo_t systeminfo)
 {
         if (!gfields)
                 return;
-        waitPatchExchange();
-        applyPatches();
+        waitcells2envcomm(systeminfo);
+        applypatches();
 }
 
 /*!

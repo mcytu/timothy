@@ -37,14 +37,14 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* celltype,cellcommdata_t *cellcommdata,interpdata_t *interpdata)
+int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, celltype_t* celltype, grid_t *grid,cellcommdata_t *cellcommdata,interpdata_t *interpdata)
 {
         int p;
         double sf;
 
         /* 0. Initialization */
 
-        //initCellsToGridExchange();
+        initcells2env(systeminfo,settings,cellsinfo,grid);
 
         /* initiate asynchronous data transfers between processors */
         cellssendrecv(systeminfo,*cellsinfo,cellcommdata);
@@ -56,10 +56,10 @@ int singlestep(systeminfo_t systeminfo, cellsinfo_t *cellsinfo, celltype_t* cell
 
         /* 2. Solve global fields */
 
-        //if(step>0) {
-        //        waitCellsToGridExchange();
-        //        fieldsSolve();
-        //}
+        if(settings.step>0) {
+                waitcells2env();
+                //        fieldsSolve();
+        }
 
 
         /* wait for data transfers to finish */
