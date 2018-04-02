@@ -378,6 +378,7 @@ typedef struct environment_t {
 	double initialconditionvariance;
 	double lambdadelay;
 	double *data;
+	double *production;
 } environment_t;
 
 #ifdef HYPRE

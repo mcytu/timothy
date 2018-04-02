@@ -342,14 +342,14 @@ int waitcells2envcomm(systeminfo_t systeminfo)
                 if (!cicReceiver[p])
                         continue;
                 if (MPI_Wait(&cicReqSend[p], &status) != MPI_SUCCESS)
-                        stopRun(103, "sending", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
 
         for (p = 0; p < systeminfo.size; p++) {
                 if (!cicSender[p])
                         continue;
                 if (MPI_Wait(&cicReqRecv[p], &status) != MPI_SUCCESS)
-                        stopRun(103, "receiving", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error", __FILE__, __LINE__);
         }
 
         free(cicReqSend);
@@ -362,18 +362,17 @@ int waitcells2envcomm(systeminfo_t systeminfo)
  * Update local tissueField part with information from remote processes
  * received in patches. Receiveing patches are deallocated here.
  */
-int applyPatches()
+int applypatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid,environment_t **environment)
 {
 
-        int p;
-        int i;
+        int i,p,f;
+        int index;
 
-        for (i = 0; i < gridSize.x * gridSize.y * gridSize.z; i++) {
-                tissueField[i] = 0.0;
-                if(bvsim) vesselField[i] = 0.0;
+        for(i=0; i<settings.numberoffields; i++) {
+                memset((*environment)[i].production,0,grid->localsize.x*grid->localsize.y*grid->localsize.z*sizeof(double));
         }
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 int i, j, k;
                 if (!cicSender[p])
                         continue;
@@ -387,21 +386,16 @@ int applyPatches()
                                         c.x = i - lowerPatchCornerR[p].x;
                                         c.y = j - lowerPatchCornerR[p].y;
                                         c.z = k - lowerPatchCornerR[p].z;
-                                        if (i >= gridStartIdx[MPIrank].x && i <= gridEndIdx[MPIrank].x
-                                            && j >= gridStartIdx[MPIrank].y && j <= gridEndIdx[MPIrank].y
-                                            && k >= gridStartIdx[MPIrank].z
-                                            && k <= gridEndIdx[MPIrank].z) {
-                                                g.x = i - gridStartIdx[MPIrank].x;
-                                                g.y = j - gridStartIdx[MPIrank].y;
-                                                g.z = k - gridStartIdx[MPIrank].z;
-                                                tissueField[gridSize.z * gridSize.y * g.x + gridSize.z * g.y +
-                                                            g.z] +=
-                                                        cicRecvPatch[p][size.z * size.y * c.x + size.z * c.y +
-                                                                        c.z];
-                                                if(bvsim) vesselField[gridSize.z * gridSize.y * g.x + gridSize.z * g.y +
-                                                                      g.z] +=
-                                                                cicRecvPatch[p][size.z * size.y * c.x + size.z * c.y +
-                                                                                c.z+size.x*size.y*size.z];
+                                        if (i >= grid->loweridx[systeminfo.rank].x && i <= grid->upperidx[systeminfo.rank].x
+                                            && j >= grid->loweridx[systeminfo.rank].y && j <= grid->upperidx[systeminfo.rank].y
+                                            && k >= grid->loweridx[systeminfo.rank].z && k <= grid->upperidx[systeminfo.rank].z) {
+                                                g.x = i - grid->loweridx[systeminfo.rank].x;
+                                                g.y = j - grid->loweridx[systeminfo.rank].y;
+                                                g.z = k - grid->loweridx[systeminfo.rank].z;
+                                                index=grid->localsize.x * grid->localsize.y * g.x + grid->localsize.z * g.y + g.z;
+                                                for(f=0; f<settings.numberoffields; i++)
+                                                        (*environment)[f].production[index] +=
+                                                                cicRecvPatch[p][f*(size.x*size.y*size.z)+size.z * size.y * c.x + size.z * c.y + c.z];
                                         }
                                 }
                 free(cicRecvPatch[p]);
@@ -409,7 +403,7 @@ int applyPatches()
 
         free(cicRecvPatch);
 
-        for (p = 0; p < MPIsize; p++)
+        for (p = 0; p < systeminfo.size; p++)
                 if (cicIntersect[p])
                         free(cicPatch[p]);
 
@@ -684,12 +678,12 @@ void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
  * This function enables overlapping communication and
  * computations.
  */
-void waitcells2env(systeminfo_t systeminfo)
+void waitcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid, environment_t **environment)
 {
         if (!gfields)
                 return;
         waitcells2envcomm(systeminfo);
-        applypatches();
+        applypatches(systeminfo,settings,cellsinfo,grid,environment);
 }
 
 /*!
