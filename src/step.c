@@ -37,14 +37,14 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, celltype_t* celltype, grid_t *grid, environment_t **environment,cellcommdata_t *cellcommdata,interpdata_t *interpdata)
+int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, celltype_t* celltype, grid_t *grid, environment_t **environment,cellcommdata_t *cellcommdata,interpdata_t *interpdata,cellenvdata_t ***cellenvdata)
 {
         int p;
         double sf;
 
         /* 0. Initialization */
 
-        initcells2env(systeminfo,settings,cellsinfo,grid);
+        cells2envinit(systeminfo,settings,cellsinfo,grid);
 
         /* initiate asynchronous data transfers between processors */
         cellssendrecv(systeminfo,*cellsinfo,cellcommdata);
@@ -57,7 +57,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 2. Solve global fields */
 
         if(settings.step>0) {
-                waitcells2env();
+                cells2envwait();
                 //        fieldsSolve();
         }
 
@@ -81,7 +81,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 6. Interpolate global fields and compute gradient */
 
         /* interpolate data */
-        //interpolateFieldsToCells();
+        env2cells(systeminfo,settings,cellsinfo,grid,environment,cellenvdata);
         /* compute gradient of global fields */
         //fieldGradient();
 

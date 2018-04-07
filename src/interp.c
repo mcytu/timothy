@@ -283,7 +283,7 @@ void cells2envinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
  * Receiving patches are allocated here.
  * MPI_Request tables are allocated here.
  */
-void initcells2envcomm(systeminfo_t systeminfo, settings_t settings)
+void commcells2envinit(systeminfo_t systeminfo, settings_t settings)
 {
         int p;
 
@@ -333,7 +333,7 @@ void initcells2envcomm(systeminfo_t systeminfo, settings_t settings)
  * Wait for communication to finish.
  * MPI_Request tables are deallocated here.
  */
-int waitcells2envcomm(systeminfo_t systeminfo)
+int commcells2envwait(systeminfo_t systeminfo)
 {
         int p;
         MPI_Status status;
@@ -342,14 +342,14 @@ int waitcells2envcomm(systeminfo_t systeminfo)
                 if (!cicReceiver[p])
                         continue;
                 if (MPI_Wait(&cicReqSend[p], &status) != MPI_SUCCESS)
-                        terminate(systeminfo,"communication error", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error commcells2envwait 1", __FILE__, __LINE__);
         }
 
         for (p = 0; p < systeminfo.size; p++) {
                 if (!cicSender[p])
                         continue;
                 if (MPI_Wait(&cicReqRecv[p], &status) != MPI_SUCCESS)
-                        terminate(systeminfo,"communication error", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error commcells2envwait 2", __FILE__, __LINE__);
         }
 
         free(cicReqSend);
@@ -362,7 +362,7 @@ int waitcells2envcomm(systeminfo_t systeminfo)
  * Update local tissueField part with information from remote processes
  * received in patches. Receiveing patches are deallocated here.
  */
-int applypatches(systeminfo_t systeminfo, settings_t settings, grid_t *grid,environment_t **environment)
+int applycells2envpatches(systeminfo_t systeminfo, settings_t settings, grid_t *grid,environment_t **environment)
 {
 
         int i,p,f;
@@ -422,7 +422,7 @@ int applypatches(systeminfo_t systeminfo, settings_t settings, grid_t *grid,envi
  * Receiving field patches are also allocated here.
  * MPI_Request tables are allocated here.
  */
-void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
+void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, grid_t *grid,environment_t **environment)
 {
 
         int f; /* fields index */
@@ -446,19 +446,17 @@ void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
                         int64_t i, j, k;
                         for (i = lowerPatchCornerR[p].x; i <= upperPatchCornerR[p].x; i++)
                                 for (j = lowerPatchCornerR[p].y; j <= upperPatchCornerR[p].y; j++)
-                                        for (k = lowerPatchCornerR[p].z; k <= upperPatchCornerR[p].z;
-                                             k++) {
+                                        for (k = lowerPatchCornerR[p].z; k <= upperPatchCornerR[p].z; k++) {
+                                                int index1,index2;
                                                 idx.x = i - lowerPatchCornerR[p].x;
                                                 idx.y = j - lowerPatchCornerR[p].y;
                                                 idx.z = k - lowerPatchCornerR[p].z;
                                                 g.x = i - grid->loweridx[systeminfo.rank].x;
                                                 g.y = j - grid->loweridx[systeminfo.rank].y;
                                                 g.z = k - grid->loweridx[systeminfo.rank].z;
-                                                fieldsPatchesCommBuff[p][f * fieldPatchSize +
-                                                                         size.z * size.y * idx.x +
-                                                                         size.z * idx.y + idx.z] =
-                                                        ((double *) fieldAddr[f])[grid->localsize.z * grid->localsize.y * g.x +
-                                                                                  grid->localsize.z * g.y + g.z];
+                                                index1 = f * fieldPatchSize + size.z * size.y * idx.x + size.z * idx.y + idx.z;
+                                                index2 = grid->localsize.z * grid->localsize.y * g.x + grid->localsize.z * g.y + g.z;
+                                                fieldsPatchesCommBuff[p][index1] = (*environment)[f].data[index2];
                                         }
                 }
                 /* field gradients */
@@ -466,63 +464,51 @@ void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
                         int64_t i, j, k;
                         for (i = lowerPatchCornerR[p].x; i <= upperPatchCornerR[p].x; i++)
                                 for (j = lowerPatchCornerR[p].y; j <= upperPatchCornerR[p].y; j++)
-                                        for (k = lowerPatchCornerR[p].z; k <= upperPatchCornerR[p].z;
-                                             k++) {
+                                        for (k = lowerPatchCornerR[p].z; k <= upperPatchCornerR[p].z; k++) {
+                                                int index1,index2;
                                                 idx.x = i - lowerPatchCornerR[p].x;
                                                 idx.y = j - lowerPatchCornerR[p].y;
                                                 idx.z = k - lowerPatchCornerR[p].z;
                                                 g.x = i - grid->loweridx[systeminfo.rank].x;
                                                 g.y = j - grid->loweridx[systeminfo.rank].y;
                                                 g.z = k - grid->loweridx[systeminfo.rank].z;
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
-                                                                         3* size.z * size.y * idx.x +
-                                                                         3* size.z * idx.y + 3*idx.z] =
-                                                        ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
-                                                                                 3*gridSize.z * g.y + 3*g.z];
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
-                                                                         3* size.z * size.y * idx.x +
-                                                                         3* size.z * idx.y + 3*idx.z + 1] =
-                                                        ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
-                                                                                 3*gridSize.z * g.y + 3*g.z + 1];
-                                                fieldsPatchesCommBuff[p][fieldPatchSize*settings.numberoffields + f * 3 * fieldPatchSize +
-                                                                         3* size.z * size.y * idx.x +
-                                                                         3* size.z * idx.y + 3* idx.z + 2] =
-                                                        ((double *) gradAddr[f])[3*gridSize.z * gridSize.y * g.x +
-                                                                                 3*gridSize.z * g.y + 3*g.z + 2];
+                                                index1 = fieldPatchSize*settings.numberoffields + 3* (f * fieldPatchSize + size.z * size.y * idx.x + size.z * idx.y + idx.z);
+                                                index2 = 3*(grid->localsize.z*grid->localsize.y*g.x + grid->localsize.z*g.y + g.z);
+                                                fieldsPatchesCommBuff[p][index1] = (*environment)[f].gradient[index2];
+                                                fieldsPatchesCommBuff[p][index1+1] = (*environment)[f].gradient[index2+1];
+                                                fieldsPatchesCommBuff[p][index1+2] = (*environment)[f].gradient[index2+2];
                                         }
                 }
 
         }
+        return;
 }
 
-void initenv2cellscomm(){
+void commenv2cellsinit(systeminfo_t systeminfo, settings_t settings){
 
         int p; /* process index */
 
-        if (!(fieldsPatches = (double **) calloc(MPIsize, sizeof(double *))))
-                stopRun(106, "fieldsPatches", __FILE__, __LINE__);
+        if (!(fieldsPatches = (double **) calloc(systeminfo.size, sizeof(double *))))
+                terminate(systeminfo,"cannot allocate fieldsPatches", __FILE__, __LINE__);
 
-        cicReqSend = (MPI_Request *) malloc(sizeof(MPI_Request) * MPIsize);
-        cicReqRecv = (MPI_Request *) malloc(sizeof(MPI_Request) * MPIsize);
+        cicReqSend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
+        cicReqRecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (cicSender[p]) {
                         int sendSize;
-                        sendSize =
-                                (upperPatchCornerR[p].x - lowerPatchCornerR[p].x +
-                                 1) * (upperPatchCornerR[p].y - lowerPatchCornerR[p].y +
-                                       1) * (upperPatchCornerR[p].z - lowerPatchCornerR[p].z +
-                                             1) * (NFIELDS+NCHEM*3);
+                        sendSize =  (upperPatchCornerR[p].x - lowerPatchCornerR[p].x +
+                                     1) * (upperPatchCornerR[p].y - lowerPatchCornerR[p].y +
+                                           1) * (upperPatchCornerR[p].z - lowerPatchCornerR[p].z +
+                                                 1) * (settings.numberoffields*4);
                         MPI_Isend(&(fieldsPatchesCommBuff[p][0]), sendSize, MPI_DOUBLE, p,
                                   MPIrank, MPI_COMM_WORLD, &cicReqSend[p]);
                 }
                 if (cicReceiver[p]) {
                         int recvSize;
-                        recvSize =
-                                patchSize[p].x * patchSize[p].y * patchSize[p].z * (NFIELDS+NCHEM*3);
-                        if (!
-                            (fieldsPatches[p] = (double *) calloc(recvSize, sizeof(double))))
-                                stopRun(106, "fieldsPatches", __FILE__, __LINE__);
+                        recvSize = patchSize[p].x * patchSize[p].y * patchSize[p].z * (settings.numberoffields*4);
+                        if (!(fieldsPatches[p] = (double *) calloc(recvSize, sizeof(double))))
+                                terminate(systeminfo,"cannot allocate fieldsPatches[p]", __FILE__, __LINE__);
                         MPI_Irecv(&(fieldsPatches[p][0]), recvSize, MPI_DOUBLE, p, p,
                                   MPI_COMM_WORLD, &cicReqRecv[p]);
                 }
@@ -535,29 +521,29 @@ void initenv2cellscomm(){
  * MPI_Request tables are deallocated here.
  * Field patches buffers are deallocated here.
  */
-void waitFieldsPatchesExchange()
+void commenv2cellswait(systeminfo_t systeminfo)
 {
         int p;
         MPI_Status status;
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (!cicSender[p])
                         continue;
                 if (MPI_Wait(&cicReqSend[p], &status) != MPI_SUCCESS)
-                        stopRun(103, "sending", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error commenv2cellswait 1", __FILE__, __LINE__);
         }
 
-        for (p = 0; p < MPIsize; p++) {
+        for (p = 0; p < systeminfo.size; p++) {
                 if (!cicReceiver[p])
                         continue;
                 if (MPI_Wait(&cicReqRecv[p], &status) != MPI_SUCCESS)
-                        stopRun(103, "receiving", __FILE__, __LINE__);
+                        terminate(systeminfo,"communication error commenv2cellswait 2", __FILE__, __LINE__);
         }
 
         free(cicReqSend);
         free(cicReqRecv);
 
-        for (p = 0; p < MPIsize; p++)
+        for (p = 0; p < systeminfo.size; p++)
                 free(fieldsPatchesCommBuff[p]);
         free(fieldsPatchesCommBuff);
 
@@ -569,7 +555,7 @@ void waitFieldsPatchesExchange()
  * remote processes received in patches.
  * Receiveing field patches are deallocated here.
  */
-void applyFieldsPatches()
+void applyenv2cellspatches(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo,grid_t *grid,cellenvdata_t ***cellenvdata)
 {
 
         int p,c,f;
@@ -578,16 +564,27 @@ void applyFieldsPatches()
         int643dv_t cellIdx;
         double3dv_t cicCoord;
 
-        /* reset fields */
-        for (f = 0; f < NFIELDS+NCHEM*3; f++)
-                for (c = 0; c < lnc; c++)
-                        cellFields[f][c] = 0.0;
+        /* allocate cellenvdata */
+        if(!((*cellenvdata)=(cellenvdata_t**)calloc(settings.numberoffields,sizeof(cellenvdata_t*))))
+                terminate(systeminfo,"cannot allocate cellenvdata", __FILE__, __LINE__);
+        for(f=0; f<settings.numberoffields; f++)
+                if(!((*cellenvdata)[f]=(cellenvdata_t*)calloc(cellsinfo->localcount.n,sizeof(cellenvdata_t))))
+                        terminate(systeminfo,"cannot allocate cellenvdata[f]", __FILE__, __LINE__);
 
-        for (c = 0; c < lnc; c++) { /* for every cell */
-                cellIdx.x = ((cells[c].x - lowerGridCorner.x) / gridResolution);
-                cellIdx.y = ((cells[c].y - lowerGridCorner.y) / gridResolution);
-                cellIdx.z = ((cells[c].z - lowerGridCorner.z) / gridResolution);
-                for (p = 0; p < MPIsize; p++) { /* for each process */
+        /* reset fields */
+        for (f = 0; f < settings.numberoffields; f++)
+                for (c = 0; c < cellsinfo->localcount.n; c++) {
+                        (*cellenvdata)[f][c].value=0.0;
+                        (*cellenvdata)[f][c].gx=0.0;
+                        (*cellenvdata)[f][c].gy=0.0;
+                        (*cellenvdata)[f][c].gz=0.0;
+                }
+
+        for (c = 0; c < cellsinfo->localcount.n; c++) { /* for every cell */
+                cellIdx.x = ((cellsinfo->cells[c].x - grid->lowercorner.x) / grid->resolution);
+                cellIdx.y = ((cellsinfo->cells[c].y - grid->lowercorner.y) / grid->resolution);
+                cellIdx.z = ((cellsinfo->cells[c].z - grid->lowercorner.z) / grid->resolution);
+                for (p = 0; p < systeminfo.size; p++) { /* for each process */
                         int ax, ay, az;
                         if (!cicReceiver[p])
                                 continue; /* there is no patch from this process */
@@ -605,13 +602,13 @@ void applyFieldsPatches()
                                                         idx.y = (cellIdx.y + ay) - lowerPatchCorner[p].y;
                                                         idx.z = (cellIdx.z + az) - lowerPatchCorner[p].z;
 
-                                                        cicCoord.x = lowerGridCorner.x + cellIdx.x * gridResolution;
-                                                        cicCoord.y = lowerGridCorner.y + cellIdx.y * gridResolution;
-                                                        cicCoord.z = lowerGridCorner.z + cellIdx.z * gridResolution;
+                                                        cicCoord.x = grid->lowercorner.x + cellIdx.x * grid->resolution;
+                                                        cicCoord.y = grid->lowercorner.y + cellIdx.y * grid->resolution;
+                                                        cicCoord.z = grid->lowercorner.z + cellIdx.z * grid->resolution;
 
-                                                        d.x = (cells[c].x - cicCoord.x) / gridResolution;
-                                                        d.y = (cells[c].y - cicCoord.y) / gridResolution;
-                                                        d.z = (cells[c].z - cicCoord.z) / gridResolution;
+                                                        d.x = (cellsinfo->cells[c].x - cicCoord.x) / grid->resolution;
+                                                        d.y = (cellsinfo->cells[c].y - cicCoord.y) / grid->resolution;
+                                                        d.z = (cellsinfo->cells[c].z - cicCoord.z) / grid->resolution;
 
                                                         t.x = 1.0 - d.x;
                                                         t.y = 1.0 - d.y;
@@ -619,20 +616,22 @@ void applyFieldsPatches()
 
                                                         /* interpolating back to cells */
                                                         /* scaling from mol/cm^3 to mol/cell */
-                                                        for (f = 0; f < NFIELDS; f++) {
-                                                                cellFields[f][c] += fieldsPatches[p][f * patchSize[p].x * patchSize[p].y * patchSize[p].z + patchSize[p].y * patchSize[p].z * idx.x + patchSize[p].z * idx.y + idx.z] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z); //*cellVolume;
+                                                        for (f = 0; f < settings.numberoffields; f++) {
+                                                                int index1 = f * patchSize[p].x * patchSize[p].y * patchSize[p].z + patchSize[p].y * patchSize[p].z * idx.x + patchSize[p].z * idx.y + idx.z;
+                                                                (*cellenvdata)[f][c].value += fieldsPatches[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z); //*cellVolume;
                                                         }
-                                                        for (f = 0; f < NCHEM; f++) {
-                                                                cellFields[NFIELDS+3*f][c] += fieldsPatches[p][NFIELDS* patchSize[p].x * patchSize[p].y * patchSize[p].z + f * 3 * patchSize[p].x * patchSize[p].y * patchSize[p].z + 3 * patchSize[p].y * patchSize[p].z * idx.x + 3* patchSize[p].z * idx.y + 3 * idx.z] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
-                                                                cellFields[NFIELDS+3*f+1][c] += fieldsPatches[p][NFIELDS* patchSize[p].x * patchSize[p].y * patchSize[p].z + f * 3 * patchSize[p].x * patchSize[p].y * patchSize[p].z + 3 * patchSize[p].y * patchSize[p].z * idx.x + 3* patchSize[p].z * idx.y + 3 * idx.z + 1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
-                                                                cellFields[NFIELDS+3*f+2][c] += fieldsPatches[p][NFIELDS* patchSize[p].x * patchSize[p].y * patchSize[p].z + f * 3 * patchSize[p].x * patchSize[p].y * patchSize[p].z + 3 * patchSize[p].y * patchSize[p].z * idx.x + 3* patchSize[p].z * idx.y + 3 * idx.z + 2] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                        for (f = 0; f < settings.numberoffields; f++) {
+                                                                int index1=settings.numberoffields * patchSize[p].x * patchSize[p].y * patchSize[p].z + 3* (f * patchSize[p].x * patchSize[p].y * patchSize[p].z + patchSize[p].y * patchSize[p].z * idx.x + patchSize[p].z * idx.y + idx.z);
+                                                                (*cellenvdata)[f][c].gx += fieldsPatches[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                                (*cellenvdata)[f][c].gy += fieldsPatches[p][index1 + 1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                                (*cellenvdata)[f][c].gz += fieldsPatches[p][index1 + 2] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
                                                         }
                                                 } // if
                                         }// az
                 } // p
         } // c
 
-        for (p = 0; p < MPIsize; p++)
+        for (p = 0; p < systeminfo.size; p++)
                 free(fieldsPatches[p]);
         free(fieldsPatches);
 
@@ -660,13 +659,13 @@ void applyFieldsPatches()
  * This function enables overlapping communication and
  * computations.
  */
-void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
+void cells2envinit(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid)
 {
         if (settings.numberoffields==0)
                 return;
         findpatches(systeminfo,settings,cellsinfo,grid);
         cells2envinfo(systeminfo,settings,cellsinfo,grid);
-        initcells2envcomm(systeminfo,settings);
+        commcells2envinit(systeminfo,settings);
         return;
 }
 
@@ -676,12 +675,12 @@ void initcells2env(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *ce
  * This function enables overlapping communication and
  * computations.
  */
-void waitcells2env(systeminfo_t systeminfo, settings_t settings, grid_t *grid, environment_t **environment)
+void cells2envwait(systeminfo_t systeminfo, settings_t settings, grid_t *grid, environment_t **environment)
 {
         if (settings.numberoffields==0)
                 return;
-        waitcells2envcomm(systeminfo);
-        applypatches(systeminfo,settings,grid,environment);
+        commcells2envwait(systeminfo);
+        applycells2envpatches(systeminfo,settings,grid,environment);
         return;
 }
 
@@ -691,15 +690,15 @@ void waitcells2env(systeminfo_t systeminfo, settings_t settings, grid_t *grid, e
  * implemented here.
  * This function deallocates all important arrays used in interpolation.
  */
-void interpolateFieldsToCells(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid, environment_t **environment)
+void env2cells(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, grid_t *grid, environment_t **environment,cellenvdata_t ***cellenvdata)
 {
         if (settings.numberoffields==0)
                 return;
 
-        env2cellsinfo(systeminfo,settings,cellsinfo,grid);
-        initenv2cellscomm();
-        waitFieldsPatchesExchange();
-        applyFieldsPatches();
+        env2cellsinfo(systeminfo,settings,grid,environment);
+        commenv2cellsinit(systeminfo,settings);
+        commenv2cellswait(systeminfo);
+        applyenv2cellspatches(systeminfo,settings,cellsinfo,grid,cellenvdata);
 
         free(cicReceiver);
         free(cicSender);
@@ -710,5 +709,5 @@ void interpolateFieldsToCells(systeminfo_t systeminfo, settings_t settings, cell
         free(lowerPatchCornerR);
         free(upperPatchCornerR);
         free(patchSize);
-        //free(patchSizeR);
+        return;
 }

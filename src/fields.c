@@ -48,6 +48,9 @@ void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,envi
         for(i=0; i<settings.numberoffields; i++)
                 if(!((*environment)[i].production=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
                         terminate(systeminfo,"cannot allocate environment->production", __FILE__, __LINE__);
+        for(i=0; i<settings.numberoffields; i++)
+                if(!((*environment)[i].gradient=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z*3,sizeof(double))))
+                        terminate(systeminfo,"cannot allocate environment->gradient", __FILE__, __LINE__);
         return;
 }
 

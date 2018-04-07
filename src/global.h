@@ -137,6 +137,13 @@ typedef struct celldata_t {
   int ctype;
 } celldata_t;
 
+typedef struct cellenvdata_t {
+	double value;
+	double gx;
+	double gy;
+	double gz;
+} cellenvdata_t;
+
 typedef struct double3dv_t {
   double x;
   double y;
@@ -378,6 +385,7 @@ typedef struct environment_t {
 	double initialconditionvariance;
 	double lambdadelay;
 	double *data;
+	double *gradient;
 	double *production;
 } environment_t;
 

@@ -41,6 +41,7 @@ int main(int argc, char **argv)
         interpdata_t interpdata;
         statistics_t statistics;
         solverdata_t solverdata;
+        cellenvdata_t **cellenvdata;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_size(MPI_COMM_WORLD, &systeminfo.size);
@@ -61,7 +62,7 @@ int main(int argc, char **argv)
                 lbexchange(systeminfo);
                 octbuild(systeminfo,&cellsinfo,celltype);
                 createexportlist(systeminfo,settings,cellsinfo,grid,celltype,&cellcommdata,&fieldcommdata);
-                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata);
+                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(settings,&cellsinfo);
