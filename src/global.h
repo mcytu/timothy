@@ -378,18 +378,18 @@ typedef struct celltype_t {
 #define ENVIRONMENT_LAMBDA_DEFAULT 0.0
 
 typedef struct patches_t {
-	double **cicPatch;
-	int *cicIntersect;
-	int *cicReceiver;
-	int *cicSender;
-	double **cicRecvPatch;
-	MPI_Request *cicReqSend;
-	MPI_Request *cicReqRecv;
-	int643dv_t *lowerPatchCorner;
-	int643dv_t *upperPatchCorner;
-	int643dv_t *lowerPatchCornerR;
-	int643dv_t *upperPatchCornerR;
-	int643dv_t *patchSize;
+	double **data;
+	int *intersect;
+	int *receiver;
+	int *sender;
+	double **recvdata;
+	MPI_Request *reqsend;
+	MPI_Request *reqrecv;
+	int643dv_t *lowercorner;
+	int643dv_t *uppercorner;
+	int643dv_t *lowercornerR;
+	int643dv_t *uppercornerR;
+	int643dv_t *size;
 } patches_t;
 
 typedef struct environment_t {
