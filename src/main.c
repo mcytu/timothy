@@ -53,6 +53,8 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
         allocatecells(systeminfo,settings,celltype,&cellsinfo);
         allocategrid(systeminfo,settings,&grid);
+        //envalloc(systeminfo,settings,grid,&environment,&solverdata);
+        //envinit(systeminfo,settings,grid,&environment);
         allocatefields(systeminfo,settings,grid,&environment,&solverdata);
         initfields(systeminfo,settings,grid,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
@@ -68,6 +70,7 @@ int main(int argc, char **argv)
                 cellsupdate(settings,&cellsinfo);
                 writevtk(systeminfo,settings,cellsinfo);
                 octfree(&cellsinfo);
+                cleanstep(settings,&cellenvdata);
         }
 
         MPI_Abort(MPI_COMM_WORLD,-1);

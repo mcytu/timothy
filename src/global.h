@@ -377,6 +377,21 @@ typedef struct celltype_t {
 #define ENVIRONMENT_ICVAR_DEFAULT 0.0
 #define ENVIRONMENT_LAMBDA_DEFAULT 0.0
 
+typedef struct patches_t {
+	double **cicPatch;
+	int *cicIntersect;
+	int *cicReceiver;
+	int *cicSender;
+	double **cicRecvPatch;
+	MPI_Request *cicReqSend;
+	MPI_Request *cicReqRecv;
+	int643dv_t *lowerPatchCorner;
+	int643dv_t *upperPatchCorner;
+	int643dv_t *lowerPatchCornerR;
+	int643dv_t *upperPatchCornerR;
+	int643dv_t *patchSize;
+} patches_t;
+
 typedef struct environment_t {
 	char name[128];
 	double diffusioncoefficient;

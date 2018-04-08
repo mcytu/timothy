@@ -41,10 +41,10 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
 {
         int p;
         double sf;
-
+        patches_t patches;
         /* 0. Initialization */
-
-        cells2envinit(systeminfo,settings,cellsinfo,grid);
+        patchesalloc(systeminfo,settings,&patches,cellsinfo,grid);
+        cells2envinit(systeminfo,settings,&patches,cellsinfo,grid);
 
         /* initiate asynchronous data transfers between processors */
         cellssendrecv(systeminfo,*cellsinfo,cellcommdata);
@@ -57,10 +57,9 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 2. Solve global fields */
 
         if(settings.step>0) {
-                cells2envwait();
-                //        fieldsSolve();
+                cells2envwait(systeminfo,settings,&patches,grid,environment);
+                //envsolve();
         }
-
 
         /* wait for data transfers to finish */
         cellswait(systeminfo,*cellsinfo,cellcommdata);
@@ -81,7 +80,11 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 6. Interpolate global fields and compute gradient */
 
         /* interpolate data */
-        env2cells(systeminfo,settings,cellsinfo,grid,environment,cellenvdata);
+        env2cellsinit(systeminfo,settings,&patches,grid,environment);
+
+        env2cellswait(systeminfo,settings,&patches,cellsinfo,grid,cellenvdata);
+
+        patchesfree(&patches);
         /* compute gradient of global fields */
         //fieldGradient();
 
@@ -93,4 +96,12 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         computeremotegradient(cellsinfo,celltype,*cellcommdata);
 
         return 0;
+}
+
+void cleanstep(settings_t settings,cellenvdata_t ***cellenvdata) {
+        int f;
+        for(f=0; f<settings.numberoffields; f++) {
+                free((*cellenvdata)[f]);
+        }
+        free((*cellenvdata));
 }
