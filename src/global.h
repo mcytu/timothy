@@ -405,10 +405,31 @@ typedef struct environment_t {
 } environment_t;
 
 #ifdef HYPRE
-typedef struct solverdata_t {
+typedef struct solversettings_t {
 	double *z;
+	double *dt;
+	int envIter;
+	int numberOfIters;
+	int envObjectType;
   HYPRE_SStructVariable *vartypes;
 	HYPRE_SStructStencil *stencil;
+	HYPRE_Solver precond;
+	HYPRE_SStructGrid grid;
+	HYPRE_SStructGraph graph;
+	HYPRE_Int lower[3];
+	HYPRE_Int upper[3];
+	HYPRE_Int bclower[3];
+	HYPRE_Int bcupper[3];
+} solversettings_t;
+
+typedef struct solverdata_t {
+	HYPRE_SStructMatrix A;
+	HYPRE_SStructVector b;
+	HYPRE_SStructVector x;
+	HYPRE_ParCSRMatrix parA;
+	HYPRE_ParVector parb;
+	HYPRE_ParVector parx;
+	HYPRE_Solver solver;
 } solverdata_t;
 #endif
 

@@ -37,7 +37,7 @@
 /*!
  * This function calls all important simulation steps (cellular dynamics and global fields computations).
  */
-int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, celltype_t* celltype, grid_t *grid, environment_t **environment,cellcommdata_t *cellcommdata,interpdata_t *interpdata,cellenvdata_t ***cellenvdata)
+int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsinfo, celltype_t* celltype, grid_t *grid, environment_t **environment,cellcommdata_t *cellcommdata,interpdata_t *interpdata,cellenvdata_t ***cellenvdata, solverdata_t *solverdata,solversettings_t *solversettings)
 {
         int p;
         double sf;
@@ -58,7 +58,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
 
         if(settings.step>0) {
                 cells2envwait(systeminfo,settings,&patches,grid,environment);
-                //envsolve();
+                envsolve(systeminfo,settings,grid,environment,solverdata);
         }
 
         /* wait for data transfers to finish */

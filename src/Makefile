@@ -35,7 +35,7 @@ SPRNGINC=-I/opt/sprng/2.0/include
 CFLAGS += -I. $(ZOLTANINC) $(SPRNGINC) $(HYPREINC)
 LDFLAGS += -lm $(ZOLTANLIB) $(SPRNGLIB) $(GMPLIB) $(HYPRELIB)
 
-OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o exchange.o initialisation.o grid.o patches.o fields.o chemf.o step.o
+OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o exchange.o initialisation.o grid.o patches.o fields.o environment.o step.o
 DEPS = global.h io.h inline.h fields.h potential.h octree.h
 
 all: timothy

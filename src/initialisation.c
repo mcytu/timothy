@@ -149,14 +149,14 @@ void initialisation(int argc, char **argv, systeminfo_t *systeminfo, settings_t*
         periods[2] = 0;
         reorder = 0;
         MPI_Cart_create(MPI_COMM_WORLD, settings->dimension, systeminfo->dim, periods, reorder,
-                        &MPI_CART_COMM);
+                        &(systeminfo->MPI_CART_COMM));
 
         if(!(systeminfo->coords = (int **) malloc(systeminfo->size * sizeof(int *))))
                 terminate(*systeminfo,"cannot allocate systeminfo->coords", __FILE__, __LINE__);
         for (i = 0; i < systeminfo->size; i++) {
                 if(!(systeminfo->coords[i] = (int *) malloc(3 * sizeof(int))))
                         terminate(*systeminfo,"cannot allocate systeminfo->coords[i]", __FILE__, __LINE__);
-                MPI_Cart_coords(MPI_CART_COMM, i, settings->dimension, systeminfo->coords[i]);
+                MPI_Cart_coords(systeminfo->MPI_CART_COMM, i, settings->dimension, systeminfo->coords[i]);
         }
 
         maxlocalcells=settings->maxcells / systeminfo->size;

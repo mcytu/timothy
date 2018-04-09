@@ -41,6 +41,7 @@ int main(int argc, char **argv)
         interpdata_t interpdata;
         statistics_t statistics;
         solverdata_t solverdata;
+        solversettings_t solversettings;
         cellenvdata_t **cellenvdata;
 
         MPI_Init(&argc, &argv);
@@ -53,10 +54,13 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
         allocatecells(systeminfo,settings,celltype,&cellsinfo);
         allocategrid(systeminfo,settings,&grid);
-        //envalloc(systeminfo,settings,grid,&environment,&solverdata);
-        //envinit(systeminfo,settings,grid,&environment);
-        allocatefields(systeminfo,settings,grid,&environment,&solverdata);
-        initfields(systeminfo,settings,grid,&environment);
+        envalloc(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
+        envinit(systeminfo,settings,grid,&environment);
+        #ifdef HYPRE
+        envinitsystem_hypre(systeminfo,settings,&grid,&environment,&solverdata,&solversettings);
+        #endif
+        //allocatefields(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
+        //initfields(systeminfo,settings,grid,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
@@ -64,7 +68,7 @@ int main(int argc, char **argv)
                 lbexchange(systeminfo);
                 octbuild(systeminfo,&cellsinfo,celltype);
                 createexportlist(systeminfo,settings,cellsinfo,grid,celltype,&cellcommdata,&fieldcommdata);
-                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata);
+                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(settings,&cellsinfo);

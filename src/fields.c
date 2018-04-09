@@ -35,13 +35,13 @@
  *  \brief contains driving functions for the global fields
  */
 
-void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata) {
+/*void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata) {
         int i;
-#ifdef HYPRE
+ #ifdef HYPRE
         solverdata->z=(double*)calloc(settings.numberoffields,sizeof(double));
         solverdata->vartypes=(HYPRE_SStructVariable*)calloc(settings.numberoffields,sizeof(HYPRE_SStructVariable));
         solverdata->stencil=(HYPRE_SStructStencil*)calloc(settings.numberoffields,sizeof(HYPRE_SStructStencil));
-#endif
+ #endif
         for(i=0; i<settings.numberoffields; i++)
                 if(!((*environment)[i].data=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z,sizeof(double))))
                         terminate(systeminfo,"cannot allocate environment->data", __FILE__, __LINE__);
@@ -52,9 +52,9 @@ void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,envi
                 if(!((*environment)[i].gradient=(double*) calloc(grid.localsize.x*grid.localsize.y*grid.localsize.z*3,sizeof(double))))
                         terminate(systeminfo,"cannot allocate environment->gradient", __FILE__, __LINE__);
         return;
-}
+   }
 
-void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
+   void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
         int i,j,k,f;
         int yz=grid.localsize.y * grid.localsize.z;
         for(f=0; f<settings.numberoffields; f++) {
@@ -66,9 +66,9 @@ void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environm
                                 }
         }
         return;
-}
+   }
 
-
+ */
 //void find
 
 
@@ -197,9 +197,9 @@ void fieldsInit()
                         continue;
                 if (i == 2 && !hydrogenIon)
                         continue;
-                chemEnvInitSystem(i);
-                chemEnvInitBC(i);
-                chemEnvInitSolver(i);
+                //  chemEnvInitSystem(i);
+                //  chemEnvInitBC(i);
+                //  chemEnvInitSolver(i);
         }
 }
 
@@ -227,7 +227,7 @@ void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo)
                                 continue;
                         if (i == 2 && !hydrogenIon)
                                 continue;
-                        chemEnvSolve(i);
+                        //chemEnvSolve(i);
                 }
         }
 }
