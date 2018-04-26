@@ -287,14 +287,15 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
 /*!
  * This function initializes boundary conditions for a given envical field.
  */
-/*void envInitBC(struct state simstate,int settings.numberoffields,struct environment *nutrient,struct gridData grid)
-   {
+void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
+//struct state simstate,int settings.numberoffields,struct environment *nutrient,struct gridData grid)
+{
         int i, j, k;
         int mi;
         int var;
         int nentries = 1;
         HYPRE_Int stencil_indices[1];
-        long long nvalues = grid.local_size.x * grid.local_size.y * grid.local_size.z;
+        long long nvalues = grid->localsize.x * grid->localsize.y * grid->localsize.z;
         double *values, *bvalues;
         double *envPC;
 
@@ -303,120 +304,120 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
         bvalues = calloc(nvalues, sizeof(double));
 
 
+
         // 5. SETUP STRUCT VECTORS FOR B AND X
 
         // create an empty vector object
-        HYPRE_SStructVectorCreate(simstate.MPI_CART_COMM, grid, &b);
-        HYPRE_SStructVectorCreate(simstate.MPI_CART_COMM, grid, &x);
+        HYPRE_SStructVectorCreate(systeminfo.MPI_CART_COMM, solversettings->grid, &(solverdata->b));
+        HYPRE_SStructVectorCreate(systeminfo.MPI_CART_COMM, solversettings->grid, &(solverdata->x));
 
         // as with the matrix, set the appropriate object type for the vectors
-        HYPRE_SStructVectorSetObjectType(b, envObjectType);
-        HYPRE_SStructVectorSetObjectType(x, envObjectType);
+        HYPRE_SStructVectorSetObjectType(solverdata->b,solversettings->envObjectType);
+        HYPRE_SStructVectorSetObjectType(solverdata->x,solversettings->envObjectType);
 
         // indicate that the vector coefficients are ready to be set
-        HYPRE_SStructVectorInitialize(b);
-        HYPRE_SStructVectorInitialize(x);
+        HYPRE_SStructVectorInitialize(solverdata->b);
+        HYPRE_SStructVectorInitialize(solverdata->x);
 
         for(var=0; var<settings.numberoffields; var++) {
 
-                envCellPC(simstate,envPC,var,grid);
+                // wazne!!!!!!
+                //envCellPC(simstate,envPC,var,grid);
 
                 // set the values
                 mi = 0;
-                for (k = lower[2]; k <= upper[2]; k++)
-                        for (j = lower[1]; j <= upper[1]; j++)
-                                for (i = lower[0]; i <= upper[0]; i++) {
-                                        values[mi] = nutrient[var].initial_condition_mean;
+                for (k = solversettings->lower[2]; k <= solversettings->upper[2]; k++)
+                        for (j = solversettings->lower[1]; j <= solversettings->upper[1]; j++)
+                                for (i = solversettings->lower[0]; i <= solversettings->upper[0]; i++) {
+                                        values[mi] = (*environment)[var].initialconditionmean;
                                         mi++;
                                 }
 
-                HYPRE_SStructVectorSetBoxValues(b, 0, lower, upper, var,
-                                                values);
+                HYPRE_SStructVectorSetBoxValues(solverdata->b, 0, solversettings->lower, solversettings->upper, var, values);
 
                 mi = 0;
-                for (k = lower[2]; k <= upper[2]; k++)
-                        for (j = lower[1]; j <= upper[1]; j++)
-                                for (i = lower[0]; i <= upper[0]; i++) {
-                                        values[mi] = nutrient[var].initial_condition_mean;
+                for (k = solversettings->lower[2]; k <= solversettings->upper[2]; k++)
+                        for (j = solversettings->lower[1]; j <= solversettings->upper[1]; j++)
+                                for (i = solversettings->lower[0]; i <= solversettings->upper[0]; i++) {
+                                        values[mi] = (*environment)[var].initialconditionmean;
                                         mi++;
                                 }
 
-                HYPRE_SStructVectorSetBoxValues(x, 0, lower, upper, var,
-                                                values);
+                HYPRE_SStructVectorSetBoxValues(solverdata->x, 0, solversettings->lower, solversettings->upper, var, values);
+/*
+                        // incorporate boundary conditions; Dirichlet on 6 faces
 
-                // incorporate boundary conditions; Dirichlet on 6 faces
+                        for (i = 0; i < nvalues; i++)
+                                values[i] = solverdata->z[var];
+                        for (i = 0; i < nvalues; i++)
+                                bvalues[i] = solverdata->z[var] * nutrient[var].boundary_condition;
 
-                for (i = 0; i < nvalues; i++)
-                        values[i] = solverdata->z[var];
-                for (i = 0; i < nvalues; i++)
-                        bvalues[i] = solverdata->z[var] * nutrient[var].boundary_condition;
+                        if (simstate.MPIcoords[simstate.MPIrank][0] == 0) {
+                                nvalues = nentries * grid.local_size.y * grid.local_size.z;
+                                envSetBoundary(0, -1);
+                                stencil_indices[0] = 1;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
+                        if (simstate.MPIcoords[simstate.MPIrank][0] == simstate.MPIdim[0] - 1) {
+                                nvalues = nentries * grid.local_size.y * grid.local_size.z;
+                                envSetBoundary(0, 1);
+                                stencil_indices[0] = 2;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
+                        if (simstate.MPIcoords[simstate.MPIrank][1] == 0) {
+                                nvalues = nentries * grid.local_size.x * grid.local_size.z;
+                                envSetBoundary(1, -1);
+                                stencil_indices[0] = 3;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
+                        if (simstate.MPIcoords[simstate.MPIrank][1] == simstate.MPIdim[1] - 1) {
+                                nvalues = nentries * grid.local_size.x * grid.local_size.z;
+                                envSetBoundary(1, 1);
+                                stencil_indices[0] = 4;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
+                        if (simstate.MPIcoords[simstate.MPIrank][2] == 0) {
+                                nvalues = nentries * grid.local_size.x * grid.local_size.y;
+                                envSetBoundary(2, -1);
+                                stencil_indices[0] = 5;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
+                        if (simstate.MPIcoords[simstate.MPIrank][2] == simstate.MPIdim[2] - 1) {
+                                nvalues = nentries * grid.local_size.x * grid.local_size.y;
+                                envSetBoundary(2, 1);
+                                stencil_indices[0] = 6;
+                                HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  nentries, stencil_indices, values);
+                                HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
+                                                                  bvalues);
+                        }
 
-                if (simstate.MPIcoords[simstate.MPIrank][0] == 0) {
-                        nvalues = nentries * grid.local_size.y * grid.local_size.z;
-                        envSetBoundary(0, -1);
-                        stencil_indices[0] = 1;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-                if (simstate.MPIcoords[simstate.MPIrank][0] == simstate.MPIdim[0] - 1) {
-                        nvalues = nentries * grid.local_size.y * grid.local_size.z;
-                        envSetBoundary(0, 1);
-                        stencil_indices[0] = 2;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-                if (simstate.MPIcoords[simstate.MPIrank][1] == 0) {
-                        nvalues = nentries * grid.local_size.x * grid.local_size.z;
-                        envSetBoundary(1, -1);
-                        stencil_indices[0] = 3;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-                if (simstate.MPIcoords[simstate.MPIrank][1] == simstate.MPIdim[1] - 1) {
-                        nvalues = nentries * grid.local_size.x * grid.local_size.z;
-                        envSetBoundary(1, 1);
-                        stencil_indices[0] = 4;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-                if (simstate.MPIcoords[simstate.MPIrank][2] == 0) {
-                        nvalues = nentries * grid.local_size.x * grid.local_size.y;
-                        envSetBoundary(2, -1);
-                        stencil_indices[0] = 5;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-                if (simstate.MPIcoords[simstate.MPIrank][2] == simstate.MPIdim[2] - 1) {
-                        nvalues = nentries * grid.local_size.x * grid.local_size.y;
-                        envSetBoundary(2, 1);
-                        stencil_indices[0] = 6;
-                        HYPRE_SStructMatrixAddToBoxValues(A, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          nentries, stencil_indices, values);
-                        HYPRE_SStructVectorAddToBoxValues(b, 0, solverdata->bcLower, solverdata->bcUpper, var,
-                                                          bvalues);
-                }
-
-                // add production consumption function to the right side
-                HYPRE_SStructVectorAddToBoxValues(b, 0, lower, upper, var,
-                                                  envPC);
-
+                        // add production consumption function to the right side
+                        HYPRE_SStructVectorAddToBoxValues(b, 0, lower, upper, var,
+                                                          envPC);
+ */
         }
 
         free(envPC);
         free(values);
         free(bvalues);
         // stdout brought back
-   }*/
+}
 
 /*!
  * This function initializes Hypre for solving a given envical field.
@@ -564,9 +565,10 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
    }*/
 
 /* to jest glowna funkcja "biblioteczna" */
+
 void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment, solverdata_t *solverdata,solversettings_t *solversettings) {
 
-        //envinitboundary(simstate,settings.numberoffields,nutrient,grid);
+        envinitboundary(systeminfo,settings,grid,environment,solverdata,solversettings);
         //envinitsolver(simstate);
         //envSolve(simstate,settings.numberoffields,nutrient,grid);
         return;
