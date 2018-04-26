@@ -58,7 +58,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
 
         if(settings.step>0) {
                 cells2envwait(systeminfo,settings,&patches,grid,environment);
-                envsolve(systeminfo,settings,grid,environment,solverdata,solversettings);
+                envcompute(systeminfo,settings,grid,environment,solverdata,solversettings);
         }
 
         /* wait for data transfers to finish */
