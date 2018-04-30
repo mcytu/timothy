@@ -347,7 +347,7 @@ void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* s
                 if (strcmp(buf1,"GFH") == 0) { settings->gfh=atof(buf2); continue; }
                 if (strcmp(buf1,"MAXCELLS") == 0) { settings->maxcells=atol(buf2); continue; }
                 if (strcmp(buf1,"NSTEPS") == 0) { settings->numberofsteps=atoi(buf2); continue; }
-                if (strcmp(buf1,"SECPERSTEPS") == 0) { settings->secondsperstep=atof(buf2); continue; }
+                if (strcmp(buf1,"SECPERSTEP") == 0) { settings->secondsperstep=atof(buf2); continue; }
                 if (strcmp(buf1,"NCELLTYPES") == 0) { settings->numberofcelltypes=atoi(buf2); continue; }
                 if (strcmp(buf1,"NFIELDS") == 0 ) { settings->numberoffields=atoi(buf2); continue; }
                 if (strcmp(buf1,"DIMENSIONS") == 0 ) { settings->dimension=atoi(buf2); continue; }

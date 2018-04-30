@@ -30,29 +30,6 @@
 #include "utils.h"
 #include "mpi.h"
 
-/* zmienne lokalne w pliku environment */
-//HYPRE_SStructGrid grid;
-//HYPRE_SStructGraph graph;
-//HYPRE_SStructStencil stencil;
-/*HYPRE_SStructMatrix A;
-   HYPRE_SStructVector b;
-   HYPRE_SStructVector x;
-   HYPRE_ParCSRMatrix parA;
-   HYPRE_ParVector parb;
-   HYPRE_ParVector parx;
-   HYPRE_Solver envSolver;
-   HYPRE_Solver envPrecond;*/
-//int envObjectType;
-//HYPRE_Int lower[3], upper[3];
-//HYPRE_Int solversettings->bclower[3];
-//HYPRE_Int solversettings->bcupper[3];
-//double *dt;
-//int envIter;
-//double *solverdata->z;
-//HYPRE_SStructVariable *solverdata->vartypes;
-//int numberOfIters;
-/* koniec */
-
 /* do polaczenia z fields */
 double *fieldDt;
 double **fieldAddr;
@@ -174,14 +151,33 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
         };
         double gridResolutionInUnits; /* grid resolution in centimeters */
 
-        solversettings->numberOfIters = 1;
+        if((settings.secondsperstep/settings.gfdt)>1) {
+                int intdiv;
+                float a1,a2;
+                intdiv=(int)(settings.secondsperstep/settings.gfdt)+1;
+                a1=settings.secondsperstep/intdiv;
+                a2=settings.secondsperstep/(intdiv-1);
+                if((settings.gfdt-a1)<(a2-settings.gfdt)) {
+                        solversettings->numberOfIters = intdiv;
+                        for(var=0; var<settings.numberoffields; var++)
+                                solversettings->dt[var]=a1;
+                } else {
+                        solversettings->numberOfIters = intdiv-1;
+                        for(var=0; var<settings.numberoffields; var++)
+                                solversettings->dt[var]=a2;
+                }
+        } else {
+                solversettings->numberOfIters = 1;
+                for(var=0; var<settings.numberoffields; var++)
+                        solversettings->dt[var]=settings.secondsperstep;
+
+        }
+
         solversettings->envIter=0;
 
-        for(var=0; var<settings.numberoffields; var++) {
+        for(var=0; var<settings.numberoffields; var++)
                 solversettings->vartypes[var]=HYPRE_SSTRUCT_VARIABLE_NODE;
-                solversettings->dt[var]=settings.secondsperstep;
-                //dt[var]=fieldDt[var];
-        }
+
 
         /* 1. INIT GRID */
 
@@ -506,32 +502,6 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
 
                 HYPRE_ParCSRPCGSolve(solverdata->solver, solverdata->parA, solverdata->parb, solverdata->parx);
 
-/*                for(var=0; var<settings.numberoffields; var++) {
-                        HYPRE_SStructVectorGather(solverdata->x);
-                        HYPRE_SStructVectorGetBoxValues(solverdata->x, 0, solversettings->lower, solversettings->upper, var, values);
-                        idx = 0;
-                        for (k = 0; k < grid->localsize.z; k++)
-                                for (j = 0; j < grid->localsize.y; j++)
-                                        for (i = 0; i < grid->localsize.x; i++, idx++) {
-                                                //envField[nch][gridSize.y * gridSize.z * i + gridSize.z * j +
-                                                //               k] = values[idx];
-                                                printf("[%d,%d,%d] %.12f\n",i,j,k,values[idx]);
-                                        }
-
- */
-
-                // copy solution to field buffer
-                ///   HYPRE_SStructVectorGather(x);
-                //    HYPRE_SStructVectorGetBoxValues(x, 0, lower, upper, 0,
-                //                                    values);
-                //    idx = 0;
-                //    for (k = 0; k < gridSize.z; k++)
-                //      for (j = 0; j < gridSize.y; j++)
-                //        for (i = 0; i < gridSize.x; i++, idx++) {
-                //          envField[nch][gridSize.y * gridSize.z * i + gridSize.z * j +
-                //                         k] = values[idx];
-                //        }
-
                 (solversettings->envIter)++;
                 stepIter++;
         }
@@ -545,7 +515,7 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
                                 for (i = 0; i < grid->localsize.x; i++, idx++) {
                                         //envField[nch][gridSize.y * gridSize.z * i + gridSize.z * j +
                                         //               k] = values[idx];
-                                        printf("[%d,%d,%d] %.12f\n",i,j,k,values[idx]);
+                                        //printf("[%d,%d,%d] %.12f\n",i,j,k,values[idx]);
                                 }
 
         }
