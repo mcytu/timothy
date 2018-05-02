@@ -123,128 +123,87 @@ void cellsrandominit(int nrandom,int ctype,systeminfo_t systeminfo,settings_t se
 /*!
  * This function implements mitosis of cells.
  */
-void mitosis(int c, unsigned char *removecell,int64_t *removecount)
+void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype, cellsinfo_t *cellsinfo, int c, unsigned char *removecell,int64_t *removecount)
 {
 
         double sc;
         double shift[3];
 
-        if (lnc + 1 > maxCellsPerProc)
-                stopRun(109, NULL, __FILE__, __LINE__);
+        if (cellsinfo->localcount.n + 1 > settings.maxlocalcells)
+                terminate(*systeminfo,"cannot allocate systeminfo->coords", __FILE__, __LINE__);
 
-        if(cells[c].scstage<nscstages-1) {
-                if(sprng(stream)>sctprob[cells[c].scstage]) {
-                        cells[lnc].scstage=cells[c].scstage+1;
-                        nscinst[cells[lnc].scstage]+=1;
-                } else {
-                        cells[lnc].scstage=cells[c].scstage;
-                        nscinst[cells[lnc].scstage]+=1;
-                }
-                if(sprng(stream)>sctprob[cells[c].scstage]) {
-                        nscinst[cells[c].scstage]-=1;
-                        cells[c].scstage=cells[c].scstage+1;
-                        nscinst[cells[c].scstage]+=1;
-                }
-                /*if(sprng(stream)>sctprob[cells[c].scstage]) {
-                   cells[lnc].scstage=cells[c].scstage+1;
-                   } else {
-                   cells[lnc].scstage=cells[c].scstage;
-                   }*/
-                //nscinst[cells[lnc].scstage]+=1;
-        }
-
-        sc = sqrt(velocity[c].x * velocity[c].x + velocity[c].y * velocity[c].y +
-                  velocity[c].z * velocity[c].z);
+        sc = sqrt(cellsinfo->velocity[c].x * cellsinfo->velocity[c].x + cellsinfo->velocity[c].y * cellsinfo->velocity[c].y +
+                  cellsinfo->velocity[c].z * cellsinfo->velocity[c].z);
 
         /* daughter cells are shifted away from the center of parent cell */
-        if (sc > 0 && mitrand == 0) { /* direction of shift related to velocity vector */
-                sc = cells[c].size / (2 * sc);
-                shift[0] = sc * velocity[c].x;
-                shift[1] = sc * velocity[c].y;
+        /* direction of shift chosen randomly */
+        int accept = 0;
+        while (accept == 0) {
+                shift[0] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0
+                           shift[1] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 if (sdim == 3)
-                        shift[2] = sc * velocity[c].z;
+                        shift[2] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 else
                         shift[2] = 0.0;
-        } else { /* direction of shift chosen randomly */
-                int accept = 0;
-                while (accept == 0) {
-                        shift[0] = sprng(stream) * 2.0 - 1.0;
-                        shift[1] = sprng(stream) * 2.0 - 1.0;
-                        if (sdim == 3)
-                                shift[2] = sprng(stream) * 2.0 - 1.0;
-                        else
-                                shift[2] = 0.0;
-                        sc = sqrt(pow(shift[0], 2) + pow(shift[1], 2) + pow(shift[2], 2));
-                        if (sc == 0)
-                                continue;
-                        sc = cells[c].size / (2 * sc);
-                        shift[0] = sc * shift[0];
-                        shift[1] = sc * shift[1];
-                        shift[2] = sc * shift[2];
-                        accept = 1;
-                }
+                sc = sqrt(pow(shift[0], 2) + pow(shift[1], 2) + pow(shift[2], 2));
+                if (sc == 0)
+                        continue;
+                sc = cellsinfo->cells[c].size / (2 * sc);
+                shift[0] = sc * shift[0];
+                shift[1] = sc * shift[1];
+                shift[2] = sc * shift[2];
+                accept = 1;
         }
+
         /* 1st daughter cell position, size, type and age */
-        cells[lnc].x = cells[c].x + shift[0];
-        cells[lnc].y = cells[c].y + shift[1];
-        cells[lnc].z = cells[c].z + shift[2];
-        cells[lnc].size = pow(2.0, -(1.0 / 3.0)) * cells[c].size;;
-        cells[lnc].tumor = cells[c].tumor;
-        cells[lnc].age = cells[c].age + 1;
+        cellsinfo->cells[cellsinfo->localcount.n].x = cellsinfo->cells[c].x + shift[0];
+        cellsinfo->cells[cellsinfo->localcount.n].y = cellsinfo->cells[c].y + shift[1];
+        cellsinfo->cells[cellsinfo->localcount.n].z = cellsinfo->cells[c].z + shift[2];
+        cellsinfo->cells[cellsinfo->localcount.n].size = pow(2.0, -(1.0 / 3.0)) * cellsinfo->cells[c].size;;
+        cellsinfo->cells[cellsinfo->localcount.n].ctype = cellsinfo->cells[c].ctype;
+        cellsinfo->cells[cellsinfo->localcount.n].age = cellsinfo->cells[c].age + 1;
 
         /* 2nd daughter cell position, size, type and age */
-        cells[c].x -= shift[0];
-        cells[c].y -= shift[1];
-        cells[c].z -= shift[2];
-        cells[c].size = cells[lnc].size;;
-        cells[c].age += 1;
+        cellsinfo->cells[c].x -= shift[0];
+        cellsinfo->cells[c].y -= shift[1];
+        cellsinfo->cells[c].z -= shift[2];
+        cellsinfo->cells[c].size = cellsinfo->cells[cellsinfo->localcount.n].size;;
+        cellsinfo->cells[c].age += 1;
 
         /* 2nd daughter cell cycle phases lenghts */
-        if (cells[c].tumor == 1) {
-                cells[c].g1 = cg1 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].g2 = cg2 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].s = cs * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].m = cm * (1 + (sprng(stream) * 2 - 1) * v);
-        } else {
-                cells[c].g1 = g1 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].g2 = g2 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].s = s * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[c].m = m * (1 + (sprng(stream) * 2 - 1) * v);
-        }
+        cellsinfo->cells[c].g1 = celltype[cellsinfo->cells[c].ctype].g1 * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * celltype[cellsinfo->cells[c].ctype].v);
+        cellsinfo->cells[c].g2 = celltype[cellsinfo->cells[c].ctype].g2 * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * celltype[cellsinfo->cells[c].ctype].v);
+        cellsinfo->cells[c].s = celltype[cellsinfo->cells[c].ctype].s * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * celltype[cellsinfo->cells[c].ctype].v);
+        cellsinfo->cells[c].m = celltype[cellsinfo->cells[c].ctype].m * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * celltype[cellsinfo->cells[c].ctype].v);
+
         /* 1st daughter cell global ID */
-        cells[lnc].gid =
+        cellsinfo->cells[cellsinfo->localcount.n].gid =
                 (unsigned long long int) MPIrank *(unsigned long long int)
-                maxCellsPerProc + (unsigned long long int) lnc;
+                cellsinfo->maxlocalcells + (unsigned long long int) (cellsinfo->localcount.n);
 
         /* 1st daughter cell parameters */
-        cells[lnc].v = 0.0;
-        cells[lnc].density = cells[c].density;
-        cells[lnc].ctype = cells[c].ctype;
-        cells[lnc].young = 2100.0 + sprng(stream) * 100.0;
-        cells[lnc].halo = 0;
-        cells[lnc].phase = 1;
-        cells[lnc].death = 0;
-        cells[lnc].phasetime = 0.0;
+        cellsinfo->cells[cellsinfo->localcount.n].v = 0.0;
+        cellsinfo->cells[cellsinfo->localcount.n].density = cellsinfo->cells[c].density;
+        cellsinfo->cells[cellsinfo->localcount.n].ctype = cellsinfo->cells[c].ctype;
+        cellsinfo->cells[cellsinfo->localcount.n].young = 2100.0 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * 100.0;
+        cellsinfo->cells[cellsinfo->localcount.n].halo = 0;
+        cellsinfo->cells[cellsinfo->localcount.n].phase = 1;
+        cellsinfo->cells[cellsinfo->localcount.n].death = 0;
+        cellsinfo->cells[cellsinfo->localcount.n].phasetime = 0.0;
+
         /* 1st daughter cell cycle phases lenghts */
-        if (cells[lnc].tumor == 1) {
-                cells[lnc].g1 = cg1 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].g2 = cg2 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].s = cs * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].m = cm * (1 + (sprng(stream) * 2 - 1) * v);
-        } else {
-                cells[lnc].g1 = g1 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].g2 = g2 * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].s = s * (1 + (sprng(stream) * 2 - 1) * v);
-                cells[lnc].m = m * (1 + (sprng(stream) * 2 - 1) * v);
-        }
+        cellsinfo->cells[cellsinfo->localcount.n].g1 = celltype[cellsinfo->cells[cellsinfo->localcount.n].ctype].g1 * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * cellsinfo->cells[cellsinfo->localcount.n].v);
+        cellsinfo->cells[cellsinfo->localcount.n].g2 = celltype[cellsinfo->cells[cellsinfo->localcount.n].ctype].g2 * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * cellsinfo->cells[cellsinfo->localcount.n].v);
+        cellsinfo->cells[cellsinfo->localcount.n].s = celltype[cellsinfo->cells[cellsinfo->localcount.n].ctype].s * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * cellsinfo->cells[cellsinfo->localcount.n].v);
+        cellsinfo->cells[cellsinfo->localcount.n].m = celltype[cellsinfo->cells[cellsinfo->localcount.n].ctype].m * (1 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * cellsinfo->cells[cellsinfo->localcount.n].v);
 
         /* update local cell counters */
-        if (cells[lnc].tumor == 1)
-                lcnc += 1;
-        lnc = lnc + 1;
-        lg1nc += 1;
-        /* increment local ID */
-        localID++;
+
+        cellsinfo->localtypecount[cells[cellsinfo->localcount.n].ctype] += 1;
+        cellsinfo->localcount.n = cellsinfo->localcount.n + 1;
+        cellsinfo->localcount[cells[cellsinfo->localcount.n].ctype].g1phase += 1;
+
+        return;
 
 }
 
@@ -334,14 +293,14 @@ void cellsdestroy()
 /*!
  * This function removes a dead cell from the simulation.
  */
-void cellsDeath(int lnc_old,unsigned char *removecell,int64_t removecount)
+void cellsDeath(int oldlnc,unsigned char *removecell,int64_t removecount)
 {
         int c, pos;
 
         pos = 0;
         for (c = 0; c < lnc; c++) {
                 /* shift cells after dead cell removal */
-                if (c >= lnc_old) {
+                if (c >= oldlnc) {
                         cells[pos] = cells[c];
                         pos++;
                         continue;
@@ -415,9 +374,9 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *r
                 cellsinfo->cells[c].y += cellsinfo->forces[c].y;
                 cellsinfo->cells[c].z += cellsinfo->forces[c].z;
                 /* random movement */
-                cellsinfo->cells[c].x += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
-                cellsinfo->cells[c].y += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
-                cellsinfo->cells[c].z += alpha*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].x += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].y += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].z += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
 
                 /* mark cells outside the box for removal */
                 if( outsidethebox(cellsinfo,c) ) {
@@ -431,19 +390,19 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *r
 /*!
  * This function updates cells' cycle phases.
  */
-int updateCellCycles(cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *removecount)
+int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *removecount)
 {
 
         int c;
         double eps, epsCancer;
-        int lncAtThisStep;
+        int lnc;
 
         eps = densityCriticalLevel1;
         epsCancer = densityCriticalLevel2;
 
-        lncAtThisStep = lnc;
+        lnc = cellsinfo->localcount.n;
 
-        for (c = 0; c < lncAtThisStep; c++) {
+        for (c = 0; c < lnc; c++) {
 
                 if(cells[c].ctype==1) continue;
 
@@ -578,7 +537,7 @@ int updateCellCycles(cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *r
                                         lnnc++;
 
                                 } else if (cells[c].phasetime >= cells[c].m) {
-                                        mitosis(c,removecell,removecount);
+                                        mitosis(settings,celltype,cellsinfo,c,removecell,removecount);
                                         cells[c].phase = 1;
                                         cells[c].phasetime = 0;
                                         lmnc--;
@@ -601,8 +560,8 @@ int updateCellCycles(cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *r
  * user would like to analyze or visualize after simulation.
  * This field is printed to the output VTK files.
  */
-void additionalScalarField()
-{
+/*void additionalScalarField()
+   {
         int c;
         for (c = 0; c < lnc; c++) {
                 if (cells[c].tumor == 1)
@@ -610,28 +569,28 @@ void additionalScalarField()
                 else
                         cells[c].scalarField = cells[c].density;
         }
-}
+   }*/
 
 /*!
  * This function drives the whole cell cycle update.
  */
-void cellsupdate(settings_t settings,cellsinfo_t *cellsinfo)
+void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo)
 {
-        int lnc_old;
+        int oldlnc;
         unsigned char *removecell;
         int64_t removecount;
         /* number of local cells might change during the update */
-        lnc_old = lnc;
-        removecell = (unsigned char *) calloc(lnc_old, sizeof(unsigned char));
+        oldlnc = cellsinfo->localcount.n;
+        removecell = (unsigned char *) calloc(oldlnc, sizeof(unsigned char));
         removecount = 0;
 
         updatepositions(settings,cellsinfo,removecell,&removecount);
-/*
-        updateCellCycles();
-        if (nhs > 0 && nc > nhs && tgs == 1 && cancer == 0)
+
+        updatecellcycles(settings,celltype,cellsinfo,removecell,&removecount);
+/*        if (nhs > 0 && nc > nhs && tgs == 1 && cancer == 0)
                 markMiddleCancerCell();
         if (nhs > 0 && nc > nhs)
-                cellsDeath(lnc_old);
+                cellsDeath(oldlnc);
         updateCellCounters();
         additionalScalarField();*/
         free(removecell);

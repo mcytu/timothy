@@ -71,7 +71,7 @@ int main(int argc, char **argv)
                 singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
-                cellsupdate(settings,&cellsinfo);
+                cellsupdate(systeminfo,settings,celltype,&cellsinfo);
                 writevtk(systeminfo,settings,cellsinfo);
                 octfree(&cellsinfo);
                 cleanstep(settings,&cellenvdata);

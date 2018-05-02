@@ -30,21 +30,6 @@
 #include "utils.h"
 #include "mpi.h"
 
-/* do polaczenia z fields */
-double *fieldDt;
-double **fieldAddr;
-double **envField;
-double *fieldConsumption; /* units - mol (cell s)^-1 */
-double *fieldProduction;  /* units - mol (cell s)^-1 */
-/* koniec */
-
-/* tych zmiennych nie odnalazlem w strukturach */
-double csize=0.2735;
-double csizeInUnits=10.0;
-int bvsim=0;
-/* koniec */
-
-
 void envalloc(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings) {
         int i;
          #ifdef HYPRE
@@ -78,8 +63,6 @@ void envinit(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment
         }
         return;
 }
-
-
 
 /*!
  * This function sets boundary conditions for domain faces.
@@ -149,7 +132,6 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
                 {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0},
                 {0, 1, 0}, { 0, 0,-1}, {0, 0, 1}
         };
-        double gridResolutionInUnits; /* grid resolution in centimeters */
 
         if((settings.secondsperstep/settings.gfdt)>1) {
                 int intdiv;
@@ -158,22 +140,22 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
                 a1=settings.secondsperstep/intdiv;
                 a2=settings.secondsperstep/(intdiv-1);
                 if((settings.gfdt-a1)<(a2-settings.gfdt)) {
-                        solversettings->numberOfIters = intdiv;
+                        solversettings->numberofiters = intdiv;
                         for(var=0; var<settings.numberoffields; var++)
                                 solversettings->dt[var]=a1;
                 } else {
-                        solversettings->numberOfIters = intdiv-1;
+                        solversettings->numberofiters = intdiv-1;
                         for(var=0; var<settings.numberoffields; var++)
                                 solversettings->dt[var]=a2;
                 }
         } else {
-                solversettings->numberOfIters = 1;
+                solversettings->numberofiters = 1;
                 for(var=0; var<settings.numberoffields; var++)
                         solversettings->dt[var]=settings.secondsperstep;
 
         }
 
-        solversettings->envIter=0;
+        solversettings->enviter=0;
 
         for(var=0; var<settings.numberoffields; var++)
                 solversettings->vartypes[var]=HYPRE_SSTRUCT_VARIABLE_NODE;
@@ -210,9 +192,9 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
 
         // 3. SET UP THE GRAPH
         // assumption - all stencils are the same
-        solversettings->envObjectType = HYPRE_PARCSR;
+        solversettings->envobjecttype = HYPRE_PARCSR;
         HYPRE_SStructGraphCreate(systeminfo.MPI_CART_COMM, solversettings->grid, &(solversettings->graph));
-        HYPRE_SStructGraphSetObjectType(solversettings->graph, solversettings->envObjectType);
+        HYPRE_SStructGraphSetObjectType(solversettings->graph, solversettings->envobjecttype);
         for(var=0; var<settings.numberoffields; var++)
                 HYPRE_SStructGraphSetStencil(solversettings->graph, 0, var, solversettings->stencil[var]);
         HYPRE_SStructGraphAssemble(solversettings->graph);
@@ -226,7 +208,7 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
         nvalues = nentries * grid->localsize.x * grid->localsize.y * grid->localsize.z;
         // create an empty matrix object
         HYPRE_SStructMatrixCreate(systeminfo.MPI_CART_COMM, solversettings->graph, &(solverdata->A));
-        HYPRE_SStructMatrixSetObjectType(solverdata->A, solversettings->envObjectType);
+        HYPRE_SStructMatrixSetObjectType(solverdata->A, solversettings->envobjecttype);
         // indicate that the matrix coefficients are ready to be set
         HYPRE_SStructMatrixInitialize(solverdata->A);
 
@@ -235,15 +217,11 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
         for (j = 0; j < nentries; j++)
                 stencil_indices[j] = j;
 
-        gridResolutionInUnits = (grid->resolution / csize) * csizeInUnits * 0.0001;
-
         for(var=0; var<settings.numberoffields; var++) {
                 solversettings->dt[var] = settings.gfdt;
                 solversettings->z[var] =
-                        (*environment)[var].diffusioncoefficient * solversettings->dt[var] / (gridResolutionInUnits *
-                                                                                              gridResolutionInUnits);
-                //printf("z=%f %f %f %f\n",solversettings->z[var],(*environment)[var].diffusioncoefficient,solversettings->dt[var],gridResolutionInUnits );
-                //exit(1);
+                        (*environment)[var].diffusioncoefficient * solversettings->dt[var] / (grid->resolution * grid->resolution);
+
                 // set the standard stencil at each grid point,
                 //  we will fix the boundaries later
                 for (i = 0; i < nvalues; i += nentries) {
@@ -308,8 +286,8 @@ void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,en
         HYPRE_SStructVectorCreate(systeminfo.MPI_CART_COMM, solversettings->grid, &(solverdata->x));
 
         // as with the matrix, set the appropriate object type for the vectors
-        HYPRE_SStructVectorSetObjectType(solverdata->b,solversettings->envObjectType);
-        HYPRE_SStructVectorSetObjectType(solverdata->x,solversettings->envObjectType);
+        HYPRE_SStructVectorSetObjectType(solverdata->b,solversettings->envobjecttype);
+        HYPRE_SStructVectorSetObjectType(solverdata->x,solversettings->envobjecttype);
 
         // indicate that the vector coefficients are ready to be set
         HYPRE_SStructVectorInitialize(solverdata->b);
@@ -456,8 +434,8 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
         values = (double *) calloc(nvalues, sizeof(double));
         pc = (double *) calloc(nvalues, sizeof(double));
 
-        while (stepIter < solversettings->numberOfIters) {
-                if (solversettings->envIter > 0) {
+        while (stepIter < solversettings->numberofiters) {
+                if (solversettings->enviter > 0) {
                         // update right hand side
                         for(var=0; var<settings.numberoffields; var++) {
 
@@ -502,7 +480,7 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
 
                 HYPRE_ParCSRPCGSolve(solverdata->solver, solverdata->parA, solverdata->parb, solverdata->parx);
 
-                (solversettings->envIter)++;
+                (solversettings->enviter)++;
                 stepIter++;
         }
 

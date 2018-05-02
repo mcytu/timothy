@@ -314,6 +314,7 @@ typedef struct settings_t {
     int statoutstep;
 		int rstoutstep;
 		float maxspeed;
+		float randommove;
 		float gfdt;
 		float gfh;
 		int simulationstart;
@@ -408,9 +409,9 @@ typedef struct environment_t {
 typedef struct solversettings_t {
 	double *z;
 	double *dt;
-	int envIter;
-	int numberOfIters;
-	int envObjectType;
+	int enviter;
+	int numberofiters;
+	int envobjecttype;
   HYPRE_SStructVariable *vartypes;
 	HYPRE_SStructStencil *stencil;
 	HYPRE_Solver precond;
@@ -432,7 +433,7 @@ typedef struct solverdata_t {
 	HYPRE_Solver solver;
 } solverdata_t;
 #endif
-
+/*
 #define nc   totalCellCount[0]
 #define g0nc totalCellCount[1]
 #define g1nc totalCellCount[2]
@@ -455,7 +456,7 @@ typedef struct solverdata_t {
 #define lvc   localCellCount[8]
 #define lbnc  localCellCount[9]
 
-int64_t *tlnc;
+int64_t *tlnc;*/
 
 int scsim;
 int bvsim;

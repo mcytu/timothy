@@ -358,6 +358,7 @@ void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* s
                 if (strcmp(buf1,"STATOUTSTEP") == 0 ) { settings->statoutstep=atoi(buf2); continue; }
                 if (strcmp(buf1,"RSTOUTSTEP") == 0 ) { settings->rstoutstep=atoi(buf2); continue; }
                 if (strcmp(buf1,"MAXSPEED") == 0) { settings->maxspeed=atof(buf2); continue; }
+                if (strcmp(buf1,"RANDOMMOVE") == 0) { settings->randommove=atof(buf2); continue; }
 
         }
 
