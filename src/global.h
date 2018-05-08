@@ -515,14 +515,14 @@ float s;                /* mean duration of S phase - healthy tissue */
 float g2;               /* mean duration of G2 phase - healthy tissue */
 float m;                /* mean duration of M phase - healthy tissue */
 float v;                /* variability of duration of cell cycles */
-float rd;               /* random death probability */
+//float rd;               /* random death probability */
 
 float cg1;              /* mean duration of G1 phase - cancer cells */
 float cs;               /* mean duration of S phase - cancer cells */
 float cg2;              /* mean duration of G2 phase - cancer cells */
 float cm;               /* mean duration of M phase - cancer cells */
 
-double MIC_ATTR csize;           /* cell initial size, no units */
+//double MIC_ATTR csize;           /* cell initial size, no units */
 double csizeInUnits;    /* cell size in micrometers */
 double cellVolume;      /* cell volume */
 

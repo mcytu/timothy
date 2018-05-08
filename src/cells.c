@@ -293,46 +293,45 @@ void cellsdestroy()
 /*!
  * This function removes a dead cell from the simulation.
  */
-void cellsDeath(int oldlnc,unsigned char *removecell,int64_t removecount)
+void cellsdeath(int oldlnc,cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t removecount)
 {
         int c, pos;
 
         pos = 0;
-        for (c = 0; c < lnc; c++) {
+        for (c = 0; c < cellsinfo->localcount.n; c++) {
                 /* shift cells after dead cell removal */
                 if (c >= oldlnc) {
-                        cells[pos] = cells[c];
+                        cellsinfo->cells[pos] = cellsinfo->cells[c];
                         pos++;
                         continue;
                 }
                 if (c != pos && removecell[c] == 0)
-                        cells[pos] = cells[c];
+                        cellsinfo->cells[pos] = cellsinfo->cells[c];
                 if (removecell[c] == 0)
                         pos++;
                 /* update cell counters */
                 if (removecell[c] == 1) {
-                        switch (cells[c].phase) {
+                        switch (cellsinfo->cells[c].phase) {
                         case 0:
-                                lg0nc--;
+                                cellsinfo->localcount.g0phase -= 1;
                                 break;
                         case 1:
-                                lg1nc--;
+                                cellsinfo->localcount.g1phase -= 1;
                                 break;
                         case 2:
-                                lsnc--;
+                                cellsinfo->localcount.sphase -= 1;
                                 break;
                         case 3:
-                                lg2nc--;
+                                cellsinfo->localcount.g2phase -= 1;
                                 break;
                         case 4:
-                                lmnc--;
+                                cellsinfo->localcount.mphase -= 1;
                                 break;
                         }
-                        if (cells[c].tumor == 1)
-                                lcnc--;
+                        cellsinfo->localtypecount[cellsinfo->cells[c].ctype] -= 1;
                 }
         }
-        lnc -= removecount;
+        cellsinfo->localcount.n -= removecount;
 }
 
 /*!
@@ -390,21 +389,24 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *r
 /*!
  * This function updates cells' cycle phases.
  */
-int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cellsinfo,unsigned char *removecell,int64_t *removecount)
+int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cellsinfo,cellenvdata_t **cellenvdata,unsigned char *removecell,int64_t *removecount)
 {
 
-        int c;
-        double eps, epsCancer;
+        int c,f;
+        double eps, csize, rd;
         int lnc;
+        int lowenvlevel1,lowenvlevel2;
 
-        eps = densityCriticalLevel1;
-        epsCancer = densityCriticalLevel2;
+        //eps = densityCriticalLevel1;
+        //epsCancer = densityCriticalLevel2;
 
         lnc = cellsinfo->localcount.n;
 
         for (c = 0; c < lnc; c++) {
 
-                if(cells[c].ctype==1) continue;
+                eps = celltype[cellsinfo->cells[c].ctype].criticaldensity;
+                csize = celltype[cellsinfo->cells[c].ctype].size;
+                rd = celltype[cellsinfo->cells[c].ctype].rd;
 
                 if ( outsidethebox(cellsinfo,c) ) {
                         removecell[c] = 1;
@@ -415,141 +417,138 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
                 if (removecell[c])
                         continue;
 
-                if (simStart) {
+                lowenvlevel1=0;
+                lowenvlevel2=0;
+                for(f=0; f<settings.numberoffields; f++) {
+                        if(cellenvdata[f][c].value<celltype[cellsinfo->cells[c].ctype].criticallevel1[f]) { lowenvlevel1=1; break; }
+                        if(cellenvdata[f][c].value<celltype[cellsinfo->cells[c].ctype].criticallevel2[f]) { lowenvlevel2=1; break; }
+                }
 
-                        if (cells[c].phase != 0
-                            && ((cells[c].tumor == 0 && cells[c].density <= eps)
-                                || (cells[c].tumor == 1 && cells[c].density <= epsCancer)))
-                                cells[c].phasetime += gfDt / 3600.0;
+                if (settings.simulationstart) {
 
-                        switch (cells[c].phase) {
+                        if (cellsinfo->cells[c].phase != 0 && cellsinfo->cells[c].density <= eps)
+                                cellsinfo->cells[c].phasetime += settings.secondsperstep / 3600.0;
+
+                        switch (cellsinfo->cells[c].phase) {
 
                         case 0: /* G0 phase */
-                                if (gfields && oxygen
-                                    && cellFields[OXYG][c] < fieldCriticalLevel2[OXYG]) {
-                                        cells[c].phase = 5;
-                                        cells[c].phasetime = 0;
-                                        lg0nc--;
-                                        lnnc++;
+
+                                if (lowevnlevel2)                    /* low environemnt level */
+                                {
+                                        cellsinfo->cells[c].phase = 5;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.g0phase -=1;
+                                        cellsinfo->localcount.necroticphase +=1;
                                         break;
                                 }
                                 /* transition to G1 phase */
-                                if ((cells[c].tumor == 0 && cells[c].density <= eps) || /* enough space for healthy cell */
-                                    (cells[c].tumor == 1 && cells[c].density <= epsCancer) || /* enough space for tumor cell */
-                                    nc == 1 || /* only single cell in the simulation */
-                                    (gfields && oxygen && cellFields[OXYG][c] >= fieldCriticalLevel1[OXYG])) { /* sufficient level of oxygen */
-                                        cells[c].phase = 1;
-                                        lg0nc--;
-                                        lg1nc++;
+                                if(cellsinfo->cells[c].density <= eps /* enough space for growth */
+                                   || cellsinfo->globalcount.n==1     /* single cell in the simulation */
+                                   || (!lowlevel1) )                  /* sufficient level of nutrients */
+                                {
+                                        cellsinfo->cells[c].phase = 1;
+                                        cellsinfo->localcount.g0phase -=1;
+                                        cellsinfo->localcount.g1phase +=1;
                                         break;
                                 }
                                 break;
+
                         case 1: /* G1 phase */
                                 /* transition to G0 or Necrotic phase */
-                                if ((cells[c].tumor == 0 && cells[c].density > eps) || /* too crowdy for healthy cell */
-                                    (cells[c].tumor == 1 && cells[c].density > epsCancer) || /* too crowdy for tumor cell */
-                                    (gfields && oxygen && cellFields[OXYG][c] < fieldCriticalLevel1[OXYG])) { /* too low oxygen level */
-                                        if (gfields && oxygen && cellFields[OXYG][c] < fieldCriticalLevel2[OXYG]) { /* transition to Necrotic phase */
-                                                cells[c].phase = 5;
-                                                cells[c].phasetime = 0;
-                                                lg1nc--;
-                                                lnnc++;
-                                        } else { /* transition to G0 phase */
-                                                cells[c].phase = 0;
-                                                lg1nc--;
-                                                lg0nc++;
+                                if(cellsinfo->cells[c].density > eps  /* not enough space for growth */
+                                   || lowenvlevel1 )                  /* environment level below level1 */
+                                {
+                                        if (lowenvlevel2 )            /* environment level below level2  -> necrotic phase */
+                                        {
+                                                cellsinfo->cells[c].phase = 5;
+                                                cellsinfo->cells[c].phasetime = 0;
+                                                cellsinfo->localcount.g1phase -=1;
+                                                cellsinfo->localcount.necroticphase +=1;
+                                        } else {                      /* environment level above level2 -> G0 phase */
+                                                cellsinfo->cells[c].phase = 0;
+                                                cellsinfo->localcount.g1phase -=1;
+                                                cellsinfo->localcount.g0phase +=1;
                                         }
                                         break;
                                 }
+
                                 /* cells grow in phase G1 */
-                                if (cells[c].size < csize) {
-                                        cells[c].size +=
-                                                (csize -
-                                                 pow(2.0,
-                                                     -(1.0 / 3.0)) * csize) * (gfDt) / (3600.0 *
-                                                                                        cells[c].g1);
+                                if (cellsinfo->cells[c].size < csize) {
+                                        cellsinfo->cells[c].size += (csize - pow(2.0,-(1.0 / 3.0)) * csize) * (settings.secondsperstep) / (3600.0 * cellsinfo->cells[c].g1);
                                 }
-                                if (cells[c].size > csize)
-                                        cells[c].size = csize;
-                                if (cells[c].phasetime >= cells[c].g1) {
+                                if (cellsinfo->cells[c].size > csize)
+                                        cellsinfo->cells[c].size = csize;
+
+                                /* change to S phase or die */
+                                if (cellsinfo->cells[c].phasetime >= cellsinfo->cells[c].g1) {
                                         int death;
-                                        cells[c].phase = 2;
-                                        cells[c].phasetime = 0;
-                                        lg1nc--;
-                                        lsnc++;
-                                        if (cells[c].tumor == 0) {
-                                                death = (sprng(stream) < rd ? 1 : 0);
-                                                if (death) {
-                                                        removecell[c] = 1;
-                                                        (*removecount)=(*removecount)+1;
-                                                }
+                                        cellsinfo->cells[c].phase = 2;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.g1phase -=1;
+                                        cellsinfo->localcount.sphase +=1;
+                                        death = ((float)rand_r(&(settings.rseed))/RAND_MAX < rd ? 1 : 0);
+                                        if (death) {
+                                                removecell[c] = 1;
+                                                (*removecount)=(*removecount)+1;
                                         }
                                 }
                                 break;
                         case 2: /* S phase */
-                                if (gfields && oxygen
-                                    && cellFields[OXYG][c] < fieldCriticalLevel2[OXYG]) {
-                                        cells[c].phase = 5;
-                                        cells[c].phasetime = 0;
-                                        lsnc--;
-                                        lnnc++;
+                                if (lowevnlevel2) {
+                                        cellsinfo->cells[c].phase = 5;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.sphase -=1;
+                                        cellsinfo->localcount.necroticphase +=1;
                                         break;
                                 }
-                                if (cells[c].phasetime >= cells[c].s) {
-                                        cells[c].phase = 3;
-                                        cells[c].phasetime = 0;
-                                        lsnc--;
-                                        lg2nc++;
+                                if (cellsinfo->cells[c].phasetime >= cellsinfo->cells[c].s) {
+                                        cellsinfo->cells[c].phase = 3;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.sphase -=1;
+                                        cellsinfo->localcount.g2phase +=1;
                                         break;
                                 }
                                 break;
                         case 3: /* G2 phase */
-                                if (gfields && oxygen
-                                    && cellFields[OXYG][c] < fieldCriticalLevel2[OXYG]) {
-                                        cells[c].phase = 5;
-                                        cells[c].phasetime = 0;
-                                        lg2nc--;
-                                        lnnc++;
+                                if (lowenvlevel2) {
+                                        cellsinfo->cells[c].phase = 5;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.g2phase -=1;
+                                        cellsinfo->localcount.necroticphase +=1;
                                         break;
                                 }
-                                if (cells[c].phasetime >= cells[c].g2) {
+                                if (cellsinfo->cells[c].phasetime >= cellsinfo->cells[c].g2) {
                                         int death;
-                                        cells[c].phase = 4;
-                                        cells[c].phasetime = 0;
-                                        lg2nc--;
-                                        lmnc++;
-                                        if (cells[c].tumor == 0) {
-                                                death = (sprng(stream) < rd ? 1 : 0);
-                                                if (death) {
-                                                        removecell[c] = 1;
-                                                        (*removecount)=(*removecount)+1;
-                                                }
+                                        cellsinfo->cells[c].phase = 4;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.g2phase -=1;
+                                        cellsinfo->localcount.mphase +=1;
+                                        death = ((float)rand_r(&(settings.rseed))/RAND_MAX < rd ? 1 : 0);
+                                        if (death) {
+                                                removecell[c] = 1;
+                                                (*removecount)=(*removecount)+1;
                                         }
                                         break;
                                 }
                                 break;
                         case 4: /* M phase */
-                                if (gfields && oxygen
-                                    && cellFields[OXYG][c] < fieldCriticalLevel2[OXYG]) {
-                                        cells[c].phase = 5;
-                                        cells[c].phasetime = 0;
-                                        lmnc--;
-                                        lnnc++;
+                                if (lowenvlevel2) {
+                                        cellsinfo->cells[c].phase = 5;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.mphase -=1;
+                                        cellsinfo->localcount.necroticphase +=1;
 
-                                } else if (cells[c].phasetime >= cells[c].m) {
+                                } else if (cellsinfo->cells[c].phasetime >= cellsinfo->cells[c].m) {
                                         mitosis(settings,celltype,cellsinfo,c,removecell,removecount);
-                                        cells[c].phase = 1;
-                                        cells[c].phasetime = 0;
-                                        lmnc--;
-                                        lg1nc++;
+                                        cellsinfo->cells[c].phase = 1;
+                                        cellsinfo->cells[c].phasetime = 0;
+                                        cellsinfo->localcount.mphase -=1;
+                                        cellsinfo->localcount.g1phase +=1;
                                 }
                                 break;
                         } // switch
                 } // if
         } // for loop
-
-        /* update global number of cells */
-        MPI_Allreduce(&lnc, &nc, 1, MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);
 
         return 0;
 }
@@ -574,7 +573,7 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
 /*!
  * This function drives the whole cell cycle update.
  */
-void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo)
+void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *celltype,cellenvdata_t **cellenvdata,cellsinfo_t *cellsinfo)
 {
         int oldlnc;
         unsigned char *removecell;
@@ -585,8 +584,8 @@ void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *cellty
         removecount = 0;
 
         updatepositions(settings,cellsinfo,removecell,&removecount);
-
-        updatecellcycles(settings,celltype,cellsinfo,removecell,&removecount);
+        updatecellcycles(settings,celltype,cellsinfo,cellenvdata,removecell,&removecount);
+        cellsdeath(oldlnc,cellsinfo,removecell,removecount);
 /*        if (nhs > 0 && nc > nhs && tgs == 1 && cancer == 0)
                 markMiddleCancerCell();
         if (nhs > 0 && nc > nhs)
