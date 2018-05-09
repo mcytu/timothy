@@ -433,60 +433,11 @@ typedef struct solverdata_t {
 	HYPRE_Solver solver;
 } solverdata_t;
 #endif
-/*
-#define nc   totalCellCount[0]
-#define g0nc totalCellCount[1]
-#define g1nc totalCellCount[2]
-#define snc  totalCellCount[3]
-#define g2nc totalCellCount[4]
-#define mnc  totalCellCount[5]
-#define cnc  totalCellCount[6]
-#define nnc  totalCellCount[7]
-#define vc   totalCellCount[8]
-#define bnc  totalCellCount[9]
 
-#define lnc   localCellCount[0]
-#define lg0nc localCellCount[1]
-#define lg1nc localCellCount[2]
-#define lsnc  localCellCount[3]
-#define lg2nc localCellCount[4]
-#define lmnc  localCellCount[5]
-#define lcnc  localCellCount[6]
-#define lnnc  localCellCount[7]
-#define lvc   localCellCount[8]
-#define lbnc  localCellCount[9]
-
-int64_t *tlnc;*/
-
-int scsim;
 int bvsim;
-int bnsim;
-
-int nscstages; /* number of stem cells stages */
-double *sctprob; /* stem cells stages transition probabilities */
-int64_t *nscinst; /* local number of stem cells in different stages */
-int64_t *gnscinst; /* global number of stem cells in different stages */
-int64_t localbc;
-int64_t globalbc;
-
-int64_t middleCellIdx;
-/* Parallelization */
-
-//#define MAX_CELLS_PER_PROC 10485760
-int maxCellsPerProc;
-
 int MPIrank;                    /* MPI rank */
 int MPIsize;                    /* MPI size */
-int MPIdim[3];                  /* processor topology dimensions (MPI_Dims_create) */
-int OMPthreads;                 /* number of OpenMP threads in use */
-
-int MPINodeRank;
-int MPINodeSize;
-int memPerProc;
-
 MPI_Comm MPI_CART_COMM;
-int **MPIcoords;
-
 struct Zoltan_Struct *ztn;
 
 /* systeminfo */
@@ -526,57 +477,6 @@ float cm;               /* mean duration of M phase - cancer cells */
 double csizeInUnits;    /* cell size in micrometers */
 double cellVolume;      /* cell volume */
 
-int cancer;
-
-double densityCriticalLevel1;
-double densityCriticalLevel2;
-
-int rst;
-int rstReset;
-
-int statOutStep;
-int rstOutStep;
-int vtkOutStep;
-
-int64_t nhs;            /* number of cells to activate random dying - homeostasis of cell colony */
-
-int tgs;		/* - tumor growth simulation, 0 - no tumor growth */
-
-/*struct doubleVector3d {
-  double x;
-  double y;
-  double z;
-};*/
-
-struct int64Vector3d {
-  int64_t x;
-  int64_t y;
-  int64_t z;
-};
-
-struct floatVector3d {
-  float x;
-  float y;
-  float z;
-};
-
-//struct uintVector3d *locCode;
-
-int64_t localID;
-
-float dummy; /* dummy float parameter in the restart file (it can be used if necessary) */
-
-double boxmin[3],boxmax[3];
-double boxsize;
-
-float secondsPerStep;
-
-float gfDt;
-float gfH;
-
-int gfIter;
-int gfIterPerStep;
-
 /* statistics */
 typedef struct statistics_t {
   double minsize; /* Minimum size of cells */
@@ -589,11 +489,6 @@ typedef struct statistics_t {
   double densdev; /* Density deviation */
   double densavg; /* Average density */
 } statistics_t;
-
-statistics_t statistics;
-
-/* randomization */
-int *stream;
 
 #define N_LEVELS 30
 #define ROOT_LEVEL N_LEVELS-1

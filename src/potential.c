@@ -44,6 +44,7 @@ double potential(int dimension,celldata_t* c1,celldata_t* c2,celltype_t celltype
         double xc, D;
         double poisson = 0.33;
         double young;
+        double csize;
 
         dist = sqrt( (c1->x-c2->x)*(c1->x-c2->x) + (c1->y-c2->y)*(c1->y-c2->y) + (c1->z-c2->z)*(c1->z-c2->z));
         c1->mindist=(dist<c1->mindist ? dist : c1->mindist);

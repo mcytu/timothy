@@ -54,8 +54,8 @@ int temperature;
 
 /* grid data */
 int64_t gridI,gridJ,gridK;
-struct int64Vector3d gridSize;
-struct int64Vector3d *gridStartIdx,*gridEndIdx;
+int643dv_t gridSize;
+int643dv_t *gridStartIdx,*gridEndIdx;
 double3dv_t *gridBuffer;
 #define grid(i,j,k) (gridBuffer[gridSize.y*gridSize.z*i+gridSize.z*j+k])
 double gridResolution;

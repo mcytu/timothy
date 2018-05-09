@@ -554,19 +554,19 @@ void ioDefineOutputGlobalFields()
  * This function prints global fields data in VisNow data format
  * http://visnow.icm.edu.pl
  */
-void ioWriteFields(int step)
-{
+/*void ioWriteFields(int step)
+   {
         int j,f;
         MPI_File fh1, fh2;
         FILE *fh3;
-        struct floatVector3d *floatVectorField;
+        float3dv_t *floatVectorField;
         float *floatScalarField;
         int *integerScalarField;
         int64_t size;
         int bdim;
         int gsize[3];
-        int bsize[3];                                                       /* box size */
-        int bstart[3];                                                      /* box start */
+        int bsize[3];
+        int bstart[3];
         MPI_Datatype subarray1_t, subarray2_t, float3_t;
 
         if (!gfields)
@@ -620,9 +620,7 @@ void ioWriteFields(int step)
 
                 size = gridSize.x * gridSize.y * gridSize.z;
 
-                floatVectorField =
-                        (struct floatVector3d *) malloc(size *
-                                                        sizeof(struct floatVector3d));
+                floatVectorField = (float3dv_t *) malloc(size * sizeof(float3dv_t));
                 floatScalarField = (float *) malloc(size * sizeof(float));
                 integerScalarField = (int *) malloc(size * sizeof(int));
 
@@ -651,7 +649,7 @@ void ioWriteFields(int step)
                               MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh1);
                 MPI_File_set_view(fh1, 0, MPI_FLOAT, subarray1_t, "native",
                                   MPI_INFO_NULL);
-                /* truncate the first file */
+                // truncate the first file
                 MPI_File_set_size(fh1, 0);
 
                 for (j = 0; j < size; j++) {
@@ -674,7 +672,7 @@ void ioWriteFields(int step)
                         MPI_File_set_view(fh2, 0, MPI_FLOAT, subarray1_t, "native",
                                           MPI_INFO_NULL);
 
-                /* truncate the second file */
+                // truncate the second file
                 MPI_File_set_size(fh2, 0);
 
                 if(dimOut[f]==SCALAR) {
@@ -708,7 +706,7 @@ void ioWriteFields(int step)
         }
         MPI_Type_free(&subarray1_t);
         MPI_Type_free(&subarray2_t);
-}
+   }*/
 
 /*!
  * This function redirects stdout to a given file.
@@ -900,8 +898,9 @@ void defineColormaps()
 /*!
  * This function prints PovRay output with cellular data.
  */
-void ioWriteStepPovRay(int step, int type)
-{
+/*
+   void ioWriteStepPovRay(int step, int type)
+   {
         int c;
         int i;
         char fstname[256];
@@ -937,7 +936,7 @@ void ioWriteStepPovRay(int step, int type)
         double middlePointGlobal[3];
         double lmass, gmass;
 
-        /* type: 0 - denisty, 1 - oxygen, 2 - phases, 3 - slice & phases */
+        // type: 0 - denisty, 1 - oxygen, 2 - phases, 3 - slice & phases
 
         minCorner[0] = DBL_MAX;
         minCorner[1] = DBL_MAX;
@@ -998,7 +997,7 @@ void ioWriteStepPovRay(int step, int type)
         middlePointGlobal[2] =
                 gMinCorner[2] + (gMaxCorner[2] - gMinCorner[2]) / 2;
 
-        /* write data to test buffer */
+        // write data to test buffer
         cr = 0.0;
         cg = 0.0;
         cb = 0.0;
@@ -1049,7 +1048,7 @@ void ioWriteStepPovRay(int step, int type)
                 break;
         }
 
-        /* open file */
+        // open file
         error =
                 MPI_File_open(MPI_COMM_WORLD, fstname,
                               MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
@@ -1059,7 +1058,7 @@ void ioWriteStepPovRay(int step, int type)
 
         MPI_File_set_size(fh, 0);
 
-        /* write header */
+        // write header
         if (MPIrank == 0) {
 
                 float cameraLocation[3];
@@ -1090,22 +1089,22 @@ void ioWriteStepPovRay(int step, int type)
                 cameraLocation[1]=middlePointGlobal[1]-0.8*dist;
                 cameraLocation[2]=middlePointGlobal[2]-5;
 
-                /*cameraLocation[0] =
-                   -(middlePointGlobal[2] - corner - dist -
-                   middlePointGlobal[2]) * ss + middlePointGlobal[0];
-                   cameraLocation[1] = middlePointGlobal[1];
-                   cameraLocation[2] =
-                   (middlePointGlobal[2] - corner - dist -
-                   middlePointGlobal[2]) * cc + middlePointGlobal[2];*/
+                //cameraLocation[0] =
+                //   -(middlePointGlobal[2] - corner - dist -
+                //   middlePointGlobal[2]) * ss + middlePointGlobal[0];
+                //   cameraLocation[1] = middlePointGlobal[1];
+                //   cameraLocation[2] =
+                //   (middlePointGlobal[2] - corner - dist -
+                //   middlePointGlobal[2]) * cc + middlePointGlobal[2];
 
                 lookAt[0] = middlePointGlobal[0]-2;
                 lookAt[1] = middlePointGlobal[1];
                 lookAt[2] = middlePointGlobal[2]-5;
 
-                /*    lookAt[0] = middlePointGlobal[0];
-                   lookAt[1] = middlePointGlobal[1];
-                   lookAt[2] = middlePointGlobal[2];
-                 */
+                //   lookAt[0] = middlePointGlobal[0];
+                //   lookAt[1] = middlePointGlobal[1];
+                //   lookAt[2] = middlePointGlobal[2];
+
                 lightSource1[0] = cameraLocation[0];
                 lightSource1[1] = cameraLocation[1];
                 lightSource1[2] = cameraLocation[2];
@@ -1137,12 +1136,12 @@ void ioWriteStepPovRay(int step, int type)
                 float color = 0.0;
                 int jump;
                 if(beta==360.0 && (cells[c].y<1.8 || cells[c].y>4.5)) continue;
-                /*    if (beta == 360.0
-                   && (cells[c].z > middlePointGlobal[2] + 4.0 * csize
-                 || cells[c].z < middlePointGlobal[2] - 4.0 * csize))
-                   continue; */
+                if (beta == 360.0
+                    && (cells[c].z > middlePointGlobal[2] + 4.0 * csize
+ || cells[c].z < middlePointGlobal[2] - 4.0 * csize))
+                        continue;
                 if (type == 0) {
-                        color = ((cells[c].density) / (8*densityCriticalLevel2));                                                                                       /* UWAGA! BUG!!! */
+                        color = ((cells[c].density) / (8*densityCriticalLevel2));                                                                                       // UWAGA!
                         if (cells[c].tumor)
                                 color = 0.0;
                 }                                                                                                   //2.5);
@@ -1253,4 +1252,5 @@ void ioWriteStepPovRay(int step, int type)
         else
                 beta = 360.0;
 
-}
+   }
+ */

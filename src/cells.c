@@ -130,7 +130,7 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
         double shift[3];
 
         if (cellsinfo->localcount.n + 1 > settings.maxlocalcells)
-                terminate(*systeminfo,"cannot allocate systeminfo->coords", __FILE__, __LINE__);
+                terminate(systeminfo,"cannot allocate systeminfo->coords", __FILE__, __LINE__);
 
         sc = sqrt(cellsinfo->velocity[c].x * cellsinfo->velocity[c].x + cellsinfo->velocity[c].y * cellsinfo->velocity[c].y +
                   cellsinfo->velocity[c].z * cellsinfo->velocity[c].z);
@@ -139,8 +139,8 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
         /* direction of shift chosen randomly */
         int accept = 0;
         while (accept == 0) {
-                shift[0] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0
-                           shift[1] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
+                shift[0] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
+                shift[1] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 if (sdim == 3)
                         shift[2] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 else
@@ -178,15 +178,14 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
 
         /* 1st daughter cell global ID */
         cellsinfo->cells[cellsinfo->localcount.n].gid =
-                (unsigned long long int) MPIrank *(unsigned long long int)
-                cellsinfo->maxlocalcells + (unsigned long long int) (cellsinfo->localcount.n);
+                (unsigned long long int) systeminfo.rank *(unsigned long long int)
+                settings.maxlocalcells + (unsigned long long int) (cellsinfo->localcount.n);
 
         /* 1st daughter cell parameters */
         cellsinfo->cells[cellsinfo->localcount.n].v = 0.0;
         cellsinfo->cells[cellsinfo->localcount.n].density = cellsinfo->cells[c].density;
         cellsinfo->cells[cellsinfo->localcount.n].ctype = cellsinfo->cells[c].ctype;
         cellsinfo->cells[cellsinfo->localcount.n].young = 2100.0 + (((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0) * 100.0;
-        cellsinfo->cells[cellsinfo->localcount.n].halo = 0;
         cellsinfo->cells[cellsinfo->localcount.n].phase = 1;
         cellsinfo->cells[cellsinfo->localcount.n].death = 0;
         cellsinfo->cells[cellsinfo->localcount.n].phasetime = 0.0;
@@ -199,9 +198,10 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
 
         /* update local cell counters */
 
-        cellsinfo->localtypecount[cells[cellsinfo->localcount.n].ctype] += 1;
-        cellsinfo->localcount.n = cellsinfo->localcount.n + 1;
-        cellsinfo->localcount[cells[cellsinfo->localcount.n].ctype].g1phase += 1;
+        cellsinfo->localtypecount[cellsinfo->cells[cellsinfo->localcount.n].ctype].n += 1;
+        cellsinfo->localtypecount[cellsinfo->cells[cellsinfo->localcount.n].ctype].g1phase += 1;
+        cellsinfo->localcount.n += 1;
+        cellsinfo->localcount.g1phase += 1;
 
         return;
 
@@ -211,7 +211,7 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
  * This function finds locates cell closest to the center of mass of the systeminfo
  * and marks this cell as a cancer cell.
  */
-void markMiddleCancerCell()
+void markMiddleCancerCell(systeminfo_t systeminfo,cellsinfo_t *cellsinfo)
 {
         int c;
         int middle = 0;
@@ -227,25 +227,25 @@ void markMiddleCancerCell()
         center[0] = 0.0;
         center[1] = 0.0;
         center[2] = 0.0;
-        for (c = 0; c < lnc; c++) {
-                center[0] += cells[c].x / nc;
-                center[1] += cells[c].y / nc;
-                center[2] += cells[c].z / nc;
+
+        for (c = 0; c < cellsinfo->localcount.n; c++) {
+                center[0] += cellsinfo->cells[c].x / cellsinfo->globalcount.n;
+                center[1] += cellsinfo->cells[c].y / cellsinfo->globalcount.n;
+                center[2] += cellsinfo->cells[c].z / cellsinfo->globalcount.n;
         }
 
         /* MPI Reduce operation computes global center of mass */
         MPI_Allreduce(center, gcenter, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         /* intialization */
-        lmdist.rank = MPIrank;
+        lmdist.rank = systeminfo.rank;
         lmdist.val = INT_MAX;
 
         /* each process finds local cell closest to the global center of mass */
-        for (c = 0; c < lnc; c++) {
-                dist =
-                        sqrt((cells[c].x - gcenter[0]) * (cells[c].x - gcenter[0]) +
-                             (cells[c].y - gcenter[1]) * (cells[c].y - gcenter[1]) +
-                             (cells[c].z - gcenter[2]) * (cells[c].z - gcenter[2]));
+        for (c = 0; c < cellsinfo->localcount.n; c++) {
+                dist =  sqrt((cellsinfo->cells[c].x - gcenter[0]) * (cellsinfo->cells[c].x - gcenter[0]) +
+                             (cellsinfo->cells[c].y - gcenter[1]) * (cellsinfo->cells[c].y - gcenter[1]) +
+                             (cellsinfo->cells[c].z - gcenter[2]) * (cellsinfo->cells[c].z - gcenter[2]));
                 if (dist < lmdist.val) {
                         lmdist.val = dist;
                         middle = c;
@@ -253,42 +253,37 @@ void markMiddleCancerCell()
         }
 
         /* MPI_Allreduce locates the cell closest to the global center of mass */
-        MPI_Allreduce(&lmdist, &gmdist, 1, MPI_DOUBLE_INT, MPI_MINLOC,
-                      MPI_COMM_WORLD);
+        MPI_Allreduce(&lmdist, &gmdist, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
         /* mark the found cell as cancer one */
-        if (MPIrank == gmdist.rank) {
-                cells[middle].tumor = 1;
-                cells[middle].phase = 1;
-                lg0nc--;
-                lg1nc++;
-                lcnc++;
+        if (systeminfo.rank == gmdist.rank) {
+                printf("Most middle cells id %d located on rank %d\n",middle,systeminfo.rank);
+                /* you can implement action for middle cell here */
         }
 
-        /* indicate that there is a cancer cell in the systeminfo */
-        cancer = 1;
+        return;
 }
 
 /*!
  * This function dealocates all tables allocated during initialization of cell data
  */
-void cellsdestroy()
-{
+/*void cellsdestroy()
+   {
         int f;
         free(tlnc);
-#ifdef __MIC__
+ #ifdef __MIC__
         _mm_free(cells);
-#else
+ #else
         free(cells);
-#endif
+ #endif
         for (f = 0; f < NFIELDS; f++)
                 free(cellFields[f]);
         free(cellFields);
-#ifdef __MIC__
+ #ifdef __MIC__
         _mm_free(velocity);
-#else
+ #else
         free(velocity);
-#endif
-}
+ #endif
+   } */
 
 /*!
  * This function removes a dead cell from the simulation.
@@ -314,48 +309,29 @@ void cellsdeath(int oldlnc,cellsinfo_t *cellsinfo,unsigned char *removecell,int6
                         switch (cellsinfo->cells[c].phase) {
                         case 0:
                                 cellsinfo->localcount.g0phase -= 1;
+                                cellsinfo->localtypecount[cellsinfo->cells[c].ctype].g0phase -= 1;
                                 break;
                         case 1:
                                 cellsinfo->localcount.g1phase -= 1;
+                                cellsinfo->localtypecount[cellsinfo->cells[c].ctype].g1phase -= 1;
                                 break;
                         case 2:
                                 cellsinfo->localcount.sphase -= 1;
+                                cellsinfo->localtypecount[cellsinfo->cells[c].ctype].sphase -= 1;
                                 break;
                         case 3:
                                 cellsinfo->localcount.g2phase -= 1;
+                                cellsinfo->localtypecount[cellsinfo->cells[c].ctype].g2phase -= 1;
                                 break;
                         case 4:
                                 cellsinfo->localcount.mphase -= 1;
+                                cellsinfo->localtypecount[cellsinfo->cells[c].ctype].mphase -= 1;
                                 break;
                         }
-                        cellsinfo->localtypecount[cellsinfo->cells[c].ctype] -= 1;
+                        cellsinfo->localtypecount[cellsinfo->cells[c].ctype].n -= 1;
                 }
         }
         cellsinfo->localcount.n -= removecount;
-}
-
-/*!
- * This function updates cell counters.
- */
-void updateCellCounters()
-{
-        MPI_Allgather(&lnc, 1, MPI_INT64_T, tlnc, 1, MPI_INT64_T,
-                      MPI_COMM_WORLD);
-        MPI_Allreduce(localCellCount, totalCellCount, numberOfCounts,
-                      MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);
-        MPI_Allreduce(nscinst, gnscinst, nscstages,
-                      MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);
-        MPI_Allreduce(&localbc, &globalbc, 1,
-                      MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);
-}
-
-void updateChemotaxis()
-{
-        int c;
-        for(c=0; c<lnc; c++) {
-
-
-        }
 }
 
 
@@ -389,7 +365,7 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *r
 /*!
  * This function updates cells' cycle phases.
  */
-int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cellsinfo,cellenvdata_t **cellenvdata,unsigned char *removecell,int64_t *removecount)
+int updatecellcycles(systeminfo_t systeminfo,settings_t settings,celltype_t *celltype, cellsinfo_t *cellsinfo,cellenvdata_t **cellenvdata,unsigned char *removecell,int64_t *removecount)
 {
 
         int c,f;
@@ -433,7 +409,7 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
 
                         case 0: /* G0 phase */
 
-                                if (lowevnlevel2)                    /* low environemnt level */
+                                if (lowenvlevel2)                    /* low environemnt level */
                                 {
                                         cellsinfo->cells[c].phase = 5;
                                         cellsinfo->cells[c].phasetime = 0;
@@ -444,7 +420,7 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
                                 /* transition to G1 phase */
                                 if(cellsinfo->cells[c].density <= eps /* enough space for growth */
                                    || cellsinfo->globalcount.n==1     /* single cell in the simulation */
-                                   || (!lowlevel1) )                  /* sufficient level of nutrients */
+                                   || (!lowenvlevel1) )                  /* sufficient level of nutrients */
                                 {
                                         cellsinfo->cells[c].phase = 1;
                                         cellsinfo->localcount.g0phase -=1;
@@ -494,7 +470,7 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
                                 }
                                 break;
                         case 2: /* S phase */
-                                if (lowevnlevel2) {
+                                if (lowenvlevel2) {
                                         cellsinfo->cells[c].phase = 5;
                                         cellsinfo->cells[c].phasetime = 0;
                                         cellsinfo->localcount.sphase -=1;
@@ -539,7 +515,7 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
                                         cellsinfo->localcount.necroticphase +=1;
 
                                 } else if (cellsinfo->cells[c].phasetime >= cellsinfo->cells[c].m) {
-                                        mitosis(settings,celltype,cellsinfo,c,removecell,removecount);
+                                        mitosis(systeminfo,settings,celltype,cellsinfo,c,removecell,removecount);
                                         cellsinfo->cells[c].phase = 1;
                                         cellsinfo->cells[c].phasetime = 0;
                                         cellsinfo->localcount.mphase -=1;
@@ -552,23 +528,6 @@ int updatecellcycles(settings_t settings,celltype_t *celltype, cellsinfo_t *cell
 
         return 0;
 }
-
-/*!
- * This function fills the scalarOutput field of each cell.
- * It can be modified to output any float scalars that
- * user would like to analyze or visualize after simulation.
- * This field is printed to the output VTK files.
- */
-/*void additionalScalarField()
-   {
-        int c;
-        for (c = 0; c < lnc; c++) {
-                if (cells[c].tumor == 1)
-                        cells[c].scalarField = 8.0;
-                else
-                        cells[c].scalarField = cells[c].density;
-        }
-   }*/
 
 /*!
  * This function drives the whole cell cycle update.
@@ -584,13 +543,9 @@ void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *cellty
         removecount = 0;
 
         updatepositions(settings,cellsinfo,removecell,&removecount);
-        updatecellcycles(settings,celltype,cellsinfo,cellenvdata,removecell,&removecount);
+        updatecellcycles(systeminfo,settings,celltype,cellsinfo,cellenvdata,removecell,&removecount);
         cellsdeath(oldlnc,cellsinfo,removecell,removecount);
-/*        if (nhs > 0 && nc > nhs && tgs == 1 && cancer == 0)
-                markMiddleCancerCell();
-        if (nhs > 0 && nc > nhs)
-                cellsDeath(oldlnc);
-        updateCellCounters();
-        additionalScalarField();*/
+        updateglobalcounts(cellsinfo);
+
         free(removecell);
 }

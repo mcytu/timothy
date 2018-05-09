@@ -82,10 +82,10 @@ int main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 
         //decompositionFinalize();
-        cellsdestroy();
+        //cellsdestroy();
         lbdestroy();
 
-        if (MPIrank == 0)
+        if (systeminfo.rank == 0)
                 printf("\nEnd of simulation run.\n");
 
         MPI_Finalize();
