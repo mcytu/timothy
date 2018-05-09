@@ -111,8 +111,10 @@ void terminate(systeminfo_t systeminfo, char *msg, char *file, int line) {
 /*!
  * This function is used to handle various critical errors.
  */
-/*void stopRun(int ierr, char *name, char *file, int line)
-   {
+void stopRun(int ierr, char *name, char *file, int line)
+{
+}
+/*   {
         switch (ierr) {
         case 100:
                 fprintf(stderr, "Bad %s dimensions at %s, line %d\n", name, file,

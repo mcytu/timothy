@@ -192,7 +192,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,cellsin
 
         rc = Zoltan_Initialize(argc, argv, &version);
         if (rc != ZOLTAN_OK)
-                stopRun(112, NULL, __FILE__, __LINE__);
+                terminate(systeminfo,"Zoltan initialisation failed", __FILE__, __LINE__);
 
         if (systeminfo.rank == 0)
                 printf("Zoltan Version %.3f. Initialized.\n", version);
