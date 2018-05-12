@@ -141,7 +141,7 @@ void mitosis(systeminfo_t systeminfo, settings_t settings, celltype_t *celltype,
         while (accept == 0) {
                 shift[0] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 shift[1] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
-                if (sdim == 3)
+                if (settings.dimension == 3)
                         shift[2] = ((double)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0;
                 else
                         shift[2] = 0.0;

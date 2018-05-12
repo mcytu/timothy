@@ -208,12 +208,12 @@ void octbuild(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* cellty
 /*!
  * This function computes binary code for a given cell.
  */
-void octcomputecode(int64_t c,uint3dv_t *code)
-{
+/*void octcomputecode(int64_t c,uint3dv_t *code)
+   {
         code[0].x=(unsigned int)( ((cells[c].x-affShift.x)/affScale) * MAXVALUE );
         code[0].y=(unsigned int)( ((cells[c].y-affShift.y)/affScale) * MAXVALUE );
         code[0].z=(unsigned int)( ((cells[c].z-affShift.z)/affScale) * MAXVALUE );
-}
+   }*/
 
 /*!
  * This function computes bounding box of a remote cell to be used for neighbour searching.

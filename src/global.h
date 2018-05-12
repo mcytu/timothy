@@ -29,13 +29,7 @@
  *  \brief contains the most important global variables, arrays and defines
  */
 
-#define  VERSION   "1.0"
-
-#ifdef __MIC__
-#define MIC_ATTR __attribute__((target(mic)))
-#else
-#define MIC_ATTR
-#endif
+#define  VERSION   "1.01"
 
 #define POWER_OF_TWO(x) !(x&(x-1))
 
@@ -66,44 +60,32 @@
 #define BOXSIZEY 2048
 #define BOXSIZEZ 2048
 
-/* cell data structure */
-//#pragma pack(1)
-struct cellData {
-  int lifetime;         /* age of the cell */
-  int phase;            /* actual phase of the cell (0=G0,1=G1,2=S,3=G2,4=M,5=Necrotic) */
-  int age;              /* cell's age */
-  int death;
-  int halo;
-  float phasetime;      /* actual phase time */
-  float g1;
-  float s;
-  float g2;
-  float m;
-  float young;
-  ZOLTAN_ID_TYPE gid;    /* global ID of the particle */
-  double x;              /* x coordinate of the particle position */
-  double y;              /* y coordinate of the particle position */
-  double z;              /* z coordinate of the particle position */
-  double size;           /* radius of the cell */
-  double v;              /* particle potential */
-  double density;        /* particle density */
-  double scalarField;    /* additional scalar field which can be used for analysis of results (printed to the output VTK files) */
-  int ctype;		 /* cell type 1=endothelial */
-  int scstage;           /* stem cells stage (in the course of differentiation) */
-  unsigned char tumor;
-};
+#define ZOLTAN_ID_TYPE int
 
-/* !!!!!!!!!!!!!!!!!!!!!!! */
-/* the most important data */
-MIC_ATTR struct cellData *cells;
-double **cellFields;
-/* !!!!!!!!!!!!!!!!!!!!!!! */
+#define N_LEVELS 30
+#define ROOT_LEVEL N_LEVELS-1
+#define MAXVALUE powf(2,ROOT_LEVEL)
 
-int64_t maxCells;
-#define numberOfCounts 10
+#define CELLTYPE_G1_DEFAULT 11.0
+#define CELLTYPE_S_DEFAULT 8.0
+#define CELLTYPE_G2_DEFAULT 4.0
+#define CELLTYPE_M_DEFAULT 1.0
+#define CELLTYPE_V_DEFAULT 0.5
+#define CELLTYPE_RD_DEFAULT 0.1
+#define CELLTYPE_CDENS_DEFAULT 2
+#define CELLTYPE_PROD_DEFAULT 0.0
+#define CELLTYPE_CONS_DEFAULT 0.0
+#define CELLTYPE_CL1_DEFAULT 100
+#define CELLTYPE_CL2_DEFAULT 100
+#define CELLTYPE_SIZE_DEFAULT 1.0
+#define CELLTYPE_H_DEFAULT 1.5
+#define NUMBER_OF_CELLENV_PAR 4
 
-MIC_ATTR int64_t localCellCount[numberOfCounts];
-int64_t totalCellCount[numberOfCounts];
+#define ENVIRONMENT_DC_DEFAULT 1.82e-5
+#define ENVIRONMENT_BC_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICMEAN_DEFAULT 0.1575e-6
+#define ENVIRONMENT_ICVAR_DEFAULT 0.0
+#define ENVIRONMENT_LAMBDA_DEFAULT 0.0
 
 typedef struct cellcount_t{
   uint64_t n;
@@ -180,8 +162,6 @@ typedef struct octnode_t {
   int64_t child[8];
   int data;
 } octnode_t;
-
-double3dv_t *velocity;
 
 typedef struct cellsinfo_t{
 	cellcount_t localcount;
@@ -295,10 +275,6 @@ typedef struct cellcommdata_t {
 	int numimp;
 } cellcommdata_t;
 
-
-
-#define ZOLTAN_ID_TYPE int
-
 typedef struct settings_t {
  		int64_t maxcells;   /* maximal number of cells (set in parameter file) */
 		int64_t maxlocalcells;
@@ -336,20 +312,6 @@ typedef struct systeminfo_t {
     //int restart;
 } systeminfo_t;
 
-#define CELLTYPE_G1_DEFAULT 11.0
-#define CELLTYPE_S_DEFAULT 8.0
-#define CELLTYPE_G2_DEFAULT 4.0
-#define CELLTYPE_M_DEFAULT 1.0
-#define CELLTYPE_V_DEFAULT 0.5
-#define CELLTYPE_RD_DEFAULT 0.1
-#define CELLTYPE_CDENS_DEFAULT 2
-#define CELLTYPE_PROD_DEFAULT 0.0
-#define CELLTYPE_CONS_DEFAULT 0.0
-#define CELLTYPE_CL1_DEFAULT 100
-#define CELLTYPE_CL2_DEFAULT 100
-#define CELLTYPE_SIZE_DEFAULT 1.0
-#define CELLTYPE_H_DEFAULT 1.5
-#define NUMBER_OF_CELLENV_PAR 4
 
 typedef struct celltype_t {
 	char name[128];
@@ -371,12 +333,6 @@ typedef struct celltype_t {
 	float *criticallevel1;
 	float *criticallevel2;
 } celltype_t;
-
-#define ENVIRONMENT_DC_DEFAULT 1.82e-5
-#define ENVIRONMENT_BC_DEFAULT 0.1575e-6
-#define ENVIRONMENT_ICMEAN_DEFAULT 0.1575e-6
-#define ENVIRONMENT_ICVAR_DEFAULT 0.0
-#define ENVIRONMENT_LAMBDA_DEFAULT 0.0
 
 typedef struct patches_t {
 	double **data;
@@ -435,47 +391,8 @@ typedef struct solverdata_t {
 #endif
 
 int bvsim;
-int MPIrank;                    /* MPI rank */
-int MPIsize;                    /* MPI size */
-MPI_Comm MPI_CART_COMM;
+
 struct Zoltan_Struct *ztn;
-
-/* systeminfo */
-int endian;		/* =0 - big endian, =1 - little endian */
-
-/* model setup */
-int MIC_ATTR sdim; 		/* dimensionality of the systeminfo */
-int mitrand; 		/* mitosis random direction */
-int MIC_ATTR nx; 		/* box x size */
-int ny; 		/* box y size */
-int nz; 		/* box z size */
-char rstFileName[128]; 	/* restart file name */
-char outdir[128];	/* output directory */
-char logdir[128];       /* log directory */
-char rng[3]; 		/* type of the Random Number Generator */
-int nsteps; 		/* number of simulation steps */
-
-/* simulation */
-int simStart;  	        /* start simulation flag */
-int step; 		/* step number */
-float tstep; 		/* time step size */
-
-/* cell cycle */
-float g1;               /* mean duration of G1 phase - healthy tissue */
-float s;                /* mean duration of S phase - healthy tissue */
-float g2;               /* mean duration of G2 phase - healthy tissue */
-float m;                /* mean duration of M phase - healthy tissue */
-float v;                /* variability of duration of cell cycles */
-//float rd;               /* random death probability */
-
-float cg1;              /* mean duration of G1 phase - cancer cells */
-float cs;               /* mean duration of S phase - cancer cells */
-float cg2;              /* mean duration of G2 phase - cancer cells */
-float cm;               /* mean duration of M phase - cancer cells */
-
-//double MIC_ATTR csize;           /* cell initial size, no units */
-double csizeInUnits;    /* cell size in micrometers */
-double cellVolume;      /* cell volume */
 
 /* statistics */
 typedef struct statistics_t {
@@ -490,13 +407,9 @@ typedef struct statistics_t {
   double densavg; /* Average density */
 } statistics_t;
 
-#define N_LEVELS 30
-#define ROOT_LEVEL N_LEVELS-1
-#define MAXVALUE powf(2,ROOT_LEVEL)
-
 /* properties of the affine transformation */
-double3dv_t MIC_ATTR affShift;
-double MIC_ATTR affScale;
+double3dv_t affShift;
+double affScale;
 
 typedef struct octheap_t {
   int size;

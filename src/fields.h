@@ -35,8 +35,8 @@ void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,envi
 void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment);
 void fieldsInit();
 void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo);
-void allocateFieldGradient();
-void initFieldHaloExchange(int chf);
+void allocateFieldGradient(systeminfo_t systeminfo);
+void initFieldHaloExchange(systeminfo_t systeminfo,int chf);
 void computeFieldGradient(int chf);
 void fieldGradient();
 

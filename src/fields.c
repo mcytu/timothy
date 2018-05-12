@@ -32,15 +32,15 @@
 #include "cells.h"
 
 
-void allocateFieldGradient()
+void allocateFieldGradient(systeminfo_t systeminfo)
 {
 
         if (!gfields)
                 return;
 
-        MPI_Cart_shift(MPI_CART_COMM,0,1,&rX0,&rX1);
-        MPI_Cart_shift(MPI_CART_COMM,1,1,&rY0,&rY1);
-        MPI_Cart_shift(MPI_CART_COMM,2,1,&rZ0,&rZ1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,0,1,&rX0,&rX1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,1,1,&rY0,&rY1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,2,1,&rZ0,&rZ1);
 
         /* allocate send buffers */
         if(rX0!=MPI_PROC_NULL) haloSX0=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
@@ -61,7 +61,7 @@ void allocateFieldGradient()
         return;
 }
 
-void initFieldHaloExchange(int chf)
+void initFieldHaloExchange(systeminfo_t systeminfo, int chf)
 {
         int i,j,k;
         if (!gfields)
@@ -81,28 +81,28 @@ void initFieldHaloExchange(int chf)
                         }
 
         if(rX0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,MPIrank,MPI_CART_COMM,&reqFGSend[0]);
-                MPI_Irecv(haloRX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,MPIsize+rX0,MPI_CART_COMM,&reqFGRecv[0]);
+                MPI_Isend(haloSX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[0]);
+                MPI_Irecv(haloRX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,systeminfo.size+rX0,systeminfo.MPI_CART_COMM,&reqFGRecv[0]);
         }
         if(rX1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,MPIsize+MPIrank,MPI_CART_COMM,&reqFGSend[1]);
-                MPI_Irecv(haloRX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,rX1,MPI_CART_COMM,&reqFGRecv[1]);
+                MPI_Isend(haloSX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[1]);
+                MPI_Irecv(haloRX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,rX1,systeminfo.MPI_CART_COMM,&reqFGRecv[1]);
         }
         if(rY0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,2*MPIsize+MPIrank,MPI_CART_COMM,&reqFGSend[2]);
-                MPI_Irecv(haloRY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,3*MPIsize+rY0,MPI_CART_COMM,&reqFGRecv[2]);
+                MPI_Isend(haloSY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,2*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[2]);
+                MPI_Irecv(haloRY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,3*systeminfo.size+rY0,systeminfo.MPI_CART_COMM,&reqFGRecv[2]);
         }
         if(rY1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,3*MPIsize+MPIrank,MPI_CART_COMM,&reqFGSend[3]);
-                MPI_Irecv(haloRY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,2*MPIsize+rY1,MPI_CART_COMM,&reqFGRecv[3]);
+                MPI_Isend(haloSY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,3*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[3]);
+                MPI_Irecv(haloRY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,2*systeminfo.size+rY1,systeminfo.MPI_CART_COMM,&reqFGRecv[3]);
         }
         if(rZ0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,4*MPIsize+MPIrank,MPI_CART_COMM,&reqFGSend[4]);
-                MPI_Irecv(haloRZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,5*MPIsize+rZ0,MPI_CART_COMM,&reqFGRecv[4]);
+                MPI_Isend(haloSZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,4*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[4]);
+                MPI_Irecv(haloRZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,5*systeminfo.size+rZ0,systeminfo.MPI_CART_COMM,&reqFGRecv[4]);
         }
         if(rZ1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,5*MPIsize+MPIrank,MPI_CART_COMM,&reqFGSend[5]);
-                MPI_Irecv(haloRZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,4*MPIsize+rZ1,MPI_CART_COMM,&reqFGRecv[5]);
+                MPI_Isend(haloSZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,5*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[5]);
+                MPI_Irecv(haloRZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,4*systeminfo.size+rZ1,systeminfo.MPI_CART_COMM,&reqFGRecv[5]);
         }
 
         return;
@@ -258,17 +258,17 @@ void computeFieldGradient(int chf)
         return;
 }
 
-void fieldGradient()
+void fieldGradient(systeminfo_t systeminfo)
 {
         int chf;
         if (!gfields)
                 return;
-        allocateFieldGradient();
+        allocateFieldGradient(systeminfo);
         for(chf=0; chf<NCHEM; chf++) {
                 if(chf==OXYG-NGLOB && !oxygen) continue;
                 if(chf==GLUC-NGLOB && !glucose) continue;
                 if(chf==HYDR-NGLOB && !hydrogenIon) continue;
-                initFieldHaloExchange(chf);
+                initFieldHaloExchange(systeminfo,chf);
                 //waitFieldHaloExchange();
                 computeFieldGradient(chf);
 
