@@ -407,10 +407,6 @@ typedef struct statistics_t {
   double densavg; /* Average density */
 } statistics_t;
 
-/* properties of the affine transformation */
-double3dv_t affShift;
-double affScale;
-
 typedef struct octheap_t {
   int size;
   int count;
