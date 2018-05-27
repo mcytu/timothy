@@ -20,6 +20,10 @@
  *
  * *************************************************************************/
 
+ /* properties of the affine transformation */
+ double3dv_t affShift;
+ double affScale;
+
 void octbuild(systeminfo_t systeminfo,cellsinfo_t *cellsinfo,celltype_t* celltype);
 void octfree(cellsinfo_t *cellsinfo);
 void octheapinit(octheap_t *ttheap);
