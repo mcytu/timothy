@@ -52,7 +52,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 1. Compute potential for local cells */
 
         /* compute potential for local cells */
-        computepotential(cellsinfo,celltype,*cellcommdata);
+        computepotential(systeminfo,cellsinfo,celltype,*cellcommdata);
 
         /* 2. Solve global fields */
 
@@ -65,7 +65,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         cellswait(systeminfo,*cellsinfo,cellcommdata);
 
         /* 3. Compute potential for remote cells */
-        computeremotepotential(cellsinfo,celltype,*cellcommdata);
+        computeremotepotential(systeminfo,cellsinfo,celltype,*cellcommdata);
 
         /* 4. Add chemotactic term to potential */
 
@@ -75,7 +75,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* initiate transfer of the density and potential data from remote cells */
         datasendrecv(systeminfo,*cellsinfo,cellcommdata);
         /* compute gradient of the potential for local cells */
-        computegradient(cellsinfo,celltype,*cellcommdata);
+        computegradient(systeminfo,cellsinfo,celltype,*cellcommdata);
 
         /* 6. Interpolate global fields and compute gradient */
 
@@ -93,7 +93,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         datawait(systeminfo,*cellsinfo,cellcommdata);
 
         /* compute gradient of the potential for remote cells */
-        computeremotegradient(cellsinfo,celltype,*cellcommdata);
+        computeremotegradient(systeminfo,cellsinfo,celltype,*cellcommdata);
 
         return 0;
 }

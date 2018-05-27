@@ -85,7 +85,7 @@ double potential(int dimension,celldata_t* c1,celldata_t* c2,celltype_t celltype
  * This function implements tree walk algorithm for each local cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
+void computepotential(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         if(cellsinfo->localcount.n<=1) return;
         #pragma omp parallel
@@ -100,7 +100,7 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t
                         uint3dv_t minLocCode,maxLocCode;
                         octheap_t octh;
 
-                        octheapinit(&octh);
+                        octheapinit(systeminfo,&octh);
 
                         cellsinfo->cells[p].density = 0.0;
                         cellsinfo->cells[p].v = 0.0;
@@ -113,7 +113,7 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t
                                 int idx;
                                 idx=cellsinfo->octree[octIndex].child[s];
                                 if(idx!=-1 && octnodeintersection(idx,minLocCode,maxLocCode,*cellsinfo))
-                                        octheappush(&octh,idx);
+                                        octheappush(systeminfo,&octh,idx);
                         }
 
                         while(octh.count>0) {
@@ -128,7 +128,7 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t
                                         for(s=0; s<8; s++) {
                                                 newIdx=cellsinfo->octree[idx].child[s];
                                                 if(newIdx!=-1 && octnodeintersection(newIdx,minLocCode,maxLocCode,*cellsinfo))
-                                                        octheappush(&octh,newIdx);
+                                                        octheappush(systeminfo,&octh,newIdx);
                                         }
                                 }
                         }
@@ -142,7 +142,7 @@ void computepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t
  * This function implements tree walk algorithm for each remote cell.
  * Function ccPot(..) is called for each pair of neighbours.
  */
-void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
+void computeremotepotential(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         if(cellcommdata.numimp<=0) return;
         #pragma omp parallel
@@ -163,9 +163,9 @@ void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcomm
                         cell.size=cellcommdata.recvcellindata[rp].size;
                         cell.young=cellcommdata.recvcellindata[rp].young;
                         cell.ctype=cellcommdata.recvcellindata[rp].ctype;
-                        octheapinit(&octh);
+                        octheapinit(systeminfo,&octh);
                         octcomputeboxr(rp,&minLocCode,&maxLocCode,cellcommdata,celltype);
-                        octheappush(&octh,0);
+                        octheappush(systeminfo,&octh,0);
                         while(octh.count>0) {
                                 int idx;
                                 idx=octheappop(&octh);
@@ -178,7 +178,7 @@ void computeremotepotential(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcomm
                                         for(s=0; s<8; s++) {
                                                 newIdx=cellsinfo->octree[idx].child[s];
                                                 if(newIdx!=-1 && octnodeintersection(newIdx,minLocCode,maxLocCode,*cellsinfo))
-                                                        octheappush(&octh,newIdx);
+                                                        octheappush(systeminfo,&octh,newIdx);
                                         }
                                 }
                         }
@@ -207,7 +207,7 @@ void pgradient(int dimension,celldata_t c1,celldata_t c2,double3dv_t* f,celltype
  * This function implements tree walk algorithm for each local cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
+void computegradient(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         int p;
         if(cellsinfo->localcount.n<=1) return;
@@ -220,7 +220,7 @@ void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t 
                 uint3dv_t minLocCode,maxLocCode;
                 octheap_t octh;
 
-                octheapinit(&octh);
+                octheapinit(systeminfo,&octh);
                 cellsinfo->forces[p].x=0.0;
                 cellsinfo->forces[p].y=0.0;
                 cellsinfo->forces[p].z=0.0;
@@ -232,7 +232,7 @@ void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t 
                         int idx;
                         idx=cellsinfo->octree[octIndex].child[s];
                         if(idx!=-1 && octnodeintersection(idx,minLocCode,maxLocCode,*cellsinfo))
-                                octheappush(&octh,idx);
+                                octheappush(systeminfo,&octh,idx);
                 }
                 while(octh.count>0) {
                         int idx;
@@ -250,7 +250,7 @@ void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t 
                                 for(s=0; s<8; s++) {
                                         newIdx=cellsinfo->octree[idx].child[s];
                                         if(newIdx!=-1 && octnodeintersection(newIdx,minLocCode,maxLocCode,*cellsinfo))
-                                                octheappush(&octh,newIdx);
+                                                octheappush(systeminfo,&octh,newIdx);
                                 }
                         }
                 }
@@ -263,7 +263,7 @@ void computegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t 
  * This function implements tree walk algorithm for each remote cell to compute potential gradient.
  * Function ccPotGrad(..) is called for each pair of neighbours.
  */
-void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
+void computeremotegradient(systeminfo_t systeminfo, cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommdata_t cellcommdata)
 {
         int rp;
         if(cellcommdata.numimp<=0) return;
@@ -281,9 +281,9 @@ void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommd
                 cell.size=cellcommdata.recvcellindata[rp].size;
                 cell.young=cellcommdata.recvcellindata[rp].young;
                 cell.ctype=cellcommdata.recvcellindata[rp].ctype;
-                octheapinit(&octh);
+                octheapinit(systeminfo,&octh);
                 octcomputeboxr(rp,&minLocCode,&maxLocCode,cellcommdata,celltype);
-                octheappush(&octh,0);
+                octheappush(systeminfo,&octh,0);
                 while(octh.count>0) {
                         int idx;
                         idx=octheappop(&octh);
@@ -301,7 +301,7 @@ void computeremotegradient(cellsinfo_t *cellsinfo,celltype_t* celltype,cellcommd
                                 for(s=0; s<8; s++) {
                                         newIdx=cellsinfo->octree[idx].child[s];
                                         if(newIdx!=-1 && octnodeintersection(newIdx,minLocCode,maxLocCode,*cellsinfo))
-                                                octheappush(&octh,newIdx);
+                                                octheappush(systeminfo,&octh,newIdx);
                                 }
                         }
                 }

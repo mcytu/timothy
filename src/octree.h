@@ -26,10 +26,10 @@
 
 void octbuild(systeminfo_t systeminfo,cellsinfo_t *cellsinfo,celltype_t* celltype);
 void octfree(cellsinfo_t *cellsinfo);
-void octheapinit(octheap_t *ttheap);
+void octheapinit(systeminfo_t systeminfo,octheap_t *ttheap);
 void octcomputebox(int64_t c,uint3dv_t *minLocCode,uint3dv_t *maxLocCode,cellsinfo_t cellsinfo,celltype_t* celltype);
 int octlocateregion(uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);
-void octheappush(octheap_t *ttheap,int idx);
+void octheappush(systeminfo_t systeminfo,octheap_t *ttheap,int idx);
 int octheappop(octheap_t *ttheap);
 void octheapfree(octheap_t *ttheap);
 static inline int octnodeintersection(int idx,uint3dv_t minLocCode,uint3dv_t maxLocCode,cellsinfo_t cellsinfo);

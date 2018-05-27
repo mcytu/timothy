@@ -26,6 +26,7 @@
 #include <math.h>
 
 #include "global.h"
+#include "octree.h"
 #include "utils.h"
 
 /*! \file octree.c

@@ -24,6 +24,26 @@
  *  \brief contains variables and arrays for global fields
  */
 
+ typedef struct fieldgradientdata_t {
+   int bx0,bx1;
+   int by0,by1;
+   int bz0,bz1;
+   double *sendx0;
+   double *sendx1;
+   double *sendy0;
+   double *sendy1;
+   double *sendz0;
+   double *sendz1;
+   double *recvx0;
+   double *recvx1;
+   double *recvy0;
+   double *recvy1;
+   double *recvz0;
+   double *recvz1;
+   MPI_Request reqsend[6];
+   MPI_Request reqrecv[6];
+ } fieldgradientdata_t;
+
 #define NFIELDS 6 //5
 #define NIF 2 /* number of fields that need to be interpolated from discrete data */
 #define NGLOB 3
@@ -35,9 +55,9 @@ void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,envi
 void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment);
 void fieldsInit();
 void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo);
-void allocateFieldGradient(systeminfo_t systeminfo);
-void initFieldHaloExchange(systeminfo_t systeminfo,int chf);
-void computeFieldGradient(int chf);
+void allocateFieldGradient(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata);
+void initFieldHaloExchange(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata,int chf);
+void computeFieldGradient(fieldgradientdata_t *fieldgradientdata,int chf);
 void fieldGradient();
 
 
@@ -67,33 +87,7 @@ double boxVolume;
 char fieldName[NFIELDS][128];
 double *fieldAddr[NFIELDS];
 double *gradAddr[NCHEM];
-int fieldType[NFIELDS];
 
-//char **fieldName;
-//double **fieldAddr;
-//double **gradAddr;
-//int *fieldType;
-
-double fieldDiffCoef[NFIELDS];
-double fieldLambda[NFIELDS];
-double fieldBC[NFIELDS]; /* boundary conditions - constant value for Dirichlet */
-double fieldICMean[NFIELDS]; /* initial conditions - mean value */
-double fieldICVar[NFIELDS]; /* initial conditions - variability */
-double fieldDt[NFIELDS]; /* how many seconds per iteration */
-
-//double *fieldDiffCoef;
-//double *fieldLambda;
-//double *fieldBC; /* boundary conditions - constant value for Dirichlet */
-//double *fieldICMean; /* initial conditions - mean value */
-//double *fieldICVar; /* initial conditions - variability */
-//double *fieldDt; /* how many seconds per iteration */
-
-/* Consumption and production rates
-   Please use good units. When I say it, I mean it! */
-double fieldConsumption[NFIELDS]; /* units - mol (cell s)^-1 */
-double fieldProduction[NFIELDS];  /* units - mol (cell s)^-1 */
-//double *fieldConsumption; /* units - mol (cell s)^-1 */
-//double *fieldProduction; /* units - mol (cell s)^-1 */
 
 int fieldNumberOfCriticalLevels[NFIELDS]; /* number of critical levels for each field */
 //int *fieldNumberOfCriticalLevels; /* number of critical levels for each field */
@@ -124,6 +118,7 @@ int rX0,rX1,rY0,rY1,rZ0,rZ1;
 
 MPI_Request reqFGSend[6];
 MPI_Request reqFGRecv[6];
+
 
 #define DENS 0
 #define BVES 1

@@ -32,36 +32,36 @@
 #include "cells.h"
 
 
-void allocateFieldGradient(systeminfo_t systeminfo)
+void allocateFieldGradient(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata)
 {
 
         if (!gfields)
                 return;
 
-        MPI_Cart_shift(systeminfo.MPI_CART_COMM,0,1,&rX0,&rX1);
-        MPI_Cart_shift(systeminfo.MPI_CART_COMM,1,1,&rY0,&rY1);
-        MPI_Cart_shift(systeminfo.MPI_CART_COMM,2,1,&rZ0,&rZ1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,0,1,&fieldgradientdata->bx0,&fieldgradientdata->bx1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,1,1,&fieldgradientdata->by0,&fieldgradientdata->by1);
+        MPI_Cart_shift(systeminfo.MPI_CART_COMM,2,1,&fieldgradientdata->bz0,&fieldgradientdata->bz1);
 
         /* allocate send buffers */
-        if(rX0!=MPI_PROC_NULL) haloSX0=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
-        if(rX1!=MPI_PROC_NULL) haloSX1=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
-        if(rY0!=MPI_PROC_NULL) haloSY0=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
-        if(rY1!=MPI_PROC_NULL) haloSY1=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
-        if(rZ0!=MPI_PROC_NULL) haloSZ0=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
-        if(rZ1!=MPI_PROC_NULL) haloSZ1=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
+        if(fieldgradientdata->bx0!=MPI_PROC_NULL) fieldgradientdata->sendx0=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
+        if(fieldgradientdata->bx1!=MPI_PROC_NULL) fieldgradientdata->sendx1=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
+        if(fieldgradientdata->by0!=MPI_PROC_NULL) fieldgradientdata->sendy0=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
+        if(fieldgradientdata->by1!=MPI_PROC_NULL) fieldgradientdata->sendy1=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
+        if(fieldgradientdata->bz0!=MPI_PROC_NULL) fieldgradientdata->sendz0=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
+        if(fieldgradientdata->bz1!=MPI_PROC_NULL) fieldgradientdata->sendz1=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
 
         /* allocate receive buffers */
-        if(rX0!=MPI_PROC_NULL) haloRX0=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
-        if(rX1!=MPI_PROC_NULL) haloRX1=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
-        if(rY0!=MPI_PROC_NULL) haloRY0=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
-        if(rY1!=MPI_PROC_NULL) haloRY1=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
-        if(rZ0!=MPI_PROC_NULL) haloRZ0=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
-        if(rZ1!=MPI_PROC_NULL) haloRZ1=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
+        if(fieldgradientdata->bx0!=MPI_PROC_NULL) fieldgradientdata->recvx0=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
+        if(fieldgradientdata->bx1!=MPI_PROC_NULL) fieldgradientdata->recvx1=(double*)calloc(gridSize.y*gridSize.z,sizeof(double));
+        if(fieldgradientdata->by0!=MPI_PROC_NULL) fieldgradientdata->recvy0=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
+        if(fieldgradientdata->by1!=MPI_PROC_NULL) fieldgradientdata->recvy1=(double*)calloc(gridSize.x*gridSize.z,sizeof(double));
+        if(fieldgradientdata->bz0!=MPI_PROC_NULL) fieldgradientdata->recvz0=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
+        if(fieldgradientdata->bz1!=MPI_PROC_NULL) fieldgradientdata->recvz1=(double*)calloc(gridSize.y*gridSize.x,sizeof(double));
 
         return;
 }
 
-void initFieldHaloExchange(systeminfo_t systeminfo, int chf)
+void initFieldHaloExchange(systeminfo_t systeminfo, fieldgradientdata_t *fieldgradientdata, int chf)
 {
         int i,j,k;
         if (!gfields)
@@ -72,89 +72,89 @@ void initFieldHaloExchange(systeminfo_t systeminfo, int chf)
                         for(k=0; k<gridSize.z; k++) {
                                 double val;
                                 val=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+k];
-                                if(i==0 && rX0!=MPI_PROC_NULL) haloSX0[gridSize.z*j+k]=val;
-                                if(i==gridSize.x-1 && rX1!=MPI_PROC_NULL) haloSX1[gridSize.z*j+k]=val;
-                                if(j==0 && rY0!=MPI_PROC_NULL) haloSY0[gridSize.z*i+k]=val;
-                                if(j==gridSize.y-1 && rY1!=MPI_PROC_NULL) haloSY1[gridSize.z*i+k]=val;
-                                if(k==0 && rZ0!=MPI_PROC_NULL) haloSZ0[gridSize.y*i+j]=val;
-                                if(k==gridSize.z-1 && rZ1!=MPI_PROC_NULL) haloSZ1[gridSize.y*i+j]=val;
+                                if(i==0 && fieldgradientdata->bx0!=MPI_PROC_NULL) fieldgradientdata->sendx0[gridSize.z*j+k]=val;
+                                if(i==gridSize.x-1 && fieldgradientdata->bx1!=MPI_PROC_NULL) fieldgradientdata->sendx1[gridSize.z*j+k]=val;
+                                if(j==0 && fieldgradientdata->by0!=MPI_PROC_NULL) fieldgradientdata->sendy0[gridSize.z*i+k]=val;
+                                if(j==gridSize.y-1 && fieldgradientdata->by1!=MPI_PROC_NULL) fieldgradientdata->sendy1[gridSize.z*i+k]=val;
+                                if(k==0 && fieldgradientdata->bz0!=MPI_PROC_NULL) fieldgradientdata->sendz0[gridSize.y*i+j]=val;
+                                if(k==gridSize.z-1 && fieldgradientdata->bz1!=MPI_PROC_NULL) fieldgradientdata->sendz1[gridSize.y*i+j]=val;
                         }
 
-        if(rX0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[0]);
-                MPI_Irecv(haloRX0,gridSize.y*gridSize.z,MPI_DOUBLE,rX0,systeminfo.size+rX0,systeminfo.MPI_CART_COMM,&reqFGRecv[0]);
+        if(fieldgradientdata->bx0!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendx0,gridSize.y*gridSize.z,MPI_DOUBLE,fieldgradientdata->bx0,systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[0]);
+                MPI_Irecv(fieldgradientdata->recvx0,gridSize.y*gridSize.z,MPI_DOUBLE,fieldgradientdata->bx0,systeminfo.size+fieldgradientdata->bx0,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[0]);
         }
-        if(rX1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[1]);
-                MPI_Irecv(haloRX1,gridSize.y*gridSize.z,MPI_DOUBLE,rX1,rX1,systeminfo.MPI_CART_COMM,&reqFGRecv[1]);
+        if(fieldgradientdata->bx1!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendx1,gridSize.y*gridSize.z,MPI_DOUBLE,fieldgradientdata->bx1,systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[1]);
+                MPI_Irecv(fieldgradientdata->recvx1,gridSize.y*gridSize.z,MPI_DOUBLE,fieldgradientdata->bx1,fieldgradientdata->bx1,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[1]);
         }
-        if(rY0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,2*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[2]);
-                MPI_Irecv(haloRY0,gridSize.x*gridSize.z,MPI_DOUBLE,rY0,3*systeminfo.size+rY0,systeminfo.MPI_CART_COMM,&reqFGRecv[2]);
+        if(fieldgradientdata->by0!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendy0,gridSize.x*gridSize.z,MPI_DOUBLE,fieldgradientdata->by0,2*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[2]);
+                MPI_Irecv(fieldgradientdata->recvy0,gridSize.x*gridSize.z,MPI_DOUBLE,fieldgradientdata->by0,3*systeminfo.size+fieldgradientdata->by0,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[2]);
         }
-        if(rY1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,3*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[3]);
-                MPI_Irecv(haloRY1,gridSize.x*gridSize.z,MPI_DOUBLE,rY1,2*systeminfo.size+rY1,systeminfo.MPI_CART_COMM,&reqFGRecv[3]);
+        if(fieldgradientdata->by1!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendy1,gridSize.x*gridSize.z,MPI_DOUBLE,fieldgradientdata->by1,3*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[3]);
+                MPI_Irecv(fieldgradientdata->recvy1,gridSize.x*gridSize.z,MPI_DOUBLE,fieldgradientdata->by1,2*systeminfo.size+fieldgradientdata->by1,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[3]);
         }
-        if(rZ0!=MPI_PROC_NULL) {
-                MPI_Isend(haloSZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,4*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[4]);
-                MPI_Irecv(haloRZ0,gridSize.y*gridSize.x,MPI_DOUBLE,rZ0,5*systeminfo.size+rZ0,systeminfo.MPI_CART_COMM,&reqFGRecv[4]);
+        if(fieldgradientdata->bz0!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendz0,gridSize.y*gridSize.x,MPI_DOUBLE,fieldgradientdata->bz0,4*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[4]);
+                MPI_Irecv(fieldgradientdata->recvz0,gridSize.y*gridSize.x,MPI_DOUBLE,fieldgradientdata->bz0,5*systeminfo.size+fieldgradientdata->bz0,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[4]);
         }
-        if(rZ1!=MPI_PROC_NULL) {
-                MPI_Isend(haloSZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,5*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&reqFGSend[5]);
-                MPI_Irecv(haloRZ1,gridSize.y*gridSize.x,MPI_DOUBLE,rZ1,4*systeminfo.size+rZ1,systeminfo.MPI_CART_COMM,&reqFGRecv[5]);
+        if(fieldgradientdata->bz1!=MPI_PROC_NULL) {
+                MPI_Isend(fieldgradientdata->sendz1,gridSize.y*gridSize.x,MPI_DOUBLE,fieldgradientdata->bz1,5*systeminfo.size+systeminfo.rank,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqsend)[5]);
+                MPI_Irecv(fieldgradientdata->recvz1,gridSize.y*gridSize.x,MPI_DOUBLE,fieldgradientdata->bz1,4*systeminfo.size+fieldgradientdata->bz1,systeminfo.MPI_CART_COMM,&(fieldgradientdata->reqrecv)[5]);
         }
 
         return;
 }
 
-void waitFieldHaloExchange()
+void waitFieldHaloExchange(fieldgradientdata_t *fieldgradientdata)
 {
         if (!gfields)
                 return;
         MPI_Status status;
-        if(rX0!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[0], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[0], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->bx0!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[0], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[0], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
-        if(rX1!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[1], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[1], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->bx1!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[1], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[1], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
-        if(rY0!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[2], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[2], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->by0!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[2], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[2], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
-        if(rY1!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[3], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[3], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->by1!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[3], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[3], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
-        if(rZ0!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[4], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[4], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->bz0!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[4], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[4], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
-        if(rZ1!=MPI_PROC_NULL) {
-                if (MPI_Wait(&reqFGSend[5], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
-                if (MPI_Wait(&reqFGRecv[5], &status) != MPI_SUCCESS)
-                        stopRun(103, "reqFGSend", __FILE__, __LINE__);
+        if(fieldgradientdata->bz1!=MPI_PROC_NULL) {
+                if (MPI_Wait(&fieldgradientdata->reqsend[5], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
+                if (MPI_Wait(&fieldgradientdata->reqrecv[5], &status) != MPI_SUCCESS)
+                        stopRun(103, "fieldgradientdata->reqsend", __FILE__, __LINE__);
         }
 
         return;
 }
 
 
-void computeFieldGradient(int chf)
+void computeFieldGradient(fieldgradientdata_t *fieldgradientdata, int chf)
 {
         int i,j,k;
         if (!gfields)
@@ -185,14 +185,14 @@ void computeFieldGradient(int chf)
                                 }
                         }
         /* wait for boundary data to arrive */
-        waitFieldHaloExchange();
+        waitFieldHaloExchange(fieldgradientdata);
         /* update with boundary data */
         for(j=0; j<gridSize.y; j++)
                 for(k=0; k<gridSize.z; k++) {
                         double x0,x1;
-                        if(rX0!=MPI_PROC_NULL) x0=haloRX0[gridSize.z*j+k];
+                        if(fieldgradientdata->bx0!=MPI_PROC_NULL) x0=fieldgradientdata->recvx0[gridSize.z*j+k];
                         else x0=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*0+gridSize.z*j+k];
-                        if(rX1!=MPI_PROC_NULL) x1=haloRX1[gridSize.z*j+k];
+                        if(fieldgradientdata->bx1!=MPI_PROC_NULL) x1=fieldgradientdata->recvx1[gridSize.z*j+k];
                         else x1=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*(gridSize.x-1)+gridSize.z*j+k];
                         gradAddr[chf][3*gridSize.z*gridSize.y*0+3*gridSize.z*j+3*k+0]=
                                 (fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*1+gridSize.z*j+k]
@@ -204,9 +204,9 @@ void computeFieldGradient(int chf)
         for(i=0; i<gridSize.x; i++)
                 for(k=0; k<gridSize.z; k++) {
                         double y0,y1;
-                        if(rY0!=MPI_PROC_NULL) y0=haloRY0[gridSize.z*i+k];
+                        if(fieldgradientdata->by0!=MPI_PROC_NULL) y0=fieldgradientdata->recvy0[gridSize.z*i+k];
                         else y0=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*0+k];
-                        if(rY1!=MPI_PROC_NULL) y1=haloRY1[gridSize.z*i+k];
+                        if(fieldgradientdata->by1!=MPI_PROC_NULL) y1=fieldgradientdata->recvy1[gridSize.z*i+k];
                         else y1=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*(gridSize.y-1)+k];
                         gradAddr[chf][3*gridSize.z*gridSize.y*i+3*gridSize.z*0+3*k+1]=
                                 (fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*1+k]
@@ -218,9 +218,9 @@ void computeFieldGradient(int chf)
         for(i=0; i<gridSize.x; i++)
                 for(j=0; j<gridSize.y; j++) {
                         double z0,z1;
-                        if(rZ0!=MPI_PROC_NULL) z0=haloRZ0[gridSize.y*i+j];
+                        if(fieldgradientdata->bz0!=MPI_PROC_NULL) z0=fieldgradientdata->recvz0[gridSize.y*i+j];
                         else z0=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+0];
-                        if(rZ1!=MPI_PROC_NULL) z1=haloRZ1[gridSize.y*i+j];
+                        if(fieldgradientdata->bz1!=MPI_PROC_NULL) z1=fieldgradientdata->recvz1[gridSize.y*i+j];
                         else z1=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+(gridSize.z-1)];
                         gradAddr[chf][3*gridSize.z*gridSize.y*i+3*gridSize.z*j+3*0+2]=
                                 (fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+1]
@@ -230,29 +230,29 @@ void computeFieldGradient(int chf)
                                  - fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+(gridSize.z-2)])/gridResolution;
                 }
 
-        if(rX0!=MPI_PROC_NULL) {
-                free(haloSX0);
-                free(haloRX0);
+        if(fieldgradientdata->bx0!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendx0);
+                free(fieldgradientdata->recvx0);
         }
-        if(rX1!=MPI_PROC_NULL) {
-                free(haloSX1);
-                free(haloRX1);
+        if(fieldgradientdata->bx1!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendx1);
+                free(fieldgradientdata->recvx1);
         }
-        if(rY0!=MPI_PROC_NULL) {
-                free(haloSY0);
-                free(haloRY0);
+        if(fieldgradientdata->by0!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendy0);
+                free(fieldgradientdata->recvy0);
         }
-        if(rY1!=MPI_PROC_NULL) {
-                free(haloSY1);
-                free(haloRY1);
+        if(fieldgradientdata->by1!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendy1);
+                free(fieldgradientdata->recvy1);
         }
-        if(rZ0!=MPI_PROC_NULL) {
-                free(haloSZ0);
-                free(haloRZ0);
+        if(fieldgradientdata->bz0!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendz0);
+                free(fieldgradientdata->recvz0);
         }
-        if(rZ1!=MPI_PROC_NULL) {
-                free(haloSZ1);
-                free(haloRZ1);
+        if(fieldgradientdata->bz1!=MPI_PROC_NULL) {
+                free(fieldgradientdata->sendz1);
+                free(fieldgradientdata->recvz1);
         }
 
         return;
@@ -260,17 +260,18 @@ void computeFieldGradient(int chf)
 
 void fieldGradient(systeminfo_t systeminfo)
 {
+        fieldgradientdata_t fieldgradientdata;
         int chf;
         if (!gfields)
                 return;
-        allocateFieldGradient(systeminfo);
+        allocateFieldGradient(systeminfo,&fieldgradientdata);
         for(chf=0; chf<NCHEM; chf++) {
                 if(chf==OXYG-NGLOB && !oxygen) continue;
                 if(chf==GLUC-NGLOB && !glucose) continue;
                 if(chf==HYDR-NGLOB && !hydrogenIon) continue;
-                initFieldHaloExchange(systeminfo,chf);
+                initFieldHaloExchange(systeminfo,&fieldgradientdata,chf);
                 //waitFieldHaloExchange();
-                computeFieldGradient(chf);
+                computeFieldGradient(&fieldgradientdata,chf);
 
         }
         return;
