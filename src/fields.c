@@ -32,11 +32,8 @@
 #include "cells.h"
 
 
-void allocateFieldGradient(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata)
+void fieldgradientallocate(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata)
 {
-
-        if (!gfields)
-                return;
 
         MPI_Cart_shift(systeminfo.MPI_CART_COMM,0,1,&fieldgradientdata->bx0,&fieldgradientdata->bx1);
         MPI_Cart_shift(systeminfo.MPI_CART_COMM,1,1,&fieldgradientdata->by0,&fieldgradientdata->by1);
@@ -61,17 +58,15 @@ void allocateFieldGradient(systeminfo_t systeminfo,fieldgradientdata_t *fieldgra
         return;
 }
 
-void initFieldHaloExchange(systeminfo_t systeminfo, fieldgradientdata_t *fieldgradientdata, int chf)
+void fieldgradientexchangeinit(systeminfo_t systeminfo, fieldgradientdata_t *fieldgradientdata, environment_t **environment, int f)
 {
         int i,j,k;
-        if (!gfields)
-                return;
 
         for(i=0; i<gridSize.x; i++)
                 for(j=0; j<gridSize.y; j++)
                         for(k=0; k<gridSize.z; k++) {
                                 double val;
-                                val=fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+k];
+                                val = (*environment)[f].data[gridSize.z*gridSize.y*i+gridSize.z*j+k];
                                 if(i==0 && fieldgradientdata->bx0!=MPI_PROC_NULL) fieldgradientdata->sendx0[gridSize.z*j+k]=val;
                                 if(i==gridSize.x-1 && fieldgradientdata->bx1!=MPI_PROC_NULL) fieldgradientdata->sendx1[gridSize.z*j+k]=val;
                                 if(j==0 && fieldgradientdata->by0!=MPI_PROC_NULL) fieldgradientdata->sendy0[gridSize.z*i+k]=val;
@@ -230,6 +225,11 @@ void computeFieldGradient(fieldgradientdata_t *fieldgradientdata, int chf)
                                  - fieldAddr[NGLOB+chf][gridSize.z*gridSize.y*i+gridSize.z*j+(gridSize.z-2)])/gridResolution;
                 }
 
+        return;
+}
+
+void fieldgradientfree(fieldgradientdata_t *fieldgradientdata) {
+
         if(fieldgradientdata->bx0!=MPI_PROC_NULL) {
                 free(fieldgradientdata->sendx0);
                 free(fieldgradientdata->recvx0);
@@ -258,14 +258,16 @@ void computeFieldGradient(fieldgradientdata_t *fieldgradientdata, int chf)
         return;
 }
 
-void fieldGradient(systeminfo_t systeminfo)
+void fieldgradient(systeminfo_t systeminfo, settings_t settings, environment_t **environment)
 {
+        int f;
         fieldgradientdata_t fieldgradientdata;
-        int chf;
-        if (!gfields)
-                return;
-        allocateFieldGradient(systeminfo,&fieldgradientdata);
-        for(chf=0; chf<NCHEM; chf++) {
+        if (settings.numberoffields==0) return;
+        fieldgradientallocate(systeminfo,&fieldgradientdata);
+        for(f=0; f<settings.numberoffields; f++) {
+                fieldgradientexchangeinit(systeminfo,&fieldgradientdata,environment,f);
+        }
+        /*for(chf=0; chf<NCHEM; chf++) {
                 if(chf==OXYG-NGLOB && !oxygen) continue;
                 if(chf==GLUC-NGLOB && !glucose) continue;
                 if(chf==HYDR-NGLOB && !hydrogenIon) continue;
@@ -273,6 +275,7 @@ void fieldGradient(systeminfo_t systeminfo)
                 //waitFieldHaloExchange();
                 computeFieldGradient(&fieldgradientdata,chf);
 
-        }
+           }*/
+        fieldgradientfree(&fieldgradientdata);
         return;
 }

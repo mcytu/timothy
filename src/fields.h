@@ -55,10 +55,11 @@ void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,envi
 void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment);
 void fieldsInit();
 void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo);
-void allocateFieldGradient(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata);
-void initFieldHaloExchange(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata,int chf);
+void fieldgradientallocate(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata);
+void fieldgradientfree(fieldgradientdata_t *fieldgradientdata);
+void fieldgradientexchangeinit(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata,environment_t **environment,int f);
 void computeFieldGradient(fieldgradientdata_t *fieldgradientdata,int chf);
-void fieldGradient();
+void fieldgradient(systeminfo_t systeminfo, settings_t settings, environment_t **environment);
 
 
 int nfields;
