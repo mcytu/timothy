@@ -86,7 +86,7 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
 
         patchesfree(&patches);
         /* compute gradient of global fields */
-        fieldgradient(systeminfo,settings,environment);
+        fieldgradient(systeminfo,settings,environment,grid);
 
         /* 7. Compute gradient of the potential for remote cells */
         /* wait for density and potential data from remote cells */

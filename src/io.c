@@ -524,30 +524,30 @@ void ioDefineOutputGlobalFields()
 {
         int f;
         /* output fields */
-        for (f = 0; f < NFIELDS; f++) {
-                if(f==BVES && !bvsim) continue;
-                if(f==TEMP && !temperature) continue;
-                if(f==OXYG && !oxygen) continue;
-                if(f==GLUC && !glucose) continue;
-                if(f==HYDR && !hydrogenIon) continue;
-                strcpy(nameOut[f], fieldName[f]);
+/*        for (f = 0; f < NFIELDS; f++) {
+                //if(f==BVES && !bvsim) continue;
+                //if(f==TEMP && !temperature) continue;
+                //if(f==OXYG && !oxygen) continue;
+                //if(f==GLUC && !glucose) continue;
+                //if(f==HYDR && !hydrogenIon) continue;
+   //                strcpy(nameOut[f], fieldName[f]);
                 dimOut[f] = SCALAR;
                 typeOut[f] = REAL;
-                addrOut[f] = &fieldAddr[f];
+   //                addrOut[f] = &fieldAddr[f];
                 jumpOut[f] = sizeof(double);
         }
-        /* output gradient */
+        // output gradient
         for(f=NFIELDS; f<NFIELDS+NCHEM; f++) {
-                if(f-NFIELDS==OXYG && !oxygen) continue;
-                if(f-NFIELDS==GLUC && !glucose) continue;
-                if(f-NFIELDS==HYDR && !hydrogenIon) continue;
-                strcpy(nameOut[f], fieldName[NGLOB+f-NFIELDS]);
+                //if(f-NFIELDS==OXYG && !oxygen) continue;
+                //if(f-NFIELDS==GLUC && !glucose) continue;
+                //if(f-NFIELDS==HYDR && !hydrogenIon) continue;
+   //                strcpy(nameOut[f], fieldName[NGLOB+f-NFIELDS]);
                 sprintf(nameOut[f]+strlen(nameOut[f]),"Gradient");
                 dimOut[f] = VECTOR;
                 typeOut[f] = REAL;
-                addrOut[f] = &gradAddr[f];
+                //              addrOut[f] = &gradAddr[f];
                 jumpOut[f] = sizeof(double);
-        }
+        }*/
 }
 
 /*!
