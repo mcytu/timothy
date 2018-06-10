@@ -22,3 +22,9 @@
 
 double **fieldsPatchesCommBuff;
 double **fieldsPatches;
+void patches_alloc(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid);
+void patches_free(patches_t *patches);
+void patches_env2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment);
+void patches_env2cellswait(systeminfo_t systeminfo, settings_t settings, patches_t *patches,cellsinfo_t *cellsinfo, grid_t *grid,cellenvdata_t ***cellenvdata);
+void patches_cells2envwait(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment);
+void patches_cells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid);

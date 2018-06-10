@@ -17,6 +17,7 @@
 #include "octree.h"
 #include "exchange.h"
 #include "initialisation.h"
+#include "environment.h"
 
 /*! \file main.c
  *  \brief contains the main simulation loop
@@ -53,10 +54,10 @@ int main(int argc, char **argv)
         initialisation(argc,argv,&systeminfo,&settings,&celltype,&environment);
         allocatecells(systeminfo,settings,celltype,&cellsinfo);
         allocategrid(systeminfo,settings,&grid);
-        envalloc(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
-        envinit(systeminfo,settings,grid,&environment);
+        environment_allocate(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
+        environment_init(systeminfo,settings,grid,&environment);
         #ifdef HYPRE
-        envinitsystem_hypre(systeminfo,settings,&grid,&environment,&solverdata,&solversettings);
+        environment_initsystem(systeminfo,settings,&grid,&environment,&solverdata,&solversettings);
         #endif
         //allocatefields(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
         //initfields(systeminfo,settings,grid,&environment);

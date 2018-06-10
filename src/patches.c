@@ -44,7 +44,7 @@
  * rather than sendind it one by one.
  * This function identifies patches and allocate memory buffers for patches.
  */
-void patchesalloc(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
+void patches_alloc(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
 {
 
         int c,p;
@@ -153,7 +153,7 @@ void patchesalloc(systeminfo_t systeminfo, settings_t settings, patches_t *patch
  * Computed values are stored in patches instead in field buffers.
  * No additional memory allocations are made here.
  */
-void cells2envinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
+void patches_cells2envinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
 {
 
         int c, i, p, j, k, f;
@@ -239,7 +239,7 @@ void cells2envinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patc
  * Receiving patches are allocated here.
  * MPI_Request tables are allocated here.
  */
-void commcells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches)
+void patches_commcells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches)
 {
         int p;
 
@@ -289,7 +289,7 @@ void commcells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *
  * Wait for communication to finish.
  * MPI_Request tables are deallocated here.
  */
-int commcells2envwait(systeminfo_t systeminfo, patches_t *patches)
+int patches_commcells2envwait(systeminfo_t systeminfo, patches_t *patches)
 {
         int p;
         MPI_Status status;
@@ -318,7 +318,7 @@ int commcells2envwait(systeminfo_t systeminfo, patches_t *patches)
  * Update local tissueField part with information from remote processes
  * received in patches. Receiveing patches are deallocated here.
  */
-int applycells2envpatches(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid,environment_t **environment)
+int patches_applycells2env(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid,environment_t **environment)
 {
 
         int i,p,f;
@@ -377,7 +377,7 @@ int applycells2envpatches(systeminfo_t systeminfo, settings_t settings, patches_
  * Receiving field patches are also allocated here.
  * MPI_Request tables are allocated here.
  */
-void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid,environment_t **environment)
+void patches_env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid,environment_t **environment)
 {
 
         int f; /* fields index */
@@ -438,7 +438,7 @@ void env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches_t *patc
         return;
 }
 
-void commenv2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches){
+void patches_commenv2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches){
 
         int p; /* process index */
         // UWAGA
@@ -475,7 +475,7 @@ void commenv2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *
  * MPI_Request tables are deallocated here.
  * Field patches buffers are deallocated here.
  */
-void commenv2cellswait(systeminfo_t systeminfo, patches_t *patches)
+void patches_commenv2cellswait(systeminfo_t systeminfo, patches_t *patches)
 {
         int p;
         MPI_Status status;
@@ -509,7 +509,7 @@ void commenv2cellswait(systeminfo_t systeminfo, patches_t *patches)
  * remote processes received in patches.
  * Receiveing field patches are deallocated here.
  */
-void applyenv2cellspatches(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo,grid_t *grid,cellenvdata_t ***cellenvdata)
+void patches_applyenv2cells(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo,grid_t *grid,cellenvdata_t ***cellenvdata)
 {
 
         int p,c,f;
@@ -593,32 +593,17 @@ void applyenv2cellspatches(systeminfo_t systeminfo, settings_t settings, patches
 }
 
 /*!
- * This is a driving function interpolating
- * cellular data to grid data.
- * This function does not enable overlapping communication
- * and computations.
- */
-/*void interpolateCellsToGrid()
-   {
-        findPatches();
-        doInterpolation();
-        initPatchExchange();
-        waitPatchExchange();
-        applyPatches();
-   }*/
-
-/*!
  * This function initializes data exchange between
  * processes required in cells-to-grid interpolation.
  * This function enables overlapping communication and
  * computations.
  */
-void cells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
+void patches_cells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, cellsinfo_t *cellsinfo, grid_t *grid)
 {
         if (settings.numberoffields==0)
                 return;
-        cells2envinfo(systeminfo,settings,patches,cellsinfo,grid);
-        commcells2envinit(systeminfo,settings,patches);
+        patches_cells2envinfo(systeminfo,settings,patches,cellsinfo,grid);
+        patches_commcells2envinit(systeminfo,settings,patches);
         return;
 }
 
@@ -628,16 +613,16 @@ void cells2envinit(systeminfo_t systeminfo, settings_t settings, patches_t *patc
  * This function enables overlapping communication and
  * computations.
  */
-void cells2envwait(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment)
+void patches_cells2envwait(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment)
 {
         if (settings.numberoffields==0)
                 return;
-        commcells2envwait(systeminfo,patches);
-        applycells2envpatches(systeminfo,settings,patches,grid,environment);
+        patches_commcells2envwait(systeminfo,patches);
+        patches_applycells2env(systeminfo,settings,patches,grid,environment);
         return;
 }
 
-void patchesfree(patches_t *patches) {
+void patches_free(patches_t *patches) {
         free(patches->receiver);
         free(patches->sender);
         free(patches->intersect);
@@ -655,18 +640,18 @@ void patchesfree(patches_t *patches) {
  * implemented here.
  * This function deallocates all important arrays used in interpolation.
  */
-void env2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment)
+void patches_env2cellsinit(systeminfo_t systeminfo, settings_t settings, patches_t *patches, grid_t *grid, environment_t **environment)
 {
         if (settings.numberoffields==0) return;
-        env2cellsinfo(systeminfo,settings,patches,grid,environment);
-        commenv2cellsinit(systeminfo,settings,patches);
+        patches_env2cellsinfo(systeminfo,settings,patches,grid,environment);
+        patches_commenv2cellsinit(systeminfo,settings,patches);
         return;
 }
 
-void env2cellswait(systeminfo_t systeminfo, settings_t settings, patches_t *patches,cellsinfo_t *cellsinfo, grid_t *grid,cellenvdata_t ***cellenvdata)
+void patches_env2cellswait(systeminfo_t systeminfo, settings_t settings, patches_t *patches,cellsinfo_t *cellsinfo, grid_t *grid,cellenvdata_t ***cellenvdata)
 {
         if (settings.numberoffields==0) return;
-        commenv2cellswait(systeminfo,patches);
-        applyenv2cellspatches(systeminfo,settings,patches,cellsinfo,grid,cellenvdata);
+        patches_commenv2cellswait(systeminfo,patches);
+        patches_applyenv2cells(systeminfo,settings,patches,cellsinfo,grid,cellenvdata);
         return;
 }

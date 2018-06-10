@@ -34,7 +34,7 @@ CFLAGS += -I. $(ZOLTANINC) $(HYPREINC)
 LDFLAGS += -lm $(ZOLTANLIB) $(GMPLIB) $(HYPRELIB)
 
 OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o exchange.o initialisation.o grid.o patches.o fieldgradient.o environment.o step.o
-DEPS = global.h io.h inline.h fieldgradient.h potential.h octree.h
+DEPS = global.h io.h inline.h fieldgradient.h potential.h octree.h patches.h environment.h
 
 all: timothy
 

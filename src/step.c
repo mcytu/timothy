@@ -28,6 +28,8 @@
 #include "potential.h"
 #include "fieldgradient.h"
 #include "exchange.h"
+#include "patches.h"
+#include "environment.h"
 
 /*! \file compute.c
  *  \brief contains main computational function called in each time step of the simulation
@@ -42,8 +44,8 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         double sf;
         patches_t patches;
         /* 0. Initialization */
-        patchesalloc(systeminfo,settings,&patches,cellsinfo,grid);
-        cells2envinit(systeminfo,settings,&patches,cellsinfo,grid);
+        patches_alloc(systeminfo,settings,&patches,cellsinfo,grid);
+        patches_cells2envinit(systeminfo,settings,&patches,cellsinfo,grid);
 
         /* initiate asynchronous data transfers between processors */
         cellssendrecv(systeminfo,*cellsinfo,cellcommdata);
@@ -56,8 +58,8 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 2. Solve global fields */
 
         if(settings.step>0) {
-                cells2envwait(systeminfo,settings,&patches,grid,environment);
-                envcompute(systeminfo,settings,grid,environment,solverdata,solversettings);
+                patches_cells2envwait(systeminfo,settings,&patches,grid,environment);
+                environment_compute(systeminfo,settings,grid,environment,solverdata,solversettings);
         }
 
         /* wait for data transfers to finish */
@@ -79,11 +81,11 @@ int singlestep(systeminfo_t systeminfo, settings_t settings, cellsinfo_t *cellsi
         /* 6. Interpolate global fields and compute gradient */
 
         /* interpolate data */
-        env2cellsinit(systeminfo,settings,&patches,grid,environment);
+        patches_env2cellsinit(systeminfo,settings,&patches,grid,environment);
 
-        env2cellswait(systeminfo,settings,&patches,cellsinfo,grid,cellenvdata);
+        patches_env2cellswait(systeminfo,settings,&patches,cellsinfo,grid,cellenvdata);
 
-        patchesfree(&patches);
+        patches_free(&patches);
         /* compute gradient of global fields */
         fieldgradient(systeminfo,settings,environment,grid);
 

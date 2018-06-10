@@ -30,7 +30,7 @@
 #include "utils.h"
 #include "mpi.h"
 
-void envalloc(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings) {
+void environment_allocate(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings) {
         int i;
          #ifdef HYPRE
         solversettings->dt=(double*)calloc(settings.numberoffields,sizeof(double));
@@ -50,7 +50,7 @@ void envalloc(systeminfo_t systeminfo,settings_t settings,grid_t grid,environmen
         return;
 }
 
-void envinit(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
+void environment_init(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
         int i,j,k,f;
         int yz=grid.localsize.y * grid.localsize.z;
         for(f=0; f<settings.numberoffields; f++) {
@@ -67,7 +67,7 @@ void envinit(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment
 /*!
  * This function sets boundary conditions for domain faces.
  */
-void envSetBoundary(int coord, int boundary, solversettings_t *solversettings)
+void environment_setboundary(int coord, int boundary, solversettings_t *solversettings)
 {
         if (coord == 0 && boundary == -1) {
                 solversettings->bclower[0] = solversettings->lower[0];
@@ -122,7 +122,7 @@ void envSetBoundary(int coord, int boundary, solversettings_t *solversettings)
 /*!
  * This function initializes grid, stencil and matrix for a given envical field.
  */
-void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
+void environment_initsystem(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
 {
         int i, j, k, c;
         int entry;
@@ -241,7 +241,7 @@ void envinitsystem_hypre(systeminfo_t systeminfo,settings_t settings,grid_t *gri
  * This function computes cell production/consumption function based on
  * the interpolated cell density field.
  */
-void envpcfunction(systeminfo_t systeminfo,settings_t settings, int var, grid_t *grid, double *pc)
+void environment_pcfunction(systeminfo_t systeminfo,settings_t settings, int var, grid_t *grid, double *pc)
 {
         int i, j, k;
 
@@ -263,7 +263,7 @@ void envpcfunction(systeminfo_t systeminfo,settings_t settings, int var, grid_t 
 /*!
  * This function initializes boundary conditions for a given envical field.
  */
-void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
+void environment_initboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
 //struct state simstate,int settings.numberoffields,struct environment *nutrient,struct gridData grid)
 {
         int i, j, k;
@@ -296,7 +296,7 @@ void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,en
         for(var=0; var<settings.numberoffields; var++) {
 
                 // wazne!!!!!!
-                envpcfunction(systeminfo,settings,var,grid,pc);
+                environment_pcfunction(systeminfo,settings,var,grid,pc);
 
                 // set the values
                 mi = 0;
@@ -328,42 +328,42 @@ void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,en
 
                 if (systeminfo.coords[systeminfo.rank][0] == 0) {
                         nvalues = nentries * grid->localsize.y * grid->localsize.z;
-                        envSetBoundary(0, -1, solversettings);
+                        environment_setboundary(0, -1, solversettings);
                         stencil_indices[0] = 1;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
                 }
                 if (systeminfo.coords[systeminfo.rank][0] == systeminfo.dim[0] - 1) {
                         nvalues = nentries * grid->localsize.y * grid->localsize.z;
-                        envSetBoundary(0, 1, solversettings);
+                        environment_setboundary(0, 1, solversettings);
                         stencil_indices[0] = 2;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
                 }
                 if (systeminfo.coords[systeminfo.rank][1] == 0) {
                         nvalues = nentries * grid->localsize.x * grid->localsize.z;
-                        envSetBoundary(1, -1, solversettings);
+                        environment_setboundary(1, -1, solversettings);
                         stencil_indices[0] = 3;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
                 }
                 if (systeminfo.coords[systeminfo.rank][1] == systeminfo.dim[1] - 1) {
                         nvalues = nentries * grid->localsize.x * grid->localsize.z;
-                        envSetBoundary(1, 1, solversettings);
+                        environment_setboundary(1, 1, solversettings);
                         stencil_indices[0] = 4;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
                 }
                 if (systeminfo.coords[systeminfo.rank][2] == 0) {
                         nvalues = nentries * grid->localsize.x * grid->localsize.y;
-                        envSetBoundary(2, -1, solversettings);
+                        environment_setboundary(2, -1, solversettings);
                         stencil_indices[0] = 5;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
                 }
                 if (systeminfo.coords[systeminfo.rank][2] == systeminfo.dim[2] - 1) {
                         nvalues = nentries * grid->localsize.x * grid->localsize.y;
-                        envSetBoundary(2, 1, solversettings);
+                        environment_setboundary(2, 1, solversettings);
                         stencil_indices[0] = 6;
                         HYPRE_SStructMatrixAddToBoxValues(solverdata->A, 0, solversettings->bclower, solversettings->bcupper, var, nentries, stencil_indices, values);
                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, bvalues);
@@ -382,7 +382,7 @@ void envinitboundary(systeminfo_t systeminfo,settings_t settings,grid_t *grid,en
 /*!
  * This function initializes Hypre for solving a given envical field.
  */
-void envinitsolver(systeminfo_t systeminfo, solverdata_t *solverdata,solversettings_t *solversettings)
+void environment_initsolver(systeminfo_t systeminfo, solverdata_t *solverdata,solversettings_t *solversettings)
 {
 
         HYPRE_SStructMatrixAssemble(solverdata->A);
@@ -417,7 +417,7 @@ void envinitsolver(systeminfo_t systeminfo, solverdata_t *solverdata,solversetti
  * This is a driving function for solving next time step
  * of a given envical field.
  */
-void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
+void environment_solve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings)
 {
         int i, j, k;
         int idx;
@@ -439,7 +439,7 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
                         // update right hand side
                         for(var=0; var<settings.numberoffields; var++) {
 
-                                envpcfunction(systeminfo,settings,var,grid,pc);
+                                environment_pcfunction(systeminfo,settings,var,grid,pc);
 
                                 HYPRE_SStructVectorGetBoxValues(solverdata->x, 0, solversettings->lower, solversettings->upper, var, values);
                                 HYPRE_SStructVectorSetBoxValues(solverdata->b, 0, solversettings->lower, solversettings->upper, var, values);
@@ -448,27 +448,27 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
                                         values[i] = solversettings->z[var] * (*environment)[var].boundarycondition;
 
                                 if (systeminfo.coords[systeminfo.rank][0] == 0) {
-                                        envSetBoundary(0, -1, solversettings);
+                                        environment_setboundary(0, -1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 if (systeminfo.coords[systeminfo.rank][0] == systeminfo.dim[0] - 1) {
-                                        envSetBoundary(0, 1, solversettings);
+                                        environment_setboundary(0, 1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 if (systeminfo.coords[systeminfo.rank][1] == 0) {
-                                        envSetBoundary(1, -1, solversettings);
+                                        environment_setboundary(1, -1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 if (systeminfo.coords[systeminfo.rank][1] == systeminfo.dim[1] - 1) {
-                                        envSetBoundary(1, 1, solversettings);
+                                        environment_setboundary(1, 1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 if (systeminfo.coords[systeminfo.rank][2] == 0) {
-                                        envSetBoundary(2, -1, solversettings);
+                                        environment_setboundary(2, -1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 if (systeminfo.coords[systeminfo.rank][2] == systeminfo.dim[2] - 1) {
-                                        envSetBoundary(2, 1, solversettings);
+                                        environment_setboundary(2, 1, solversettings);
                                         HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->bclower, solversettings->bcupper, var, values);
                                 }
                                 HYPRE_SStructVectorAddToBoxValues(solverdata->b, 0, solversettings->lower, solversettings->upper, var, pc);
@@ -504,10 +504,10 @@ void envsolve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environme
 
 /* to jest glowna funkcja "biblioteczna" */
 
-void envcompute(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment, solverdata_t *solverdata,solversettings_t *solversettings) {
+void environment_compute(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment, solverdata_t *solverdata,solversettings_t *solversettings) {
 
-        envinitboundary(systeminfo,settings,grid,environment,solverdata,solversettings);
-        envinitsolver(systeminfo,solverdata,solversettings);
-        envsolve(systeminfo,settings,grid,environment,solverdata,solversettings);
+        environment_initboundary(systeminfo,settings,grid,environment,solverdata,solversettings);
+        environment_initsolver(systeminfo,solverdata,solversettings);
+        environment_solve(systeminfo,settings,grid,environment,solverdata,solversettings);
         return;
 }
