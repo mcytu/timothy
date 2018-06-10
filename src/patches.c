@@ -385,7 +385,7 @@ void patches_env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches
         int643dv_t idx, g;
         int643dv_t size;
 // UWAGA!!!!
-        fieldsPatchesCommBuff = (double **) calloc(systeminfo.size, sizeof(double *));
+        patches->commbuff = (double **) calloc(systeminfo.size, sizeof(double *));
         for (p = 0; p < systeminfo.size; p++) {
                 int fieldsize;
                 if (!patches->sender[p])
@@ -394,7 +394,7 @@ void patches_env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches
                 size.y = patches->uppercornerR[p].y - patches->lowercornerR[p].y + 1;
                 size.z = patches->uppercornerR[p].z - patches->lowercornerR[p].z + 1;
                 fieldsize = size.x * size.y * size.z;
-                fieldsPatchesCommBuff[p] =
+                patches->commbuff[p] =
                         (double *) calloc((settings.numberoffields*4) * fieldsize, sizeof(double));
                 /* fields */
                 for (f = 0; f < settings.numberoffields; f++) {
@@ -411,7 +411,7 @@ void patches_env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches
                                                 g.z = k - grid->loweridx[systeminfo.rank].z;
                                                 index1 = f * fieldsize + size.z * size.y * idx.x + size.z * idx.y + idx.z;
                                                 index2 = grid->localsize.z * grid->localsize.y * g.x + grid->localsize.z * g.y + g.z;
-                                                fieldsPatchesCommBuff[p][index1] = (*environment)[f].data[index2];
+                                                patches->commbuff[p][index1] = (*environment)[f].data[index2];
                                         }
                 }
                 /* field gradients */
@@ -429,9 +429,9 @@ void patches_env2cellsinfo(systeminfo_t systeminfo, settings_t settings, patches
                                                 g.z = k - grid->loweridx[systeminfo.rank].z;
                                                 index1 = fieldsize*settings.numberoffields + 3* (f * fieldsize + size.z * size.y * idx.x + size.z * idx.y + idx.z);
                                                 index2 = 3*(grid->localsize.z*grid->localsize.y*g.x + grid->localsize.z*g.y + g.z);
-                                                fieldsPatchesCommBuff[p][index1] = (*environment)[f].gradient[index2];
-                                                fieldsPatchesCommBuff[p][index1+1] = (*environment)[f].gradient[index2+1];
-                                                fieldsPatchesCommBuff[p][index1+2] = (*environment)[f].gradient[index2+2];
+                                                patches->commbuff[p][index1] = (*environment)[f].gradient[index2];
+                                                patches->commbuff[p][index1+1] = (*environment)[f].gradient[index2+1];
+                                                patches->commbuff[p][index1+2] = (*environment)[f].gradient[index2+2];
                                         }
                 }
         }
@@ -442,8 +442,8 @@ void patches_commenv2cellsinit(systeminfo_t systeminfo, settings_t settings, pat
 
         int p; /* process index */
         // UWAGA
-        if (!(fieldsPatches = (double **) calloc(systeminfo.size, sizeof(double *))))
-                terminate(systeminfo,"cannot allocate fieldsPatches", __FILE__, __LINE__);
+        if (!(patches->buff = (double **) calloc(systeminfo.size, sizeof(double *))))
+                terminate(systeminfo,"cannot allocate patches->buff", __FILE__, __LINE__);
 
         patches->reqsend = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
         patches->reqrecv = (MPI_Request *) malloc(sizeof(MPI_Request) * systeminfo.size);
@@ -455,15 +455,15 @@ void patches_commenv2cellsinit(systeminfo_t systeminfo, settings_t settings, pat
                                      1) * (patches->uppercornerR[p].y - patches->lowercornerR[p].y +
                                            1) * (patches->uppercornerR[p].z - patches->lowercornerR[p].z +
                                                  1) * (settings.numberoffields*4);
-                        MPI_Isend(&(fieldsPatchesCommBuff[p][0]), sendSize, MPI_DOUBLE, p,
+                        MPI_Isend(&(patches->commbuff[p][0]), sendSize, MPI_DOUBLE, p,
                                   systeminfo.rank, MPI_COMM_WORLD, &(patches->reqsend[p]));
                 }
                 if (patches->receiver) {
                         int recvSize;
                         recvSize = patches->size[p].x * patches->size[p].y * patches->size[p].z * (settings.numberoffields*4);
-                        if (!(fieldsPatches[p] = (double *) calloc(recvSize, sizeof(double))))
-                                terminate(systeminfo,"cannot allocate fieldsPatches[p]", __FILE__, __LINE__);
-                        MPI_Irecv(&(fieldsPatches[p][0]), recvSize, MPI_DOUBLE, p, p,
+                        if (!(patches->buff[p] = (double *) calloc(recvSize, sizeof(double))))
+                                terminate(systeminfo,"cannot allocate patches->buff[p]", __FILE__, __LINE__);
+                        MPI_Irecv(&(patches->buff[p][0]), recvSize, MPI_DOUBLE, p, p,
                                   MPI_COMM_WORLD, &(patches->reqrecv[p]));
                 }
         }
@@ -498,8 +498,8 @@ void patches_commenv2cellswait(systeminfo_t systeminfo, patches_t *patches)
         free(patches->reqrecv);
 
         for (p = 0; p < systeminfo.size; p++)
-                free(fieldsPatchesCommBuff[p]);
-        free(fieldsPatchesCommBuff);
+                free(patches->commbuff[p]);
+        free(patches->commbuff);
 
         return;
 }
@@ -572,13 +572,13 @@ void patches_applyenv2cells(systeminfo_t systeminfo, settings_t settings, patche
                                                         /* scaling from mol/cm^3 to mol/cell */
                                                         for (f = 0; f < settings.numberoffields; f++) {
                                                                 int index1 = f * patches->size[p].x * patches->size[p].y * patches->size[p].z + patches->size[p].y * patches->size[p].z * idx.x + patches->size[p].z * idx.y + idx.z;
-                                                                (*cellenvdata)[f][c].value += fieldsPatches[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z); //*cellVolume;
+                                                                (*cellenvdata)[f][c].value += patches->buff[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z); //*cellVolume;
                                                         }
                                                         for (f = 0; f < settings.numberoffields; f++) {
                                                                 int index1=settings.numberoffields * patches->size[p].x * patches->size[p].y * patches->size[p].z + 3* (f * patches->size[p].x * patches->size[p].y * patches->size[p].z + patches->size[p].y * patches->size[p].z * idx.x + patches->size[p].z * idx.y + idx.z);
-                                                                (*cellenvdata)[f][c].gx += fieldsPatches[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
-                                                                (*cellenvdata)[f][c].gy += fieldsPatches[p][index1 + 1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
-                                                                (*cellenvdata)[f][c].gz += fieldsPatches[p][index1 + 2] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                                (*cellenvdata)[f][c].gx += patches->buff[p][index1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                                (*cellenvdata)[f][c].gy += patches->buff[p][index1 + 1] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
+                                                                (*cellenvdata)[f][c].gz += patches->buff[p][index1 + 2] * (ax * d.x + (1 - ax) * t.x) * (ay * d.y + (1 - ay) * t.y) * (az * d.z + (1 - az) * t.z);
                                                         }
                                                 } // if
                                         }// az
@@ -586,8 +586,8 @@ void patches_applyenv2cells(systeminfo_t systeminfo, settings_t settings, patche
         } // c
 
         for (p = 0; p < systeminfo.size; p++)
-                free(fieldsPatches[p]);
-        free(fieldsPatches);
+                free(patches->buff[p]);
+        free(patches->buff);
 
         return;
 }

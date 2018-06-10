@@ -347,6 +347,8 @@ typedef struct patches_t {
 	int643dv_t *lowercornerR;
 	int643dv_t *uppercornerR;
 	int643dv_t *size;
+	double **commbuff;
+	double **buff;
 } patches_t;
 
 typedef struct environment_t {
