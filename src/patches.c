@@ -26,7 +26,7 @@
 #include <limits.h>
 
 #include "global.h"
-#include "fields.h"
+#include "patches.h"
 #include "utils.h"
 
 /*! \file interp.c

@@ -27,7 +27,6 @@
 
 #include "global.h"
 #include "octree.h"
-#include "fields.h"
 #include "inline.h"
 
 /*! \file potential.c

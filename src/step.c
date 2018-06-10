@@ -26,8 +26,7 @@
 
 #include "global.h"
 #include "potential.h"
-#include "fields.h"
-//#include "inline.h"
+#include "fieldgradient.h"
 #include "exchange.h"
 
 /*! \file compute.c

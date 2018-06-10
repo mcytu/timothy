@@ -26,9 +26,8 @@
 
 #include "global.h"
 
-#include "fields.h"
+#include "fieldgradient.h"
 #include "utils.h"
-#include "chemf.h"
 #include "cells.h"
 
 

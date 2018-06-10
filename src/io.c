@@ -33,7 +33,6 @@
 #include "global.h"
 
 #include "io.h"
-#include "fields.h"
 #include "utils.h"
 #include "cells.h"
 

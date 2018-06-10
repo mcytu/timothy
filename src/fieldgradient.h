@@ -54,5 +54,5 @@ void fieldgradient_exchangeinit(systeminfo_t systeminfo,fieldgradientdata_t *fie
 void fieldgradient_compute(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata,grid_t *grid,environment_t **environment,int f);
 void fieldgradient(systeminfo_t systeminfo, settings_t settings, environment_t **environment,grid_t *grid);
 
-double **fieldsPatchesCommBuff;
-double **fieldsPatches;
+//double **fieldsPatchesCommBuff;
+//double **fieldsPatches;

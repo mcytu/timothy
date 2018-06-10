@@ -13,7 +13,6 @@
 #include "cells.h"
 #include "grid.h"
 #include "step.h"
-#include "fields.h"
 #include "utils.h"
 #include "octree.h"
 #include "exchange.h"
