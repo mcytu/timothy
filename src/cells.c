@@ -25,14 +25,11 @@
 #include <mpi.h>
 #include <math.h>
 #include <inttypes.h>
-#include <sprng.h>
 #include <float.h>
 
 #include "global.h"
-
 #include "utils.h"
 #include "inline.h"
-#include "fields.h"
 
 /*! \file cells.c
  *  \brief contains functions which control current states and evolution of cells

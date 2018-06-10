@@ -29,14 +29,12 @@ HYPRELIB=-L/opt/hypre/lib -lHYPRE -lblas -llapack
 HYPREINC=-I/opt/hypre/include
 
 GMPLIB=-lgmp
-SPRNGLIB=-L/opt/sprng/2.0/lib -lsprng
-SPRNGINC=-I/opt/sprng/2.0/include
 
-CFLAGS += -I. $(ZOLTANINC) $(SPRNGINC) $(HYPREINC)
-LDFLAGS += -lm $(ZOLTANLIB) $(SPRNGLIB) $(GMPLIB) $(HYPRELIB)
+CFLAGS += -I. $(ZOLTANINC) $(HYPREINC)
+LDFLAGS += -lm $(ZOLTANLIB) $(GMPLIB) $(HYPRELIB)
 
-OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o exchange.o initialisation.o grid.o patches.o fields.o environment.o step.o
-DEPS = global.h io.h inline.h fields.h potential.h octree.h
+OBJ = main.o io.o utils.o cells.o lb.o octree.o potential.o exchange.o initialisation.o grid.o patches.o fieldgradient.o environment.o step.o
+DEPS = global.h io.h inline.h fieldgradient.h potential.h octree.h
 
 all: timothy
 
