@@ -54,6 +54,7 @@ static inline int outsidethebox(cellsinfo_t *cellsinfo,int c)
         if ( cellsinfo->dimension == 3 && (z - r < -BOXSIZEZ/2.0 || z + r > BOXSIZEZ/2.0 ) )
                 return 1;
 
+
         return 0;
 }
 
