@@ -43,6 +43,7 @@ int main(int argc, char **argv)
         solverdata_t solverdata;
         solversettings_t solversettings;
         cellenvdata_t **cellenvdata;
+        struct Zoltan_Struct *ztn;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_size(MPI_COMM_WORLD, &systeminfo.size);
@@ -61,13 +62,13 @@ int main(int argc, char **argv)
         #endif
         //allocatefields(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
         //initfields(systeminfo,settings,grid,&environment);
-        lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&cellsinfo);
+        lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&ztn,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
                 updateglobalcounts(&cellsinfo);
-                lbexchange(systeminfo);
+                lbexchange(systeminfo,ztn);
                 octbuild(systeminfo,&cellsinfo,celltype);
-                createexportlist(systeminfo,settings,cellsinfo,grid,celltype,&cellcommdata,&fieldcommdata);
+                createexportlist(systeminfo,settings,cellsinfo,grid,ztn,celltype,&cellcommdata,&fieldcommdata);
                 singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
@@ -77,13 +78,11 @@ int main(int argc, char **argv)
                 cleanstep(settings,&cellenvdata);
         }
 
-        MPI_Abort(MPI_COMM_WORLD,-1);
-
         MPI_Barrier(MPI_COMM_WORLD);
 
         //decompositionFinalize();
         //cellsdestroy();
-        lbdestroy();
+        lbdestroy(&ztn);
 
         if (systeminfo.rank == 0)
                 printf("\nEnd of simulation run.\n");

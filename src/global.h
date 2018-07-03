@@ -392,10 +392,6 @@ typedef struct solverdata_t {
 } solverdata_t;
 #endif
 
-int bvsim;
-
-struct Zoltan_Struct *ztn;
-
 /* statistics */
 typedef struct statistics_t {
   double minsize; /* Minimum size of cells */

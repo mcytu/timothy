@@ -40,7 +40,7 @@ int explistcompare(const void *a, const void *b)
  * to find possible intersections of cells' neighbourhoods
  * and other processes' geometries.
  */
-void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,grid_t grid,celltype_t* celltype,cellcommdata_t *cellcommdata,fieldcommdata_t *fieldcommdata)
+void createexportlist(systeminfo_t systeminfo,settings_t settings,cellsinfo_t cellsinfo,grid_t grid,struct Zoltan_Struct *ztn,celltype_t* celltype,cellcommdata_t *cellcommdata,fieldcommdata_t *fieldcommdata)
 {
 
         int i, p;

@@ -185,7 +185,7 @@ void lbunpack(void *data, int numGIdEntries, ZOLTAN_ID_PTR globalId,
  * This function initializes the Zoltan library.
  * It is called at the beginning of the simulation.
  */
-void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,cellsinfo_t *cellsinfo)
+void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,struct Zoltan_Struct **ztn,cellsinfo_t *cellsinfo)
 {
         int rc;
         float version;
@@ -197,27 +197,27 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,cellsin
         if (systeminfo.rank == 0)
                 printf("Zoltan Version %.3f. Initialized.\n", version);
 
-        ztn = Zoltan_Create(MPI_COMM_WORLD);
+        *ztn = Zoltan_Create(MPI_COMM_WORLD);
 
-        Zoltan_Set_Param(ztn, "IMBALANCE_TOL", "1.4");
-        Zoltan_Set_Param(ztn, "LB_METHOD", "HSFC"); /* Hilbert Space-Filling Curve Partitioning */
-        Zoltan_Set_Param(ztn, "NUM_GID_ENTRIES", "1"); /* global ID is 1 integer */
-        Zoltan_Set_Param(ztn, "NUM_LID_ENTRIES", "1"); /* local ID is 1 integer */
-        Zoltan_Set_Param(ztn, "OBJ_WEIGHT_DIM", "1"); /* we use object weights */
-        Zoltan_Set_Param(ztn, "DEBUG_LEVEL", "0"); /* quiet mode; no output unless an error or warning is produced */
-        Zoltan_Set_Param(ztn, "KEEP_CUTS", "1"); /* save the cuts for later use */
-        Zoltan_Set_Param(ztn, "AUTO_MIGRATE", "1"); /* use the auto migration mechanism */
+        Zoltan_Set_Param(*ztn, "IMBALANCE_TOL", "1.4");
+        Zoltan_Set_Param(*ztn, "LB_METHOD", "HSFC"); /* Hilbert Space-Filling Curve Partitioning */
+        Zoltan_Set_Param(*ztn, "NUM_GID_ENTRIES", "1"); /* global ID is 1 integer */
+        Zoltan_Set_Param(*ztn, "NUM_LID_ENTRIES", "1"); /* local ID is 1 integer */
+        Zoltan_Set_Param(*ztn, "OBJ_WEIGHT_DIM", "1"); /* we use object weights */
+        Zoltan_Set_Param(*ztn, "DEBUG_LEVEL", "0"); /* quiet mode; no output unless an error or warning is produced */
+        Zoltan_Set_Param(*ztn, "KEEP_CUTS", "1"); /* save the cuts for later use */
+        Zoltan_Set_Param(*ztn, "AUTO_MIGRATE", "1"); /* use the auto migration mechanism */
 
-        Zoltan_Set_Fn(ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)())lbdimension, cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)())lbcoords, cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)())lbncells,cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_LIST_FN_TYPE,(void (*)())lbmycells, cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,(void (*)())lbcelldatasize, cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_PACK_OBJ_FN_TYPE, (void (*)())lbpack, cellsinfo->cells);
-        Zoltan_Set_Fn(ztn, ZOLTAN_UNPACK_OBJ_FN_TYPE, (void (*)())lbunpack,cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_PRE_MIGRATE_PP_FN_TYPE, (void (*)())lbpre,cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_MID_MIGRATE_PP_FN_TYPE, (void (*)())lbmid,cellsinfo);
-        Zoltan_Set_Fn(ztn, ZOLTAN_POST_MIGRATE_PP_FN_TYPE, (void (*)())lbpost,cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_NUM_GEOM_FN_TYPE, (void (*)())lbdimension, cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_GEOM_FN_TYPE, (void (*)())lbcoords, cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_NUM_OBJ_FN_TYPE, (void (*)())lbncells,cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_OBJ_LIST_FN_TYPE,(void (*)())lbmycells, cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_OBJ_SIZE_FN_TYPE,(void (*)())lbcelldatasize, cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_PACK_OBJ_FN_TYPE, (void (*)())lbpack, cellsinfo->cells);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_UNPACK_OBJ_FN_TYPE, (void (*)())lbunpack,cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_PRE_MIGRATE_PP_FN_TYPE, (void (*)())lbpre,cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_MID_MIGRATE_PP_FN_TYPE, (void (*)())lbmid,cellsinfo);
+        Zoltan_Set_Fn(*ztn, ZOLTAN_POST_MIGRATE_PP_FN_TYPE, (void (*)())lbpost,cellsinfo);
 
 }
 
@@ -225,7 +225,7 @@ void lbinit(int argc, char **argv, MPI_Comm Comm,systeminfo_t systeminfo,cellsin
  * This function calls the Zoltan's domain decomposition and migration functions.
  * It is called at the beginning of each simulation step.
  */
-void lbexchange(systeminfo_t systeminfo)
+void lbexchange(systeminfo_t systeminfo,struct Zoltan_Struct *ztn)
 {
         int rc;
 
@@ -263,7 +263,7 @@ void lbexchange(systeminfo_t systeminfo)
  * This function deactivates the Zoltan library.
  * It is called at the end of the simulation.
  */
-void lbdestroy()
+void lbdestroy(struct Zoltan_Struct **ztn)
 {
-        Zoltan_Destroy(&ztn);
+        Zoltan_Destroy(&(*ztn));
 }
