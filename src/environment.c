@@ -32,6 +32,9 @@
 
 void environment_allocate(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata,solversettings_t *solversettings) {
         int i;
+
+        if(settings.numberoffields==0) return;
+
          #ifdef HYPRE
         solversettings->dt=(double*)calloc(settings.numberoffields,sizeof(double));
         solversettings->z=(double*)calloc(settings.numberoffields,sizeof(double));
@@ -52,6 +55,9 @@ void environment_allocate(systeminfo_t systeminfo,settings_t settings,grid_t gri
 
 void environment_init(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment) {
         int i,j,k,f;
+
+        if(settings.numberoffields==0) return;
+
         int yz=grid.localsize.y * grid.localsize.z;
         for(f=0; f<settings.numberoffields; f++) {
                 for (i = 0; i < grid.localsize.x; i++)
@@ -127,6 +133,8 @@ void environment_initsystem(systeminfo_t systeminfo,settings_t settings,grid_t *
         int i, j, k, c;
         int entry;
         int var;
+
+        if(settings.numberoffields==0) return;
 
         HYPRE_Int offsets[7][3] = {
                 {0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0},
@@ -505,6 +513,8 @@ void environment_solve(systeminfo_t systeminfo,settings_t settings,grid_t *grid,
 /* to jest glowna funkcja "biblioteczna" */
 
 void environment_compute(systeminfo_t systeminfo,settings_t settings,grid_t *grid,environment_t **environment, solverdata_t *solverdata,solversettings_t *solversettings) {
+
+        if(settings.numberoffields==0) return;
 
         environment_initboundary(systeminfo,settings,grid,environment,solverdata,solversettings);
         environment_initsolver(systeminfo,solverdata,solversettings);

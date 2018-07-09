@@ -41,8 +41,6 @@
    MPI_Request reqrecv[6];
  } fieldgradientdata_t;
 
-void allocatefields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment,solverdata_t *solverdata);
-void initfields(systeminfo_t systeminfo,settings_t settings,grid_t grid,environment_t **environment);
 void fieldsInit();
 void fieldsSolve(settings_t settings,cellsinfo_t *cellsinfo);
 void fieldgradient_allocate(systeminfo_t systeminfo,fieldgradientdata_t *fieldgradientdata,grid_t *grid);

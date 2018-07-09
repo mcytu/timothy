@@ -60,8 +60,6 @@ int main(int argc, char **argv)
         #ifdef HYPRE
         environment_initsystem(systeminfo,settings,&grid,&environment,&solverdata,&solversettings);
         #endif
-        //allocatefields(systeminfo,settings,grid,&environment,&solverdata,&solversettings);
-        //initfields(systeminfo,settings,grid,&environment);
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&ztn,&cellsinfo);
 
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
@@ -69,18 +67,17 @@ int main(int argc, char **argv)
                 lbexchange(systeminfo,ztn);
                 octbuild(systeminfo,&cellsinfo,celltype);
                 createexportlist(systeminfo,settings,cellsinfo,grid,ztn,celltype,&cellcommdata,&fieldcommdata);
-                singlestep(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
+                step_compute(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
                 printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(systeminfo,settings,celltype,cellenvdata,&cellsinfo);
                 writevtk(systeminfo,settings,cellsinfo);
                 octfree(&cellsinfo);
-                cleanstep(settings,&cellenvdata);
+                step_clean(settings,&cellenvdata);
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        //decompositionFinalize();
         //cellsdestroy();
         lbdestroy(&ztn);
 

@@ -123,6 +123,8 @@ void readenvfile(systeminfo_t systeminfo,settings_t* settings,environment_t* env
         int nr;
         int firstnameset=0;
 
+        if(settings->numberoffields==0) return;
+
         sprintf(envfile,"environment.inp");
 
         if (systeminfo.rank == 0) {
