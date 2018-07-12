@@ -87,8 +87,8 @@ void readcellpositions(systeminfo_t systeminfo,settings_t settings,celltype_t *c
                                                 int nrandom;
                                                 cellsinfo->cells[cellsinfo->localcount.n].x=atof(bufx);
                                                 cellsinfo->cells[cellsinfo->localcount.n].y=atof(bufy);
-                                                if(ncoords>3)
-                                                        cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
+                                                if(cellsinfo->dimension==2) cellsinfo->cells[cellsinfo->localcount.n].z=0.0;
+                                                if(cellsinfo->dimension==3) cellsinfo->cells[cellsinfo->localcount.n].z=atof(bufz);
                                                 cellsinfo->cells[cellsinfo->localcount.n].ctype=i;
                                                 cellsinfo->cells[cellsinfo->localcount.n].size=celltype[i].size;
                                                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
@@ -96,7 +96,8 @@ void readcellpositions(systeminfo_t systeminfo,settings_t settings,celltype_t *c
                                                 cellsinfo->localcount.g0phase+=1;
                                                 cellsinfo->localtypecount[i].n+=1;
                                                 cellsinfo->localtypecount[i].g0phase+=1;
-                                                nrandom=atoi(bufn);
+                                                if(cellsinfo->dimension==2) nrandom=atoi(bufz);
+                                                if(cellsinfo->dimension==3) nrandom=atoi(bufn);
                                                 cellsrandominit(nrandom,i,systeminfo,settings,celltype,cellsinfo);
                                         }
 

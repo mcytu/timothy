@@ -47,11 +47,11 @@ static inline int outsidethebox(cellsinfo_t *cellsinfo,int c)
         z = cellsinfo->cells[c].z;
         r = cellsinfo->cells[c].size;
 
-        if (x - r < -BOXSIZEX/2.0 || x + r > BOXSIZEX/2.0 )
+        if (x - r <= -BOXSIZEX/2.0 || x + r >= BOXSIZEX/2.0 )
                 return 1;
-        if (y - r < -BOXSIZEY/2.0 || y + r > BOXSIZEY/2.0 )
+        if (y - r <= -BOXSIZEY/2.0 || y + r >= BOXSIZEY/2.0 )
                 return 1;
-        if ( cellsinfo->dimension == 3 && (z - r < -BOXSIZEZ/2.0 || z + r > BOXSIZEZ/2.0 ) )
+        if ( cellsinfo->dimension == 3 && (z - r <= -BOXSIZEZ/2.0 || z + r >= BOXSIZEZ/2.0 ) )
                 return 1;
 
         return 0;
@@ -97,6 +97,8 @@ void cellsrandominit(int nrandom,int ctype,systeminfo_t systeminfo,settings_t se
                 cellsinfo->cells[cellsinfo->localcount.n].y=z2 * D + cellsinfo->cells[idx].y;
                 if(settings.dimension>2)
                         cellsinfo->cells[cellsinfo->localcount.n].z=z3 * D + cellsinfo->cells[idx].z;
+                else
+                        cellsinfo->cells[cellsinfo->localcount.n].z=0.0;
 
                 cellsinfo->cells[cellsinfo->localcount.n].ctype=ctype;
                 cellsinfo->cells[cellsinfo->localcount.n].density=0.0;
@@ -344,14 +346,14 @@ void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *r
         for (c = 0; c < cellsinfo->localcount.n; c++) {
                 cellsinfo->cells[c].x += cellsinfo->forces[c].x;
                 cellsinfo->cells[c].y += cellsinfo->forces[c].y;
-                cellsinfo->cells[c].z += cellsinfo->forces[c].z;
+                if(settings.dimension==3) cellsinfo->cells[c].z += cellsinfo->forces[c].z;
                 /* random movement */
                 cellsinfo->cells[c].x += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
                 cellsinfo->cells[c].y += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
-                cellsinfo->cells[c].z += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                if(settings.dimension==3) cellsinfo->cells[c].z += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
 
                 /* mark cells outside the box for removal */
-                if( outsidethebox(cellsinfo,c) ) {
+                if( outsidethebox(cellsinfo,c) && removecell[c]==0) {
                         removecell[c]=1;
                         (*removecount)=(*removecount)+1;
                 }
@@ -370,9 +372,6 @@ int updatecellcycles(systeminfo_t systeminfo,settings_t settings,celltype_t *cel
         int lnc;
         int lowenvlevel1,lowenvlevel2;
 
-        //eps = densityCriticalLevel1;
-        //epsCancer = densityCriticalLevel2;
-
         lnc = cellsinfo->localcount.n;
 
         for (c = 0; c < lnc; c++) {
@@ -380,12 +379,6 @@ int updatecellcycles(systeminfo_t systeminfo,settings_t settings,celltype_t *cel
                 eps = celltype[cellsinfo->cells[c].ctype].criticaldensity;
                 csize = celltype[cellsinfo->cells[c].ctype].size;
                 rd = celltype[cellsinfo->cells[c].ctype].rd;
-
-                if ( outsidethebox(cellsinfo,c) ) {
-                        removecell[c] = 1;
-                        (*removecount)=(*removecell)+1;
-                        continue;
-                }
 
                 if (removecell[c])
                         continue;
@@ -460,7 +453,7 @@ int updatecellcycles(systeminfo_t systeminfo,settings_t settings,celltype_t *cel
                                         cellsinfo->localcount.g1phase -=1;
                                         cellsinfo->localcount.sphase +=1;
                                         death = ((float)rand_r(&(settings.rseed))/RAND_MAX < rd ? 1 : 0);
-                                        if (death) {
+                                        if (death && removecell[c]==0) {
                                                 removecell[c] = 1;
                                                 (*removecount)=(*removecount)+1;
                                         }
@@ -497,7 +490,7 @@ int updatecellcycles(systeminfo_t systeminfo,settings_t settings,celltype_t *cel
                                         cellsinfo->localcount.g2phase -=1;
                                         cellsinfo->localcount.mphase +=1;
                                         death = ((float)rand_r(&(settings.rseed))/RAND_MAX < rd ? 1 : 0);
-                                        if (death) {
+                                        if (death && removecell[c]==0) {
                                                 removecell[c] = 1;
                                                 (*removecount)=(*removecount)+1;
                                         }
