@@ -62,6 +62,8 @@ int main(int argc, char **argv)
         #endif
         lbinit(argc,argv,MPI_COMM_WORLD,systeminfo,&ztn,&cellsinfo);
 
+        settings.simulationstart=1;
+
         for (settings.step = 0; settings.step < settings.numberofsteps; settings.step++) {
                 updateglobalcounts(&cellsinfo);
                 lbexchange(systeminfo,ztn);
@@ -69,9 +71,9 @@ int main(int argc, char **argv)
                 createexportlist(systeminfo,settings,cellsinfo,grid,ztn,celltype,&cellcommdata,&fieldcommdata);
                 step_compute(systeminfo,settings,&cellsinfo,celltype,&grid,&environment,&cellcommdata,&interpdata,&cellenvdata,&solverdata,&solversettings);
                 exchangecleanup(systeminfo,cellsinfo,&cellcommdata,&fieldcommdata);
-                printstatistics(systeminfo,settings,cellsinfo,&statistics);
                 cellsupdate(systeminfo,settings,celltype,cellenvdata,&cellsinfo);
-                writevtk(systeminfo,settings,cellsinfo);
+                if(!(settings.step%settings.statoutstep)) printstatistics(systeminfo,settings,cellsinfo,&statistics);
+                if(!(settings.step%settings.visoutstep)) writevtk(systeminfo,settings,cellsinfo);
                 octfree(&cellsinfo);
                 step_clean(settings,&cellenvdata);
         }

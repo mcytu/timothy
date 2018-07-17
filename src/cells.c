@@ -337,20 +337,21 @@ void cellsdeath(int oldlnc,cellsinfo_t *cellsinfo,unsigned char *removecell,int6
 /*!
  * This function updates cells' positions.
  */
-void updatepositions(settings_t settings,cellsinfo_t *cellsinfo,unsigned char *removecell, int64_t *removecount)
+void updatepositions(settings_t settings,celltype_t *celltype,cellsinfo_t *cellsinfo,unsigned char *removecell, int64_t *removecount)
 {
         int c;
         double alpha=0.00001;
 
         /* move cells */
         for (c = 0; c < cellsinfo->localcount.n; c++) {
+                float randommove=celltype[cellsinfo->cells[c].ctype].randommove;
                 cellsinfo->cells[c].x += cellsinfo->forces[c].x;
                 cellsinfo->cells[c].y += cellsinfo->forces[c].y;
                 if(settings.dimension==3) cellsinfo->cells[c].z += cellsinfo->forces[c].z;
                 /* random movement */
-                cellsinfo->cells[c].x += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
-                cellsinfo->cells[c].y += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
-                if(settings.dimension==3) cellsinfo->cells[c].z += settings.randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].x += randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                cellsinfo->cells[c].y += randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
+                if(settings.dimension==3) cellsinfo->cells[c].z += randommove*(((float)rand_r(&(settings.rseed))/RAND_MAX)*2.0 - 1.0);
 
                 /* mark cells outside the box for removal */
                 if( outsidethebox(cellsinfo,c) && removecell[c]==0) {
@@ -532,7 +533,7 @@ void cellsupdate(systeminfo_t systeminfo, settings_t settings,celltype_t *cellty
         removecell = (unsigned char *) calloc(oldlnc, sizeof(unsigned char));
         removecount = 0;
 
-        updatepositions(settings,cellsinfo,removecell,&removecount);
+        updatepositions(settings,celltype,cellsinfo,removecell,&removecount);
         updatecellcycles(systeminfo,settings,celltype,cellsinfo,cellenvdata,removecell,&removecount);
         cellsdeath(oldlnc,cellsinfo,removecell,removecount);
         updateglobalcounts(cellsinfo);

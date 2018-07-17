@@ -222,6 +222,7 @@ void readcellsfile(systeminfo_t systeminfo, settings_t* settings, celltype_t* ce
                         if (strcmp(buf1,"H") == 0 ) { celltype[i].h=atof(buf2); continue; }
                         if (strcmp(buf1,"INPUT") == 0) { strcpy(celltype[i].inputfile, buf2); continue; }
                         if (strcmp(buf1,"CDENS") == 0) { celltype[i].criticaldensity=atof(buf2); continue; }
+                        if (strcmp(buf1,"RANDOMMOVE") == 0) { celltype[i].randommove=atof(buf2); continue; }
                         if (strcmp(buf1,"ENVCONS") == 0) {
                                 bytesread=0;
                                 sscanf(buf, "%s%n",buf4,&nbytes);
@@ -360,7 +361,6 @@ void readparamfile(int argc, char **argv, systeminfo_t systeminfo, settings_t* s
                 if (strcmp(buf1,"STATOUTSTEP") == 0 ) { settings->statoutstep=atoi(buf2); continue; }
                 if (strcmp(buf1,"RSTOUTSTEP") == 0 ) { settings->rstoutstep=atoi(buf2); continue; }
                 if (strcmp(buf1,"MAXSPEED") == 0) { settings->maxspeed=atof(buf2); continue; }
-                if (strcmp(buf1,"RANDOMMOVE") == 0) { settings->randommove=atof(buf2); continue; }
 
         }
 

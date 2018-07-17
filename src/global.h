@@ -290,7 +290,6 @@ typedef struct settings_t {
     int statoutstep;
 		int rstoutstep;
 		float maxspeed;
-		float randommove;
 		float gfdt;
 		float gfh;
 		int simulationstart;
@@ -332,6 +331,7 @@ typedef struct celltype_t {
 	float *consumption;
 	float *criticallevel1;
 	float *criticallevel2;
+	float randommove;
 } celltype_t;
 
 typedef struct patches_t {
