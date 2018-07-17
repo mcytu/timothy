@@ -262,7 +262,8 @@ void getLocalRankAndSize(int rank, int size, int32_t * lrank,
 
 void randomstreaminit(systeminfo_t *systeminfo,settings_t *settings)
 {
-        settings->rseed=time(NULL) + systeminfo->rank;
+        srand(time(NULL) + systeminfo->rank);
+        //settings->rseed=time(NULL) + systeminfo->rank;
         return;
 }
 
